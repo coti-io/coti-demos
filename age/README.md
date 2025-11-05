@@ -22,8 +22,8 @@ Before you begin, ensure you have the following installed:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/cotitech-io/demo.git
-   cd date_challenge
+   git clone https://github.com/cotitech-io/demos.git
+   cd age
    ```
 2. **Install dependencies**
 
@@ -31,15 +31,17 @@ Before you begin, ensure you have the following installed:
    npm install
    ```
 3. **Set up environment variables** (optional for custom deployment)
-   
+
    For deploying your own contract, create a `.env` file:
+
    ```bash
    DEPLOYER_PRIVATE_KEY=your_deployment_private_key_here
    VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
    AES_KEY=your_32_character_aes_key
    ```
-   
+
    For the backend server, update `server/index.js` to use environment variables:
+
    ```javascript
    const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || 'your_wallet_private_key'
    const AES_KEY = process.env.AES_KEY || 'your_32_character_aes_key'
