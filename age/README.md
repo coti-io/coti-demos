@@ -157,41 +157,41 @@ Before you begin, ensure you have the following installed:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Client (React SPA)                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  HomePage    │  │  Admin Page  │  │  Player Page │     │
-│  │     (/)      │  │   (/admin)   │  │  (/player)   │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │  HomePage    │  │  Admin Page  │  │  Player Page │       │
+│  │     (/)      │  │   (/admin)   │  │  (/player)   │       │
+│  └──────────────┘  └──────────────┘  └──────────────┘       │
 └────────────────────────┬────────────────────────────────────┘
                          │ API Calls (fetch)
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Backend Server (Express.js)                     │
-│  • Port 3002                                                 │
-│  • Handles MPC encryption/decryption                         │
+│              Backend Server (Express.js)                    │
+│  • Port 3002                                                │
+│  • Handles MPC encryption/decryption                        │
 │  • Birth date → Age conversion                              │
 │  • Manages Coti wallet with AES key                         │
-│  ┌──────────────────────────────────────────────────┐      │
-│  │  API Endpoints:                                    │      │
-│  │  • POST /api/store-date     (Store birth date)   │      │
-│  │  • POST /api/compare-date   (Compare ages)       │      │
-│  │  • GET  /api/is-date-set    (Check if set)       │      │
-│  │  • GET  /health             (Health check)       │      │
-│  └──────────────────────────────────────────────────┘      │
+│  ┌──────────────────────────────────────────────────┐       │
+│  │  API Endpoints:                                  │       │
+│  │  • POST /api/store-date     (Store birth date)   │       │
+│  │  • POST /api/compare-date   (Compare ages)       │       │
+│  │  • GET  /api/is-date-set    (Check if set)       │       │
+│  │  • GET  /health             (Health check)       │       │
+│  └──────────────────────────────────────────────────┘       │
 └────────────────────────┬────────────────────────────────────┘
                          │ Coti-Ethers SDK
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │              Coti Testnet (Chain ID: 7082400)               │
-│  ┌────────────────────────────────────────────────┐        │
-│  │   DateGame Smart Contract (Solidity)           │        │
-│  │   Address: 0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729 │
-│  │                                                 │        │
-│  │   • setAge(itUint64)       - Store encrypted age│       │
-│  │   • greaterThan(itUint64)  - Compare (stored > input)│  │
-│  │   • lessThan(itUint64)     - Compare (stored < input)│  │
-│  │   • comparisonResult()     - Get encrypted result│     │
-│  │   • isAgeSet()             - Check if age stored│      │
-│  └────────────────────────────────────────────────┘        │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │   DateGame Smart Contract (Solidity)                 │   │
+│  │   Address: 0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729│   │
+│  │                                                      │   │
+│  │   • setAge(itUint64)       - Store encrypted age.    │   │
+│  │   • greaterThan(itUint64)  - Compare (stored > input)│   │
+│  │   • lessThan(itUint64)     - Compare (stored < input)│   │
+│  │   • comparisonResult()     - Get encrypted result.   │   │
+│  │   • isAgeSet()             - Check if age stored.    │   │
+│  └────────────────────────────────────────v─────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
