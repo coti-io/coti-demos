@@ -37,14 +37,14 @@ Before you begin, ensure you have the following installed:
    ```bash
    DEPLOYER_PRIVATE_KEY=your_deployment_private_key_here
    VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
-   AES_KEY=your_32_character_aes_key
+   AES_KEY=aes_key
    ```
 
    For the backend server, update `server/index.js` to use environment variables:
 
    ```javascript
    const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || 'your_wallet_private_key'
-   const AES_KEY = process.env.AES_KEY || 'your_32_character_aes_key'
+   const AES_KEY = process.env.AES_KEY || 'aes_key'
    ```
 
 ## 🚀 Quick Start
@@ -113,7 +113,7 @@ Before you begin, ensure you have the following installed:
 
    ```bash
    DEPLOYER_PRIVATE_KEY=your_wallet_private_key
-   AES_KEY=your_32_character_aes_key
+   AES_KEY=aes_key
    ```
 5. **Start both backend and frontend**
 
