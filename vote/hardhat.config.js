@@ -19,9 +19,15 @@ export default {
             url: process.env.VITE_APP_NODE_HTTPS_ADDRESS || "https://testnet.coti.io/rpc",
             chainId: 7082400,
             accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
-            timeout: 60000,
+            timeout: 180000, // 3 minutes
             gas: 3000000,
-            gasPrice: 10000000000 // 10 gwei
+            gasPrice: 10000000000, // 10 gwei - lower gas price
+            allowUnlimitedContractSize: true,
+            blockGasLimit: 30000000,
+            // Add retry configuration
+            httpHeaders: {
+                "User-Agent": "hardhat"
+            }
         }
     },
     paths: {
