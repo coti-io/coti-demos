@@ -213,6 +213,7 @@ export default function VotingApp() {
           isElectionOpen={isElectionOpen}
           onOpenElection={() => setIsElectionOpen(true)}
           onCloseElection={() => setIsElectionOpen(false)}
+          contractAddress={contractAddress}
         />
       </div>
 
