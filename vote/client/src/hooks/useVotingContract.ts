@@ -230,23 +230,13 @@ export function useVotingContract() {
       const ownerWallet = new Wallet(ownerPK, provider);
       const contract = getContract(ownerWallet);
       
-      // Call getResults as a transaction (it aggregates and decrypts internally)
-      const tx = await contract.getResults({
-        gasLimit: 15000000,
-        gasPrice: ethers.parseUnits('10', 'gwei'),
-      });
-      
-      const receipt = await tx.wait();
-      console.log('Results transaction completed:', receipt.hash);
-      
-      // Now read the results using staticCall with any wallet
-      const wallet = voters[0].wallet;
-      if (!wallet) return null;
-      
-      const readContract = getContract(wallet);
-      const results = await readContract.getResults.staticCall({
+      // First call getResults using staticCall to get the data without sending a transaction
+      // This will aggregate and decrypt internally
+      const results = await contract.getResults.staticCall({
         gasLimit: 15000000,
       });
+      
+      console.log('Results retrieved via staticCall:', results);
       
       if (!Array.isArray(results)) {
         console.error('Results is not an array:', results);
@@ -258,6 +248,15 @@ export function useVotingContract() {
         optionLabel: result.optionLabel,
         voteCount: Number(result.voteCount),
       }));
+
+      // Now send the actual transaction to store the results on-chain
+      const tx = await contract.getResults({
+        gasLimit: 15000000,
+        gasPrice: ethers.parseUnits('10', 'gwei'),
+      });
+      
+      const receipt = await tx.wait();
+      console.log('Results transaction completed:', receipt.hash);
 
       return {
         results: mappedResults,
