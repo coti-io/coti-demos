@@ -215,10 +215,15 @@ export function useVotingContract() {
     try {
       // Check if election is closed first
       const status = await getElectionStatus();
+      console.log('Election status:', status);
+      
       if (!status || status.isOpen) {
-        console.log('Election is still open - results not available yet');
-        return null;
+        const message = status?.isOpen ? 'Election is still open' : 'Could not get election status';
+        console.log(message + ' - results not available yet');
+        throw new Error(message + '. Please close the election first.');
       }
+
+      console.log('Election is closed, voter count:', status.voterCount);
 
       // Use owner wallet since getResults() modifies state (aggregates and decrypts)
       const ownerPK = import.meta.env.VITE_DEPLOYER_PRIVATE_KEY;
@@ -230,41 +235,54 @@ export function useVotingContract() {
       const ownerWallet = new Wallet(ownerPK, provider);
       const contract = getContract(ownerWallet);
       
+      console.log('Calling getResults with owner wallet:', ownerWallet.address);
+      
       // First call getResults using staticCall to get the data without sending a transaction
       // This will aggregate and decrypt internally
-      const results = await contract.getResults.staticCall({
-        gasLimit: 15000000,
-      });
-      
-      console.log('Results retrieved via staticCall:', results);
-      
-      if (!Array.isArray(results)) {
-        console.error('Results is not an array:', results);
-        return null;
+      try {
+        const results = await contract.getResults.staticCall({
+          gasLimit: 15000000,
+        });
+        
+        console.log('Results retrieved via staticCall:', results);
+        
+        if (!Array.isArray(results)) {
+          console.error('Results is not an array:', results);
+          throw new Error('Invalid results format returned from contract');
+        }
+        
+        const mappedResults = results.map((result: any) => ({
+          optionId: Number(result.optionId),
+          optionLabel: result.optionLabel,
+          voteCount: Number(result.voteCount),
+        }));
+
+        // Now send the actual transaction to store the results on-chain
+        console.log('Sending getResults transaction...');
+        const tx = await contract.getResults({
+          gasLimit: 15000000,
+          gasPrice: ethers.parseUnits('10', 'gwei'),
+        });
+        
+        const receipt = await tx.wait();
+        console.log('Results transaction completed:', receipt.hash);
+
+        return {
+          results: mappedResults,
+          transactionHash: receipt.hash,
+        };
+      } catch (callError: any) {
+        console.error('Error calling getResults:', callError);
+        
+        // Provide more helpful error message
+        if (callError.message?.includes('missing revert data')) {
+          throw new Error('Unable to fetch results. This usually means:\n• No votes were cast before closing the election\n• The contract needs to be reset\n\nPlease reopen the election, cast some votes, then close it again.');
+        }
+        throw callError;
       }
-      
-      const mappedResults = results.map((result: any) => ({
-        optionId: Number(result.optionId),
-        optionLabel: result.optionLabel,
-        voteCount: Number(result.voteCount),
-      }));
-
-      // Now send the actual transaction to store the results on-chain
-      const tx = await contract.getResults({
-        gasLimit: 15000000,
-        gasPrice: ethers.parseUnits('10', 'gwei'),
-      });
-      
-      const receipt = await tx.wait();
-      console.log('Results transaction completed:', receipt.hash);
-
-      return {
-        results: mappedResults,
-        transactionHash: receipt.hash,
-      };
     } catch (error) {
       console.error('Error getting results:', error);
-      return null;
+      throw error;
     }
   };
 
