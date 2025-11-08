@@ -18,7 +18,8 @@ export default {
         cotiTestnet: {
             url: process.env.VITE_APP_NODE_HTTPS_ADDRESS || "https://testnet.coti.io/rpc",
             chainId: 7082400,
-            accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
+            // Use Alice's private key so she becomes the owner and can decrypt results
+            accounts: process.env.ALICE_PK ? [process.env.ALICE_PK] : [],
             timeout: 180000, // 3 minutes
             gas: 3000000,
             gasPrice: 10000000000, // 10 gwei - lower gas price

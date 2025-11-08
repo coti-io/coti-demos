@@ -58,7 +58,8 @@ contract COTIVotingContract {
     address private owner;
     
     // Vote tallies (computed when election closes)
-    ctUint64[5] private voteTallies; // Index 0 unused, 1-4 for options
+    // Using utUint64 (combined user + network ciphertext) so owner can decrypt
+    utUint64[5] private voteTallies; // Index 0 unused, 1-4 for options
     bool private talliesInitialized;
     bool private resultsAggregated; // Track if results have been aggregated for current election
     
@@ -69,6 +70,7 @@ contract COTIVotingContract {
     event ElectionStateChanged(bool isOpen);
     event OwnerAuthorized(address indexed voter);
     event ResultsDecrypted(uint8 indexed optionId, string optionLabel, uint64 voteCount);
+    event EncryptedResultForOwner(uint8 indexed optionId, string optionLabel, ctUint64 encryptedValue);
     
     constructor() {
         owner = msg.sender;
@@ -230,10 +232,25 @@ contract COTIVotingContract {
         
         electionOpened = !electionOpened;
         
-        // Reset aggregation flag when reopening election
+        // Reset votes and aggregation when reopening election
         if (electionOpened) {
             resultsAggregated = false;
             talliesInitialized = false;
+            
+            // Clear all voter votes
+            for (uint256 i = 0; i < voterAddresses.length; i++) {
+                address voterAddr = voterAddresses[i];
+                voters[voterAddr].hasVoted = false;
+                voters[voterAddr].hasAuthorizedOwner = false;
+                // Note: encryptedVote doesn't need to be cleared as it will be overwritten
+            }
+            
+            // Clear vote tallies by reinitializing to zero
+            for (uint8 i = 1; i <= 4; i++) {
+                gtUint64 gtZero = MpcCore.setPublic64(0);
+                utUint64 memory zeroTally = MpcCore.offBoardCombined(gtZero, owner);
+                voteTallies[i] = zeroTally;
+            }
         }
         
         emit ElectionStateChanged(electionOpened);
@@ -259,9 +276,10 @@ contract COTIVotingContract {
         if (!anyVotesCast) revert NoVotesCast();
         
         // Initialize vote tallies to 0 for each option (1-4)
+        // Using offBoardCombined to encrypt for owner
         for (uint8 i = 1; i <= 4; i++) {
             gtUint64 gtZero = MpcCore.setPublic64(0);
-            ctUint64 zeroTally = MpcCore.offBoard(gtZero);
+            utUint64 memory zeroTally = MpcCore.offBoardCombined(gtZero, owner);
             voteTallies[i] = zeroTally;
         }
         talliesInitialized = true;
@@ -292,16 +310,18 @@ contract COTIVotingContract {
                 gtBool isMatch = MpcCore.eq(encryptedVote, optionValue);
                 
                 // Convert boolean to uint64 (1 if match, 0 if not)
+                // Note: mux(condition, falseValue, trueValue) - parameters are reversed!
                 gtUint64 one = MpcCore.setPublic64(1);
                 gtUint64 zero = MpcCore.setPublic64(0);
-                gtUint64 voteIncrement = MpcCore.mux(isMatch, one, zero);
+                gtUint64 voteIncrement = MpcCore.mux(isMatch, zero, one);
                 
                 // Load current tally and add the increment
-                gtUint64 currentTally = MpcCore.onBoard(voteTallies[optionId]);
+                // Using .ciphertext to load from utUint64 (combined type)
+                gtUint64 currentTally = MpcCore.onBoard(voteTallies[optionId].ciphertext);
                 gtUint64 newTally = MpcCore.add(currentTally, voteIncrement);
                 
-                // Store the updated tally (generic ciphertext)
-                ctUint64 updatedTally = MpcCore.offBoard(newTally);
+                // Store the updated tally using offBoardCombined for owner
+                utUint64 memory updatedTally = MpcCore.offBoardCombined(newTally, owner);
                 voteTallies[optionId] = updatedTally;
             }
         }
@@ -310,7 +330,7 @@ contract COTIVotingContract {
         resultsAggregated = true;
     }
     
-    // Aggregate votes - must be called before viewing results
+    // Public function to aggregate votes - must be called before viewing results
     function aggregateVotes() public electionClosed {
         _aggregateVotes();
     }
@@ -340,61 +360,40 @@ contract COTIVotingContract {
         return results;
     }
     
-    // Get encrypted results for the owner - following medical records pattern
-    // Returns encrypted tallies that can be decrypted client-side by the owner
-    function getResultsForOwner() public electionClosed onlyOwner returns (ctUint64[4] memory) {
-        if (voterAddresses.length == 0) revert NoVotersRegistered();
+    // Get encrypted result for a specific option - following DateGame pattern
+    // Returns user-specific ciphertext that owner can decrypt client-side
+    function getEncryptedResult(uint8 optionId) public view electionClosed onlyOwner returns (ctUint64) {
+        require(optionId >= 1 && optionId <= 4, "Invalid option ID");
+        require(talliesInitialized, "Votes have not been aggregated yet. Call aggregateVotes() first.");
         
-        // Aggregate votes first to ensure tallies are up to date
-        _aggregateVotes();
-        
-        // Create array to return encrypted tallies for owner
-        ctUint64[4] memory encryptedResults;
-        
-        // Re-encrypt each tally for the owner (caller)
-        for (uint8 i = 0; i < 4; i++) {
-            uint8 optionId = votingOptions[i].id; // 1-4
-            
-            if (talliesInitialized) {
-                // Load the generic encrypted tally
-                gtUint64 encryptedTally = MpcCore.onBoard(voteTallies[optionId]);
-                
-                // Re-encrypt FOR the owner so they can decrypt client-side
-                // This follows the same pattern as getRecordForDoctor in medical records
-                ctUint64 tallyForOwner = MpcCore.offBoardToUser(encryptedTally, msg.sender);
-                encryptedResults[i] = tallyForOwner;
-            }
-        }
-        
-        return encryptedResults;
+        // Return the user-specific ciphertext from the combined type
+        // This can be decrypted client-side by the owner
+        return voteTallies[optionId].userCiphertext;
     }
     
-    // Legacy function - kept for compatibility but returns encrypted values
-    // Use getResultsForOwner() and decrypt client-side instead
-    function getResults() public electionClosed returns (VoteResult[4] memory) {
+    // Legacy function for compatibility
+    function getResults() public electionClosed onlyOwner returns (VoteResult[4] memory) {
         if (voterAddresses.length == 0) revert NoVotersRegistered();
         
-        // Aggregate votes first to ensure tallies are up to date
+        // Aggregate votes if not already done
         _aggregateVotes();
         
-        // Create results array to return
+        // Return zeros since actual values need client-side decryption
         VoteResult[4] memory results;
-        
-        // Return results with labels but encrypted counts (set to 0)
-        // Actual decryption must happen client-side
         for (uint8 i = 0; i < 4; i++) {
-            uint8 optionId = votingOptions[i].id; // 1-4
-            string memory optionLabel = votingOptions[i].label;
-            
             results[i] = VoteResult({
-                optionId: optionId,
-                optionLabel: optionLabel,
-                voteCount: 0  // Cannot decrypt on-chain, must use getResultsForOwner()
+                optionId: votingOptions[i].id,
+                optionLabel: votingOptions[i].label,
+                voteCount: 0
             });
         }
         
         return results;
     }
+    
+
+    
+
     
     // Getter methods for voting options and question
     function getVotingOptions() public view returns (VoteOption[4] memory) {

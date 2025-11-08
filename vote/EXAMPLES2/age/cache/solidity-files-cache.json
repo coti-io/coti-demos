@@ -1,0 +1,151 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/percival.lucena/coti/age/contracts/DateGame.sol": {
+      "lastModificationDate": 1762376761760,
+      "contentHash": "8353f9bb252e61e4f8a79879e75d97df",
+      "sourceName": "contracts/DateGame.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@coti-io/coti-contracts/contracts/utils/mpc/MpcCore.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "DateGame"
+      ]
+    },
+    "/Users/percival.lucena/coti/age/node_modules/@coti-io/coti-contracts/contracts/utils/mpc/MpcCore.sol": {
+      "lastModificationDate": 1761775254671,
+      "contentHash": "c84aea8b46183e77829e98ee26e535e8",
+      "sourceName": "@coti-io/coti-contracts/contracts/utils/mpc/MpcCore.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./MpcInterface.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "MpcCore"
+      ]
+    },
+    "/Users/percival.lucena/coti/age/node_modules/@coti-io/coti-contracts/contracts/utils/mpc/MpcInterface.sol": {
+      "lastModificationDate": 1761775254672,
+      "contentHash": "5983053b988abe114aae3307432aaf43",
+      "sourceName": "@coti-io/coti-contracts/contracts/utils/mpc/MpcInterface.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "ExtendedOperations"
+      ]
+    },
+    "/Users/percival.lucena/coti/age/contracts/Counter.sol": {
+      "lastModificationDate": 1762374885797,
+      "contentHash": "9f1203ffb06531af216fe9b811da918a",
+      "sourceName": "contracts/Counter.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@coti-io/coti-contracts/contracts/utils/mpc/MpcCore.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "Counter"
+      ]
+    }
+  }
+}

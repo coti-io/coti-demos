@@ -6,9 +6,10 @@ const CONTRACT_ABI = [
   "function castVote(tuple(uint256 ciphertext, bytes signature) encryptedVote) external",
   "function getElectionStatus() external view returns (bool isOpen, uint256 voterCount, address electionOwner)",
   "function toggleElection() external",
-  "function getResults() external returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[4])",
+  "function aggregateVotes() external",
+  "function getEncryptedResult(uint8 optionId) external view returns (uint256)",
+  "function getVotingOptions() external view returns (tuple(uint8 id, string label)[4])",
   "function voters(address) external view returns (string name, address voterId, uint256 encryptedVote, bool isRegistered, bool hasVoted, bool hasAuthorizedOwner)",
-  "event ResultsDecrypted(uint8 indexed optionId, string optionLabel, uint64 voteCount)",
 ];
 
 async function runIntegrationTest() {
@@ -19,7 +20,8 @@ async function runIntegrationTest() {
 
   const contractAddress = process.env.VITE_CONTRACT_ADDRESS;
   const rpcUrl = process.env.VITE_APP_NODE_HTTPS_ADDRESS || 'https://testnet.coti.io/rpc';
-  const ownerPK = process.env.VITE_DEPLOYER_PRIVATE_KEY;
+  // Use Alice as owner since she's the one with the AES key for decryption
+  const ownerPK = process.env.VITE_ALICE_PK;
 
   const voters = [
     { name: 'Bob', pk: process.env.VITE_BOB_PK, aesKey: process.env.VITE_BOB_AES_KEY, vote: 1 },
@@ -31,16 +33,36 @@ async function runIntegrationTest() {
 
   const provider = new ethers.JsonRpcProvider(rpcUrl);
 
-  // Test 1: Check initial election status
-  console.log('TEST 1: Check Initial Election Status');
+  // Test 1: Reset election state to ensure clean start
+  console.log('TEST 1: Reset Election State');
   console.log('-'.repeat(60));
   const ownerWallet = new Wallet(ownerPK, provider);
   const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, ownerWallet);
   
   let status = await contract.getElectionStatus();
-  console.log(`✓ Election is open: ${status.isOpen}`);
-  console.log(`✓ Voter count: ${status.voterCount}`);
-  console.log(`✓ Owner: ${status.electionOwner}`);
+  console.log(`Initial state - Election is open: ${status.isOpen}`);
+  console.log(`Voter count: ${status.voterCount}`);
+  console.log(`Owner: ${status.electionOwner}`);
+  
+  // Always close and reopen to ensure clean state (clears old votes and tallies)
+  if (status.isOpen) {
+    console.log('Closing election to reset state...');
+    const closeTx = await contract.toggleElection({
+      gasLimit: 15000000,
+      gasPrice: ethers.parseUnits('10', 'gwei'),
+    });
+    await closeTx.wait();
+  }
+  
+  console.log('Opening election (this resets all votes and tallies)...');
+  const openTx = await contract.toggleElection({
+    gasLimit: 15000000,
+    gasPrice: ethers.parseUnits('10', 'gwei'),
+  });
+  await openTx.wait();
+  
+  status = await contract.getElectionStatus();
+  console.log(`✓ Election is now open: ${status.isOpen}`);
   console.log('');
 
   // Test 2: Cast votes
@@ -102,89 +124,89 @@ async function runIntegrationTest() {
   console.log(`✓ Election is now closed: ${!status.isOpen}`);
   console.log('');
 
-  // Test 5: Get results
-  console.log('TEST 5: Get Results (Aggregate and Decrypt)');
+  // Test 5: Get results (client-side decryption)
+  console.log('TEST 5: Get Results (Client-Side Decryption)');
   console.log('-'.repeat(60));
-  console.log('Calling getResults() - this will aggregate and decrypt votes...');
+  
+  // Setup owner wallet with AES key for decryption
+  const ownerAesKey = process.env.VITE_ALICE_AES_KEY;
+  if (!ownerAesKey) {
+    throw new Error('VITE_ALICE_AES_KEY not set');
+  }
+  ownerWallet.setUserOnboardInfo({ aesKey: ownerAesKey });
+  console.log('Owner wallet configured with AES key');
   
   try {
-    const resultsTx = await contract.getResults({
+    // Step 1: Aggregate votes
+    console.log('Calling aggregateVotes()...');
+    const aggTx = await contract.aggregateVotes({
       gasLimit: 15000000,
       gasPrice: ethers.parseUnits('10', 'gwei'),
     });
+    await aggTx.wait();
+    console.log('✓ Votes aggregated');
+    console.log('');
     
-    console.log(`Transaction sent: ${resultsTx.hash}`);
-    const resultsReceipt = await resultsTx.wait();
-    console.log(`✓ Results transaction confirmed (block ${resultsReceipt.blockNumber})`);
-    console.log(`  Status: ${resultsReceipt.status === 1 ? 'SUCCESS' : 'FAILED'}`);
+    // Step 2: Get voting options
+    const options = await contract.getVotingOptions();
+    
+    // Step 3: Read and decrypt each encrypted result
+    console.log('Reading and decrypting results...');
+    console.log('');
+    console.log('FINAL RESULTS:');
+    console.log('='.repeat(60));
+    
+    let totalVotes = 0;
+    const results = {};
+    
+    for (let i = 0; i < options.length; i++) {
+      const optionId = Number(options[i].id);
+      const optionLabel = options[i].label;
+      
+      try {
+        // Get encrypted result for this option
+        const encryptedValue = await contract.getEncryptedResult(optionId);
+        
+        // Decrypt client-side
+        const decrypted = await ownerWallet.decryptValue(encryptedValue);
+        const voteCount = typeof decrypted === 'bigint' ? Number(decrypted) : Number(decrypted);
+        results[optionLabel] = voteCount;
+        totalVotes += voteCount;
+        console.log(`Option ${optionId} - ${optionLabel.padEnd(12)} : ${voteCount} votes`);
+      } catch (decryptError) {
+        console.log(`Option ${optionId} - ${optionLabel.padEnd(12)} : Error - ${decryptError.message}`);
+        results[optionLabel] = 0;
+      }
+    }
+    
+    console.log('-'.repeat(60));
+    console.log(`Total votes counted: ${totalVotes}`);
     console.log('');
 
-    if (resultsReceipt.status === 1) {
-      // The results are returned in the transaction, but we can't easily parse them from the receipt
-      // Instead, let's call getResults again with staticCall from the owner's perspective
-      // But first, the owner needs to onboard
-      // Parse the events from the transaction to get the decrypted results
-      console.log('Parsing ResultsDecrypted events from transaction...');
-      const resultsEvents = resultsReceipt.logs
-        .map(log => {
-          try {
-            return contract.interface.parseLog(log);
-          } catch {
-            return null;
-          }
-        })
-        .filter(event => event && event.name === 'ResultsDecrypted');
-      
-      if (resultsEvents.length > 0) {
-        console.log('');
-        console.log('FINAL RESULTS:');
-        console.log('='.repeat(60));
-        
-        let totalVotes = 0;
-        const results = {};
-        
-        resultsEvents.forEach((event) => {
-          const optionLabel = event.args.optionLabel;
-          const voteCount = Number(event.args.voteCount);
-          results[optionLabel] = voteCount;
-          totalVotes += voteCount;
-          console.log(`${optionLabel.padEnd(15)} : ${voteCount} votes`);
-        });
-        
-        console.log('-'.repeat(60));
-        console.log(`Total votes counted: ${totalVotes}`);
-        console.log('');
+    // Verify expected results
+    const expectedResults = {
+      'Chocolate': 3,  // Bob, Charlie, Ethan
+      'Raspberry': 1,  // Bea
+      'Sandwich': 1,   // David
+      'Mango': 0
+    };
 
-        // Verify expected results
-        const expectedResults = {
-          'Chocolate': 3,  // Bob, Charlie, Ethan
-          'Raspberry': 1,  // Bea
-          'Sandwich': 1,   // David
-          'Mango': 0
-        };
-
-        console.log('VERIFICATION:');
-        console.log('-'.repeat(60));
-        let allCorrect = true;
-        Object.keys(expectedResults).forEach((optionLabel) => {
-          const expected = expectedResults[optionLabel];
-          const actual = results[optionLabel] || 0;
-          const match = expected === actual;
-          allCorrect = allCorrect && match;
-          console.log(`${optionLabel.padEnd(15)} : Expected ${expected}, Got ${actual} ${match ? '✓' : '✗'}`);
-        });
-        
-        console.log('');
-        if (allCorrect) {
-          console.log('✅ ALL TESTS PASSED!');
-        } else {
-          console.log('❌ SOME TESTS FAILED!');
-        }
-      } else {
-        console.log('❌ No ResultsDecrypted events found in transaction');
-      }
+    console.log('VERIFICATION:');
+    console.log('-'.repeat(60));
+    let allCorrect = true;
+    Object.keys(expectedResults).forEach((optionLabel) => {
+      const expected = expectedResults[optionLabel];
+      const actual = results[optionLabel] || 0;
+      const match = expected === actual;
+      allCorrect = allCorrect && match;
+      console.log(`${optionLabel.padEnd(15)} : Expected ${expected}, Got ${actual} ${match ? '✓' : '✗'}`);
+    });
+    
+    console.log('');
+    if (allCorrect) {
+      console.log('✅ ALL TESTS PASSED!');
     } else {
-      console.log('❌ Results transaction failed!');
+      console.log('❌ SOME TESTS FAILED!');
     }
   } catch (error) {
     console.log('❌ Error getting results:', error.message);
