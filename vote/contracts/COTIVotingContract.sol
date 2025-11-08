@@ -60,6 +60,7 @@ contract COTIVotingContract {
     // Vote tallies (computed when election closes)
     ctUint64[5] private voteTallies; // Index 0 unused, 1-4 for options
     bool private talliesInitialized;
+    bool private resultsAggregated; // Track if results have been aggregated for current election
     
     // Events for tracking operations
     event VoterRegistered(address indexed voterId, string name);
@@ -67,6 +68,7 @@ contract COTIVotingContract {
     event VoteChanged(address indexed voter);
     event ElectionStateChanged(bool isOpen);
     event OwnerAuthorized(address indexed voter);
+    event ResultsDecrypted(uint8 indexed optionId, string optionLabel, uint64 voteCount);
     
     constructor() {
         owner = msg.sender;
@@ -227,12 +229,22 @@ contract COTIVotingContract {
         }
         
         electionOpened = !electionOpened;
+        
+        // Reset aggregation flag when reopening election
+        if (electionOpened) {
+            resultsAggregated = false;
+            talliesInitialized = false;
+        }
+        
         emit ElectionStateChanged(electionOpened);
     }
     
     // Vote aggregation logic - secure vote counting using COTI MPC operations
     function _aggregateVotes() private {
         if (voterAddresses.length == 0) revert NoVotersRegistered();
+        
+        // Skip if already aggregated for this election
+        if (resultsAggregated) return;
         
         // Check if any votes have been cast
         bool anyVotesCast = false;
@@ -246,15 +258,13 @@ contract COTIVotingContract {
         // If no votes have been cast, revert with specific error
         if (!anyVotesCast) revert NoVotesCast();
         
-        // Initialize vote tallies to 0 for each option (1-4) only once
-        if (!talliesInitialized) {
-            for (uint8 i = 1; i <= 4; i++) {
-                gtUint64 gtZero = MpcCore.setPublic64(0);
-                ctUint64 zeroTally = MpcCore.offBoard(gtZero);
-                voteTallies[i] = zeroTally;
-            }
-            talliesInitialized = true;
+        // Initialize vote tallies to 0 for each option (1-4)
+        for (uint8 i = 1; i <= 4; i++) {
+            gtUint64 gtZero = MpcCore.setPublic64(0);
+            ctUint64 zeroTally = MpcCore.offBoard(gtZero);
+            voteTallies[i] = zeroTally;
         }
+        talliesInitialized = true;
         
         // Iterate through all registered voters and aggregate their votes
         for (uint256 i = 0; i < voterAddresses.length; i++) {
@@ -295,6 +305,9 @@ contract COTIVotingContract {
                 voteTallies[optionId] = updatedTally;
             }
         }
+        
+        // Mark aggregation as complete
+        resultsAggregated = true;
     }
     
     // Aggregate votes - must be called before viewing results
@@ -346,9 +359,13 @@ contract COTIVotingContract {
             
             // Only decrypt if tallies have been initialized
             if (talliesInitialized) {
-                // Load and decrypt the vote tally for this option
+                // Load the generic encrypted tally and decrypt it
+                // MpcCore.decrypt() can decrypt generic ciphertexts when called from a transaction
                 gtUint64 encryptedTally = MpcCore.onBoard(voteTallies[optionId]);
                 decryptedCount = MpcCore.decrypt(encryptedTally);
+                
+                // Emit the decrypted result as an event so it can be read from transaction logs
+                emit ResultsDecrypted(optionId, optionLabel, decryptedCount);
             }
             
             // Create result entry with option ID, label, and decrypted vote count

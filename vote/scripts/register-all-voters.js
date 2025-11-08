@@ -1,11 +1,11 @@
 import { ethers } from '@coti-io/coti-ethers';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: './client/.env' });
 
 async function registerVoters() {
   const contractAddress = process.env.VITE_CONTRACT_ADDRESS || '0xB2aB38FFf4Dd617EAa2EC1BD43E176A528E85BBF';
   const rpcUrl = process.env.VITE_APP_NODE_HTTPS_ADDRESS || 'https://testnet.coti.io/rpc';
-  const ownerPK = process.env.DEPLOYER_PRIVATE_KEY; // Contract owner
+  const ownerPK = process.env.VITE_DEPLOYER_PRIVATE_KEY; // Contract owner
 
   if (!ownerPK) {
     console.error('Error: DEPLOYER_PRIVATE_KEY not found in .env file');
