@@ -96,34 +96,42 @@ export default function VotingApp() {
       const status = await getElectionStatus();
       if (status) {
         setIsElectionOpen(status.isOpen);
-      }
+        
+        // Only fetch results if election is closed
+        if (!status.isOpen) {
+          setIsLoadingResults(true);
+          try {
+            const results = await getResults();
+            if (results) {
+              const newVotes: Record<string, number> = {
+                chocolate: 0,
+                raspberry: 0,
+                sandwich: 0,
+                mango: 0,
+              };
 
-      // Fetch results if election is closed
-      if (status && !status.isOpen) {
-        setIsLoadingResults(true);
-        try {
-          const results = await getResults();
-          if (results) {
-            const newVotes: Record<string, number> = {
-              chocolate: 0,
-              raspberry: 0,
-              sandwich: 0,
-              mango: 0,
-            };
+              results.forEach(result => {
+                const optionId = votingOptions.find(opt => opt.label === result.optionLabel)?.id;
+                if (optionId) {
+                  newVotes[optionId] = result.voteCount;
+                }
+              });
 
-            results.forEach(result => {
-              const optionId = votingOptions.find(opt => opt.label === result.optionLabel)?.id;
-              if (optionId) {
-                newVotes[optionId] = result.voteCount;
-              }
-            });
-
-            setVotes(newVotes);
+              setVotes(newVotes);
+            }
+          } catch (error) {
+            console.error('Error fetching results:', error);
+          } finally {
+            setIsLoadingResults(false);
           }
-        } catch (error) {
-          console.error('Error fetching results:', error);
-        } finally {
-          setIsLoadingResults(false);
+        } else {
+          // Reset votes when election is open
+          setVotes({
+            chocolate: 0,
+            raspberry: 0,
+            sandwich: 0,
+            mango: 0,
+          });
         }
       }
     };
@@ -133,7 +141,8 @@ export default function VotingApp() {
     // Poll for updates every 10 seconds
     const interval = setInterval(fetchElectionData, 10000);
     return () => clearInterval(interval);
-  }, [getElectionStatus, getResults]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleVoteClick = (voterId: string) => {
     if (!isElectionOpen) return;
