@@ -154,6 +154,28 @@ export function useVotingContract() {
     }
   };
 
+  const countVotesCast = async (): Promise<number> => {
+    if (!contractAddress || voters.length === 0) {
+      return 0;
+    }
+
+    try {
+      let count = 0;
+      for (const voter of voters) {
+        if (!voter.wallet) continue;
+        const contract = getContract(voter.wallet);
+        const voterData = await contract.voters(voter.wallet.address);
+        if (voterData.hasVoted) {
+          count++;
+        }
+      }
+      return count;
+    } catch (error) {
+      console.error('Error counting votes:', error);
+      return 0;
+    }
+  };
+
   const getElectionStatus = async (): Promise<{ isOpen: boolean; voterCount: number } | null> => {
     if (!contractAddress || voters.length === 0) {
       return null;
@@ -276,7 +298,7 @@ export function useVotingContract() {
         
         // Provide more helpful error message
         if (callError.message?.includes('missing revert data')) {
-          throw new Error('Unable to fetch results. This usually means:\n• No votes were cast before closing the election\n• The contract needs to be reset\n\nPlease reopen the election, cast some votes, then close it again.');
+          throw new Error('No votes were cast before the election was closed.\n\nTo see results:\n1. Reopen the election\n2. Cast votes by clicking on voter cards\n3. Close the election again\n4. Results will appear automatically');
         }
         throw callError;
       }
@@ -317,6 +339,7 @@ export function useVotingContract() {
     voters,
     castVote,
     checkIfVoted,
+    countVotesCast,
     getElectionStatus,
     getResults,
     aggregateVotes,

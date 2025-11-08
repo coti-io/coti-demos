@@ -22,7 +22,7 @@ interface VotingOption {
 }
 
 export default function VotingApp() {
-  const { voters: contractVoters, castVote, contractAddress, getElectionStatus, getResults, toggleElection } = useVotingContract();
+  const { voters: contractVoters, castVote, contractAddress, getElectionStatus, getResults, toggleElection, countVotesCast } = useVotingContract();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
@@ -247,6 +247,19 @@ export default function VotingApp() {
   };
 
   const handleToggleElection = async () => {
+    // If closing the election, check if any votes were cast
+    if (isElectionOpen) {
+      const voteCount = await countVotesCast();
+      if (voteCount === 0) {
+        toast({
+          title: "No Votes Cast",
+          description: "Please cast at least one vote before closing the election. Click on a voter card to vote.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsTogglingElection(true);
     try {
       toast({
