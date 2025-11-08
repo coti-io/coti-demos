@@ -5,6 +5,7 @@ interface ElectionControlsProps {
   onOpenElection: () => void;
   onCloseElection: () => void;
   contractAddress?: string;
+  isToggling?: boolean;
 }
 
 export default function ElectionControls({
@@ -12,6 +13,7 @@ export default function ElectionControls({
   onOpenElection,
   onCloseElection,
   contractAddress,
+  isToggling = false,
 }: ElectionControlsProps) {
   return (
     <div className="flex items-center justify-between gap-4 py-6 border-t">
@@ -33,23 +35,23 @@ export default function ElectionControls({
       <div className="flex items-center gap-4">
         <Button
           onClick={onOpenElection}
-          disabled={isElectionOpen}
+          disabled={isElectionOpen || isToggling}
           variant={isElectionOpen ? "secondary" : "default"}
           size="lg"
           className="px-8"
           data-testid="button-open-election"
         >
-          Open Voting
+          {isToggling ? "Processing..." : "Open Voting"}
         </Button>
         <Button
           onClick={onCloseElection}
-          disabled={!isElectionOpen}
+          disabled={!isElectionOpen || isToggling}
           variant={!isElectionOpen ? "secondary" : "destructive"}
           size="lg"
           className="px-8"
           data-testid="button-close-election"
         >
-          Close Voting
+          {isToggling ? "Processing..." : "Close Voting"}
         </Button>
       </div>
     </div>

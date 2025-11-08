@@ -10,7 +10,8 @@ const VOTING_CONTRACT_ABI = [
   "function isVoterRegistered(address voterId) external view returns (bool)",
   "function voters(address) external view returns (string name, address voterId, bytes encryptedVote, bool isRegistered, bool hasVoted, bool hasAuthorizedOwner)",
   "function getElectionStatus() external view returns (bool isOpen, uint256 voterCount, address electionOwner)",
-  "function getResults() external returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[])"
+  "function getResults() external returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[])",
+  "function toggleElection() external"
 ];
 
 export interface VoterAccount {
@@ -198,12 +199,40 @@ export function useVotingContract() {
     }
   };
 
+  const toggleElection = async (): Promise<any> => {
+    if (!contractAddress) {
+      throw new Error('Contract address not set');
+    }
+
+    // Use owner wallet (DEPLOYER_PRIVATE_KEY from .env)
+    const ownerPK = import.meta.env.VITE_DEPLOYER_PRIVATE_KEY;
+    if (!ownerPK) {
+      throw new Error('Owner private key not set. Please set VITE_DEPLOYER_PRIVATE_KEY in .env');
+    }
+
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const ownerWallet = new ethers.Wallet(ownerPK, provider);
+    const contract = getContract(ownerWallet);
+
+    // Send transaction
+    const tx = await contract.toggleElection({
+      gasLimit: 15000000,
+      gasPrice: ethers.parseUnits('10', 'gwei'),
+    });
+
+    // Wait for transaction to be mined
+    const receipt = await tx.wait();
+    
+    return receipt;
+  };
+
   return {
     voters,
     castVote,
     checkIfVoted,
     getElectionStatus,
     getResults,
+    toggleElection,
     contractAddress,
   };
 }

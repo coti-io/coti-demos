@@ -22,10 +22,11 @@ interface VotingOption {
 }
 
 export default function VotingApp() {
-  const { voters: contractVoters, castVote, contractAddress, getElectionStatus, getResults } = useVotingContract();
+  const { voters: contractVoters, castVote, contractAddress, getElectionStatus, getResults, toggleElection } = useVotingContract();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
+  const [isTogglingElection, setIsTogglingElection] = useState(false);
 
   // Load voters from environment variables (excluding Alice who is the contract owner)
   const [voters, setVoters] = useState<Voter[]>(() => {
@@ -211,6 +212,67 @@ export default function VotingApp() {
     }
   };
 
+  const handleToggleElection = async () => {
+    setIsTogglingElection(true);
+    try {
+      toast({
+        title: isElectionOpen ? "Closing Election" : "Opening Election",
+        description: "Sending transaction to blockchain...",
+      });
+
+      const receipt = await toggleElection();
+
+      // Fetch updated status
+      const status = await getElectionStatus();
+      if (status) {
+        setIsElectionOpen(status.isOpen);
+      }
+
+      toast({
+        title: isElectionOpen ? "Election Closed" : "Election Opened",
+        description: `Transaction: ${receipt.hash.slice(0, 10)}...${receipt.hash.slice(-8)}`,
+      });
+
+      // If election was just closed, fetch results
+      if (!status?.isOpen) {
+        setIsLoadingResults(true);
+        try {
+          const results = await getResults();
+          if (results) {
+            const newVotes: Record<string, number> = {
+              chocolate: 0,
+              raspberry: 0,
+              sandwich: 0,
+              mango: 0,
+            };
+
+            results.forEach(result => {
+              const optionId = votingOptions.find(opt => opt.label === result.optionLabel)?.id;
+              if (optionId) {
+                newVotes[optionId] = result.voteCount;
+              }
+            });
+
+            setVotes(newVotes);
+          }
+        } catch (error) {
+          console.error('Error fetching results:', error);
+        } finally {
+          setIsLoadingResults(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling election:", error);
+      toast({
+        title: "Toggle Failed",
+        description: error instanceof Error ? error.message : "Failed to toggle election",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTogglingElection(false);
+    }
+  };
+
   const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
   const results = votingOptions.map(option => ({
     option: option.label,
@@ -255,9 +317,10 @@ export default function VotingApp() {
 
         <ElectionControls
           isElectionOpen={isElectionOpen}
-          onOpenElection={() => setIsElectionOpen(true)}
-          onCloseElection={() => setIsElectionOpen(false)}
+          onOpenElection={handleToggleElection}
+          onCloseElection={handleToggleElection}
           contractAddress={contractAddress}
+          isToggling={isTogglingElection}
         />
       </div>
 
