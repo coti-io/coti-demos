@@ -247,16 +247,21 @@ export default function VotingApp() {
   };
 
   const handleToggleElection = async () => {
-    // If closing the election, check if any votes were cast
+    // If closing the election, check if any votes were cast (optional check)
     if (isElectionOpen) {
-      const voteCount = await countVotesCast();
-      if (voteCount === 0) {
-        toast({
-          title: "No Votes Cast",
-          description: "Please cast at least one vote before closing the election. Click on a voter card to vote.",
-          variant: "destructive",
-        });
-        return;
+      try {
+        const voteCount = await countVotesCast();
+        if (voteCount === 0) {
+          toast({
+            title: "No Votes Cast",
+            description: "Please cast at least one vote before closing the election. Click on a voter card to vote.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (error) {
+        // If count fails, let the contract handle validation
+        console.log('Could not count votes, proceeding with toggle:', error);
       }
     }
 

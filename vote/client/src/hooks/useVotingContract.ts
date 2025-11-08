@@ -9,7 +9,7 @@ const VOTING_CONTRACT_ABI = [
   "function getVotingQuestion() external pure returns (string)",
   "function getVotingOptions() external view returns (tuple(uint8 id, string label)[])",
   "function isVoterRegistered(address voterId) external view returns (bool)",
-  "function voters(address) external view returns (string name, address voterId, bytes encryptedVote, bool isRegistered, bool hasVoted, bool hasAuthorizedOwner)",
+  "function voters(address) external view returns (string name, address voterId, uint256 encryptedVote, bool isRegistered, bool hasVoted, bool hasAuthorizedOwner)",
   "function getElectionStatus() external view returns (bool isOpen, uint256 voterCount, address electionOwner)",
   "function getResults() external returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[4])",
   "function aggregateVotes() external",
