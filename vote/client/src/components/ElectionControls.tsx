@@ -19,9 +19,14 @@ export default function ElectionControls({
         {contractAddress && (
           <>
             <span className="font-medium">Contract:</span>
-            <code className="px-2 py-1 bg-muted rounded text-xs font-mono">
+            <a
+              href={`https://testnet.cotiscan.io/address/${contractAddress}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-1 bg-muted rounded text-xs font-mono hover:bg-muted/80 transition-colors"
+            >
               {contractAddress}
-            </code>
+            </a>
           </>
         )}
       </div>
