@@ -340,7 +340,37 @@ contract COTIVotingContract {
         return results;
     }
     
-    // Results retrieval method - aggregates and decrypts results
+    // Get encrypted results for the owner - following medical records pattern
+    // Returns encrypted tallies that can be decrypted client-side by the owner
+    function getResultsForOwner() public electionClosed onlyOwner returns (ctUint64[4] memory) {
+        if (voterAddresses.length == 0) revert NoVotersRegistered();
+        
+        // Aggregate votes first to ensure tallies are up to date
+        _aggregateVotes();
+        
+        // Create array to return encrypted tallies for owner
+        ctUint64[4] memory encryptedResults;
+        
+        // Re-encrypt each tally for the owner (caller)
+        for (uint8 i = 0; i < 4; i++) {
+            uint8 optionId = votingOptions[i].id; // 1-4
+            
+            if (talliesInitialized) {
+                // Load the generic encrypted tally
+                gtUint64 encryptedTally = MpcCore.onBoard(voteTallies[optionId]);
+                
+                // Re-encrypt FOR the owner so they can decrypt client-side
+                // This follows the same pattern as getRecordForDoctor in medical records
+                ctUint64 tallyForOwner = MpcCore.offBoardToUser(encryptedTally, msg.sender);
+                encryptedResults[i] = tallyForOwner;
+            }
+        }
+        
+        return encryptedResults;
+    }
+    
+    // Legacy function - kept for compatibility but returns encrypted values
+    // Use getResultsForOwner() and decrypt client-side instead
     function getResults() public electionClosed returns (VoteResult[4] memory) {
         if (voterAddresses.length == 0) revert NoVotersRegistered();
         
@@ -350,29 +380,16 @@ contract COTIVotingContract {
         // Create results array to return
         VoteResult[4] memory results;
         
-        // Decrypt vote tallies and populate results with option IDs and labels
+        // Return results with labels but encrypted counts (set to 0)
+        // Actual decryption must happen client-side
         for (uint8 i = 0; i < 4; i++) {
             uint8 optionId = votingOptions[i].id; // 1-4
             string memory optionLabel = votingOptions[i].label;
             
-            uint64 decryptedCount = 0;
-            
-            // Only decrypt if tallies have been initialized
-            if (talliesInitialized) {
-                // Load the generic encrypted tally and decrypt it
-                // MpcCore.decrypt() can decrypt generic ciphertexts when called from a transaction
-                gtUint64 encryptedTally = MpcCore.onBoard(voteTallies[optionId]);
-                decryptedCount = MpcCore.decrypt(encryptedTally);
-                
-                // Emit the decrypted result as an event so it can be read from transaction logs
-                emit ResultsDecrypted(optionId, optionLabel, decryptedCount);
-            }
-            
-            // Create result entry with option ID, label, and decrypted vote count
             results[i] = VoteResult({
                 optionId: optionId,
                 optionLabel: optionLabel,
-                voteCount: decryptedCount
+                voteCount: 0  // Cannot decrypt on-chain, must use getResultsForOwner()
             });
         }
         

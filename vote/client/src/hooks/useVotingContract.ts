@@ -247,72 +247,82 @@ export function useVotingContract() {
 
       console.log('Election is closed, voter count:', status.voterCount);
 
-      // Use owner wallet since getResults() modifies state (aggregates and decrypts)
+      // Use owner wallet with AES key for client-side decryption
       const ownerPK = import.meta.env.VITE_DEPLOYER_PRIVATE_KEY;
+      const ownerAesKey = import.meta.env.VITE_ALICE_AES_KEY;
+      
       if (!ownerPK) {
         throw new Error('Owner private key not set. Please set VITE_DEPLOYER_PRIVATE_KEY in .env');
+      }
+      
+      if (!ownerAesKey) {
+        throw new Error('Owner AES key not set. Please set VITE_ALICE_AES_KEY in .env');
       }
 
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       const ownerWallet = new Wallet(ownerPK, provider);
-      const contract = getContract(ownerWallet);
+      ownerWallet.setUserOnboardInfo({ aesKey: ownerAesKey });
       
-      console.log('Calling getResults with owner wallet:', ownerWallet.address);
+      // Add getResultsForOwner to ABI
+      const resultsAbi = [
+        "function getResultsForOwner() external returns (uint256[4])",
+        "function getVotingOptions() external view returns (tuple(uint8 id, string label)[])",
+      ];
+      const contract = new ethers.Contract(contractAddress, resultsAbi, ownerWallet);
       
-      // Call getResults() as a transaction - it will aggregate and decrypt
-      // MPC operations (decrypt) cannot be done with staticCall
-      try {
-        console.log('Sending getResults transaction (aggregates and decrypts)...');
-        const tx = await contract.getResults({
-          gasLimit: 15000000,
-          gasPrice: ethers.parseUnits('10', 'gwei'),
-        });
-        
-        console.log('Transaction sent:', tx.hash);
-        const receipt = await tx.wait();
-        console.log('Results transaction completed:', receipt.hash);
-        console.log('Transaction status:', receipt.status);
+      console.log('Calling getResultsForOwner() to get encrypted tallies...');
+      
+      // Call getResultsForOwner() - returns encrypted tallies FOR the owner
+      const tx = await contract.getResultsForOwner({
+        gasLimit: 15000000,
+        gasPrice: ethers.parseUnits('10', 'gwei'),
+      });
+      
+      console.log('Transaction sent:', tx.hash);
+      const receipt = await tx.wait();
+      console.log('Results transaction completed:', receipt.hash);
 
-        if (receipt.status === 0) {
-          throw new Error('Transaction failed - check if votes were cast and voters authorized the owner');
-        }
-
-        // Now read the results using viewResults (read-only)
-        // Add viewResults to ABI if not already there
-        const viewAbi = [
-          "function viewResults() external view returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[4])"
-        ];
-        const viewContract = new ethers.Contract(contractAddress, viewAbi, ownerWallet);
-        
-        console.log('Reading results with viewResults()...');
-        const results = await viewContract.viewResults();
-        
-        console.log('Results retrieved:', results);
-        
-        if (!Array.isArray(results)) {
-          console.error('Results is not an array:', results);
-          throw new Error('Invalid results format returned from contract');
-        }
-        
-        const mappedResults = results.map((result: any) => ({
-          optionId: Number(result.optionId),
-          optionLabel: result.optionLabel,
-          voteCount: Number(result.voteCount),
-        }));
-
-        return {
-          results: mappedResults,
-          transactionHash: receipt.hash,
-        };
-      } catch (callError: any) {
-        console.error('Error calling getResults:', callError);
-        
-        // Provide more helpful error message
-        if (callError.message?.includes('missing revert data') || callError.message?.includes('execution reverted')) {
-          throw new Error('Failed to fetch results. This could mean:\n• No votes were cast\n• Voters did not authorize the owner\n• MPC decryption failed\n\nTry reopening the election and casting votes again.');
-        }
-        throw callError;
+      if (receipt.status === 0) {
+        throw new Error('Transaction failed - check if votes were cast');
       }
+
+      // Now call again with staticCall to get the encrypted results
+      const encryptedResults = await contract.getResultsForOwner.staticCall({
+        gasLimit: 15000000,
+      });
+      
+      console.log('Encrypted results received:', encryptedResults);
+      
+      // Get voting options to map labels
+      const options = await contract.getVotingOptions();
+      
+      // Decrypt each result client-side
+      const mappedResults = [];
+      for (let i = 0; i < encryptedResults.length; i++) {
+        const encryptedCount = encryptedResults[i];
+        
+        // Decrypt the count using the owner's wallet
+        let decryptedCount = 0;
+        try {
+          // The encrypted value is already FOR the owner, so we can decrypt it
+          const decrypted = await ownerWallet.decryptValue(encryptedCount);
+          decryptedCount = typeof decrypted === 'bigint' ? Number(decrypted) : Number(decrypted);
+          console.log(`Decrypted count for option ${i + 1}:`, decryptedCount);
+        } catch (decryptError) {
+          console.error(`Error decrypting option ${i + 1}:`, decryptError);
+        }
+        
+        mappedResults.push({
+          optionId: Number(options[i].id),
+          optionLabel: options[i].label,
+          voteCount: decryptedCount,
+        });
+      }
+
+      return {
+        results: mappedResults,
+        transactionHash: receipt.hash,
+      };
     } catch (error) {
       console.error('Error getting results:', error);
       throw error;
