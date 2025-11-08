@@ -4,6 +4,8 @@ import VotingModal from "@/components/VotingModal";
 import ResultsChart from "@/components/ResultsChart";
 import ElectionControls from "@/components/ElectionControls";
 import { Card } from "@/components/ui/card";
+import { useVotingContract } from "@/hooks/useVotingContract";
+import { useToast } from "@/hooks/use-toast";
 
 interface Voter {
   id: string;
@@ -19,19 +21,54 @@ interface VotingOption {
 }
 
 export default function VotingApp() {
-  // todo: remove mock functionality
-  const [voters, setVoters] = useState<Voter[]>([
-    { id: "1", name: "Alice", voterId: "0xAbc...123", hasVoted: false },
-    { id: "2", name: "Bob", voterId: "0xAbc...123", hasVoted: false },
-    { id: "3", name: "Bob", voterId: "0xAbc...123", hasVoted: false },
-    { id: "4", name: "Charlie", voterId: "0xAbc...123", hasVoted: false },
-    { id: "5", name: "Charlie", voterId: "0xAbc...123", hasVoted: false },
-    { id: "6", name: "Negna", voterId: "0xAbc...123", hasVoted: false },
-  ]);
+  const { voters: contractVoters, castVote, contractAddress } = useVotingContract();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load voters from environment variables (excluding Alice who is the contract owner)
+  const [voters, setVoters] = useState<Voter[]>(() => {
+    const voterAccounts = [
+      { 
+        name: "Bob", 
+        pk: import.meta.env.VITE_BOB_PK,
+        aesKey: import.meta.env.VITE_BOB_AES_KEY
+      },
+      { 
+        name: "Bea", 
+        pk: import.meta.env.VITE_BEA_PK,
+        aesKey: import.meta.env.VITE_BEA_AES_KEY
+      },
+      { 
+        name: "Charlie", 
+        pk: import.meta.env.VITE_CHARLIE_PK,
+        aesKey: import.meta.env.VITE_CHARLIE_AES_KEY
+      },
+      { 
+        name: "David", 
+        pk: import.meta.env.VITE_DAVID_PK,
+        aesKey: import.meta.env.VITE_DAVID_AES_KEY
+      },
+      { 
+        name: "Ethan", 
+        pk: import.meta.env.VITE_ETHAN_PK,
+        aesKey: import.meta.env.VITE_ETHAN_AES_KEY
+      },
+    ];
+
+    return voterAccounts
+      .filter(account => account.pk && account.aesKey) // Only include if both PK and AES key exist
+      .map((account, index) => ({
+        id: (index + 1).toString(),
+        name: account.name,
+        voterId: account.pk ? `0x${account.pk.slice(0, 6)}...${account.pk.slice(-4)}` : "0x...",
+        hasVoted: false,
+      }));
+  });
 
   const [isElectionOpen, setIsElectionOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentVoterId, setCurrentVoterId] = useState<string | null>(null);
+  const [currentVoterName, setCurrentVoterName] = useState<string | null>(null);
 
   const votingOptions: VotingOption[] = [
     { id: "chocolate", label: "Chocolate", color: "#8B6914" },
@@ -50,24 +87,85 @@ export default function VotingApp() {
 
   const handleVoteClick = (voterId: string) => {
     if (!isElectionOpen) return;
-    setCurrentVoterId(voterId);
-    setModalOpen(true);
+    const voter = voters.find(v => v.id === voterId);
+    if (voter) {
+      setCurrentVoterId(voterId);
+      setCurrentVoterName(voter.name);
+      setModalOpen(true);
+    }
   };
 
-  const handleSubmitVote = (selectedOption: string) => {
-    if (currentVoterId) {
+  const handleSubmitVote = async (selectedOption: string) => {
+    if (!currentVoterId || !currentVoterName) return;
+
+    // Map option ID to vote value (1-4)
+    const optionMap: Record<string, number> = {
+      chocolate: 1,
+      raspberry: 2,
+      sandwich: 3,
+      mango: 4,
+    };
+
+    const voteValue = optionMap[selectedOption];
+    if (!voteValue) {
+      toast({
+        title: "Error",
+        description: "Invalid vote option selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Check if contract address is set
+      if (!contractAddress) {
+        toast({
+          title: "Contract Not Configured",
+          description: "Please set VITE_CONTRACT_ADDRESS in your .env file",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Encrypting Vote",
+        description: `Encrypting ${currentVoterName}'s vote...`,
+      });
+
+      // Cast vote on the blockchain
+      const receipt = await castVote(currentVoterName, voteValue);
+
+      // Update local state
       setVoters(voters.map(voter => 
         voter.id === currentVoterId 
           ? { ...voter, hasVoted: true }
           : voter
       ));
+      
       setVotes(prev => ({
         ...prev,
         [selectedOption]: (prev[selectedOption] || 0) + 1,
       }));
+
+      toast({
+        title: "Vote Cast Successfully!",
+        description: `Transaction: ${receipt.hash.slice(0, 10)}...${receipt.hash.slice(-8)}`,
+      });
+    } catch (error) {
+      console.error("Error casting vote:", error);
+      toast({
+        title: "Vote Failed",
+        description: error instanceof Error ? error.message : "Failed to cast vote",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+      setModalOpen(false);
+      setCurrentVoterId(null);
+      setCurrentVoterName(null);
     }
-    setModalOpen(false);
-    setCurrentVoterId(null);
   };
 
   const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
@@ -121,10 +219,13 @@ export default function VotingApp() {
       <VotingModal
         open={modalOpen}
         onClose={() => {
-          setModalOpen(false);
-          setCurrentVoterId(null);
+          if (!isSubmitting) {
+            setModalOpen(false);
+            setCurrentVoterId(null);
+            setCurrentVoterName(null);
+          }
         }}
-        question="What is a favorite food?"
+        question="What is your favorite food?"
         options={votingOptions}
         onSubmit={handleSubmitVote}
       />

@@ -19,6 +19,7 @@ contract COTIVotingContract {
     error CannotCloseElectionWithoutVoters();
     error InvalidVoterState(address voter);
     error NoVotesCast();
+    error VoterHasNotVoted(address voter);
     
     // Static voting data
     string constant VOTING_QUESTION = "What is your favorite food?";
@@ -43,9 +44,10 @@ contract COTIVotingContract {
     struct Voter {
         string name;
         address voterId;
-        utUint8 encryptedVote;  // COTI encrypted vote (0 = not voted, 1-4 = options)
+        ctUint8 encryptedVote;  // COTI encrypted vote (0 = not voted, 1-4 = options)
         bool isRegistered;
         bool hasVoted;
+        bool hasAuthorizedOwner;  // Whether voter has authorized owner to read their vote
     }
     
     mapping(address => Voter) public voters;
@@ -56,7 +58,7 @@ contract COTIVotingContract {
     address private owner;
     
     // Vote tallies (computed when election closes)
-    utUint64[5] private voteTallies; // Index 0 unused, 1-4 for options
+    ctUint64[5] private voteTallies; // Index 0 unused, 1-4 for options
     bool private talliesInitialized;
     
     // Events for tracking operations
@@ -64,6 +66,7 @@ contract COTIVotingContract {
     event VoteCast(address indexed voter);
     event VoteChanged(address indexed voter);
     event ElectionStateChanged(bool isOpen);
+    event OwnerAuthorized(address indexed voter);
     
     constructor() {
         owner = msg.sender;
@@ -114,14 +117,15 @@ contract COTIVotingContract {
         if (!hasNonWhitespace) revert EmptyVoterName();
         
         // Initialize voter with empty encrypted vote (will be set when they vote)
-        utUint8 memory emptyVote;
+        ctUint8 emptyVote;
         
         voters[voterId] = Voter({
             name: name,
             voterId: voterId,
             encryptedVote: emptyVote,
             isRegistered: true,
-            hasVoted: false
+            hasVoted: false,
+            hasAuthorizedOwner: false
         });
         
         voterAddresses.push(voterId);
@@ -147,18 +151,33 @@ contract COTIVotingContract {
         return voterAddresses;
     }
     
+    // Authorization functionality - voters authorize owner to read their votes for tallying
+    function authorizeOwnerToReadVote() public onlyRegisteredVoter {
+        require(!voters[msg.sender].hasAuthorizedOwner, "Owner already authorized");
+        
+        voters[msg.sender].hasAuthorizedOwner = true;
+        
+        emit OwnerAuthorized(msg.sender);
+    }
+    
     // Encrypted voting functionality
     function castVote(itUint8 calldata encryptedVote) public onlyRegisteredVoter electionOpen {
         
         // Validate the encrypted input and convert to gtUint8
         gtUint8 validatedVote = MpcCore.validateCiphertext(encryptedVote);
         
-        // Convert to utUint8 for storage
-        utUint8 memory storedVote = MpcCore.offBoardCombined(validatedVote, msg.sender);
+        // Store with generic encryption (like medical records)
+        ctUint8 storedVote = MpcCore.offBoard(validatedVote);
         
         // Store the encrypted vote
         voters[msg.sender].encryptedVote = storedVote;
         voters[msg.sender].hasVoted = true;
+        
+        // Automatically authorize owner when casting vote
+        if (!voters[msg.sender].hasAuthorizedOwner) {
+            voters[msg.sender].hasAuthorizedOwner = true;
+            emit OwnerAuthorized(msg.sender);
+        }
         
         emit VoteCast(msg.sender);
     }
@@ -168,14 +187,36 @@ contract COTIVotingContract {
         // Validate the encrypted input and convert to gtUint8
         gtUint8 validatedVote = MpcCore.validateCiphertext(newEncryptedVote);
         
-        // Convert to utUint8 for storage
-        utUint8 memory storedVote = MpcCore.offBoardCombined(validatedVote, msg.sender);
+        // Store with generic encryption (like medical records)
+        ctUint8 storedVote = MpcCore.offBoard(validatedVote);
         
-        // Update the encrypted vote (maintains encryption throughout)
+        // Update the encrypted vote
         voters[msg.sender].encryptedVote = storedVote;
         // hasVoted remains true since they already voted
         
+        // Automatically authorize owner when changing vote (if not already authorized)
+        if (!voters[msg.sender].hasAuthorizedOwner) {
+            voters[msg.sender].hasAuthorizedOwner = true;
+            emit OwnerAuthorized(msg.sender);
+        }
+        
         emit VoteChanged(msg.sender);
+    }
+    
+    // Vote verification method - allows voters to retrieve their own encrypted vote
+    // Works exactly like getRecordForDoctor() in medical records
+    function getMyVote() public onlyRegisteredVoter returns (ctUint8) {
+        // Check that voter has cast a vote
+        if (!voters[msg.sender].hasVoted) revert VoterHasNotVoted(msg.sender);
+        
+        // Load the generically encrypted vote
+        gtUint8 gtVote = MpcCore.onBoard(voters[msg.sender].encryptedVote);
+        
+        // Re-encrypt for voter (same pattern as doctor reading patient record)
+        ctUint8 voteForVoter = MpcCore.offBoardToUser(gtVote, msg.sender);
+        
+        // Return voter-specific encrypted vote
+        return voteForVoter;
     }
     
     // Election control methods
@@ -209,7 +250,7 @@ contract COTIVotingContract {
         if (!talliesInitialized) {
             for (uint8 i = 1; i <= 4; i++) {
                 gtUint64 gtZero = MpcCore.setPublic64(0);
-                utUint64 memory zeroTally = MpcCore.offBoardCombined(gtZero, owner);
+                ctUint64 zeroTally = MpcCore.offBoard(gtZero);
                 voteTallies[i] = zeroTally;
             }
             talliesInitialized = true;
@@ -226,8 +267,11 @@ contract COTIVotingContract {
             // Skip voters who haven't voted yet
             if (!voter.hasVoted) continue;
             
-            // Load the encrypted vote using MpcCore.onBoard()
-            gtUint8 encryptedVote = MpcCore.onBoard(voter.encryptedVote.ciphertext);
+            // Voter must have authorized owner to read their vote for tallying
+            require(voter.hasAuthorizedOwner, "Voter has not authorized owner to read vote");
+            
+            // Load the encrypted vote (encrypted for the voter)
+            gtUint8 encryptedVote = MpcCore.onBoard(voter.encryptedVote);
             
             // For each voting option (1-4), check if this vote matches and add to tally
             for (uint8 optionId = 1; optionId <= 4; optionId++) {
@@ -240,20 +284,50 @@ contract COTIVotingContract {
                 // Convert boolean to uint64 (1 if match, 0 if not)
                 gtUint64 one = MpcCore.setPublic64(1);
                 gtUint64 zero = MpcCore.setPublic64(0);
-                gtUint64 voteIncrement = MpcCore.mux(isMatch, zero, one);
+                gtUint64 voteIncrement = MpcCore.mux(isMatch, one, zero);
                 
                 // Load current tally and add the increment
-                gtUint64 currentTally = MpcCore.onBoard(voteTallies[optionId].ciphertext);
+                gtUint64 currentTally = MpcCore.onBoard(voteTallies[optionId]);
                 gtUint64 newTally = MpcCore.add(currentTally, voteIncrement);
                 
-                // Store the updated tally
-                utUint64 memory updatedTally = MpcCore.offBoardCombined(newTally, owner);
+                // Store the updated tally (generic ciphertext)
+                ctUint64 updatedTally = MpcCore.offBoard(newTally);
                 voteTallies[optionId] = updatedTally;
             }
         }
     }
     
-    // Results retrieval method - returns VoteResult array with option IDs and labels
+    // Aggregate votes - must be called before viewing results
+    function aggregateVotes() public electionClosed {
+        _aggregateVotes();
+    }
+    
+    // View results after aggregation - read-only function
+    function viewResults() public view electionClosed returns (VoteResult[4] memory) {
+        if (voterAddresses.length == 0) revert NoVotersRegistered();
+        require(talliesInitialized, "Votes have not been aggregated yet. Call aggregateVotes() first.");
+        
+        // Create results array to return
+        VoteResult[4] memory results;
+        
+        // Return results with option IDs and labels (counts are encrypted)
+        for (uint8 i = 0; i < 4; i++) {
+            uint8 optionId = votingOptions[i].id; // 1-4
+            string memory optionLabel = votingOptions[i].label;
+            
+            // Note: We return 0 for counts since they are encrypted
+            // To get actual counts, use getResults() which decrypts them
+            results[i] = VoteResult({
+                optionId: optionId,
+                optionLabel: optionLabel,
+                voteCount: 0
+            });
+        }
+        
+        return results;
+    }
+    
+    // Results retrieval method - aggregates and decrypts results
     function getResults() public electionClosed returns (VoteResult[4] memory) {
         if (voterAddresses.length == 0) revert NoVotersRegistered();
         
@@ -273,7 +347,7 @@ contract COTIVotingContract {
             // Only decrypt if tallies have been initialized
             if (talliesInitialized) {
                 // Load and decrypt the vote tally for this option
-                gtUint64 encryptedTally = MpcCore.onBoard(voteTallies[optionId].ciphertext);
+                gtUint64 encryptedTally = MpcCore.onBoard(voteTallies[optionId]);
                 decryptedCount = MpcCore.decrypt(encryptedTally);
             }
             

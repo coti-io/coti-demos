@@ -27,7 +27,9 @@ export default {
             // Add retry configuration
             httpHeaders: {
                 "User-Agent": "hardhat"
-            }
+            },
+            // Disable automatic gas estimation to avoid "pending block" errors
+            gasMultiplier: 1.2
         }
     },
     paths: {
