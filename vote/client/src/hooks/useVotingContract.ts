@@ -11,6 +11,7 @@ const VOTING_CONTRACT_ABI = [
   "function voters(address) external view returns (string name, address voterId, bytes encryptedVote, bool isRegistered, bool hasVoted, bool hasAuthorizedOwner)",
   "function getElectionStatus() external view returns (bool isOpen, uint256 voterCount, address electionOwner)",
   "function getResults() external returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[])",
+  "function aggregateVotes() external",
   "function toggleElection() external"
 ];
 
@@ -175,6 +176,32 @@ export function useVotingContract() {
     }
   };
 
+  const aggregateVotes = async (): Promise<any> => {
+    if (!contractAddress || voters.length === 0) {
+      throw new Error('Contract not configured or no voters available');
+    }
+
+    try {
+      // Use the first available voter's wallet
+      const wallet = voters[0].wallet;
+      if (!wallet) throw new Error('No wallet available');
+
+      const contract = getContract(wallet);
+      
+      // Call aggregateVotes to compute tallies
+      const tx = await contract.aggregateVotes({
+        gasLimit: 15000000,
+        gasPrice: ethers.parseUnits('10', 'gwei'),
+      });
+
+      const receipt = await tx.wait();
+      return receipt;
+    } catch (error) {
+      console.error('Error aggregating votes:', error);
+      throw error;
+    }
+  };
+
   const getResults = async (): Promise<Array<{ optionId: number; optionLabel: string; voteCount: number }> | null> => {
     if (!contractAddress || voters.length === 0) {
       return null;
@@ -187,8 +214,16 @@ export function useVotingContract() {
 
       const contract = getContract(wallet);
       
-      // Use staticCall to simulate the transaction and get the return value
-      // This calls getResults() which aggregates and decrypts, but doesn't actually send a transaction
+      // First try to aggregate votes (this will fail if already aggregated, which is fine)
+      try {
+        await aggregateVotes();
+        console.log('Votes aggregated successfully');
+      } catch (aggError) {
+        // Ignore errors - votes might already be aggregated
+        console.log('Aggregation skipped (may already be done)');
+      }
+      
+      // Now get the results using staticCall
       const results = await contract.getResults.staticCall({
         gasLimit: 15000000,
       });
@@ -242,6 +277,7 @@ export function useVotingContract() {
     checkIfVoted,
     getElectionStatus,
     getResults,
+    aggregateVotes,
     toggleElection,
     contractAddress,
   };
