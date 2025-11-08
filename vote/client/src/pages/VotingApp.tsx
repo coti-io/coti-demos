@@ -12,6 +12,7 @@ interface Voter {
   name: string;
   voterId: string;
   hasVoted: boolean;
+  transactionHash?: string;
 }
 
 interface VotingOption {
@@ -140,7 +141,7 @@ export default function VotingApp() {
       // Update local state
       setVoters(voters.map(voter => 
         voter.id === currentVoterId 
-          ? { ...voter, hasVoted: true }
+          ? { ...voter, hasVoted: true, transactionHash: receipt.hash }
           : voter
       ));
       
@@ -194,6 +195,7 @@ export default function VotingApp() {
                     name={voter.name}
                     voterId={voter.voterId}
                     hasVoted={voter.hasVoted}
+                    transactionHash={voter.transactionHash}
                     onVoteClick={() => handleVoteClick(voter.id)}
                   />
                 ))}
