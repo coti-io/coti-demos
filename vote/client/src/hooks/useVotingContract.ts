@@ -205,10 +205,10 @@ export function useVotingContract() {
     }
 
     try {
-      // Use owner wallet for aggregation (has more funds)
-      const ownerPK = import.meta.env.VITE_DEPLOYER_PRIVATE_KEY;
+      // Use Alice (owner) wallet for aggregation
+      const ownerPK = import.meta.env.VITE_ALICE_PK;
       if (!ownerPK) {
-        throw new Error('Owner private key not set. Please set VITE_DEPLOYER_PRIVATE_KEY in .env');
+        throw new Error('Owner private key not set. Please set VITE_ALICE_PK in .env');
       }
 
       const provider = new ethers.JsonRpcProvider(rpcUrl);
@@ -247,12 +247,12 @@ export function useVotingContract() {
 
       console.log('Election is closed, voter count:', status.voterCount);
 
-      // Use owner wallet with AES key for client-side decryption
-      const ownerPK = import.meta.env.VITE_DEPLOYER_PRIVATE_KEY;
+      // Use Alice (owner) wallet with AES key for client-side decryption
+      const ownerPK = import.meta.env.VITE_ALICE_PK;
       const ownerAesKey = import.meta.env.VITE_ALICE_AES_KEY;
       
       if (!ownerPK) {
-        throw new Error('Owner private key not set. Please set VITE_DEPLOYER_PRIVATE_KEY in .env');
+        throw new Error('Owner private key not set. Please set VITE_ALICE_PK in .env');
       }
       
       if (!ownerAesKey) {
@@ -263,65 +263,64 @@ export function useVotingContract() {
       const ownerWallet = new Wallet(ownerPK, provider);
       ownerWallet.setUserOnboardInfo({ aesKey: ownerAesKey });
       
-      // Add getResultsForOwner to ABI
+      // Updated ABI to match current contract
       const resultsAbi = [
-        "function getResultsForOwner() external returns (uint256[4])",
-        "function getVotingOptions() external view returns (tuple(uint8 id, string label)[])",
+        "function aggregateVotes() external",
+        "function getEncryptedResult(uint8 optionId) external view returns (uint256)",
+        "function getVotingOptions() external view returns (tuple(uint8 id, string label)[4])",
       ];
       const contract = new ethers.Contract(contractAddress, resultsAbi, ownerWallet);
       
-      console.log('Calling getResultsForOwner() to get encrypted tallies...');
+      console.log('Step 1: Aggregating votes...');
       
-      // Call getResultsForOwner() - returns encrypted tallies FOR the owner
-      const tx = await contract.getResultsForOwner({
+      // Call aggregateVotes to compute encrypted tallies
+      const aggTx = await contract.aggregateVotes({
         gasLimit: 15000000,
         gasPrice: ethers.parseUnits('10', 'gwei'),
       });
       
-      console.log('Transaction sent:', tx.hash);
-      const receipt = await tx.wait();
-      console.log('Results transaction completed:', receipt.hash);
+      console.log('Aggregation transaction sent:', aggTx.hash);
+      const aggReceipt = await aggTx.wait();
+      console.log('Votes aggregated (block', aggReceipt.blockNumber, ')');
 
-      if (receipt.status === 0) {
-        throw new Error('Transaction failed - check if votes were cast');
+      if (aggReceipt.status === 0) {
+        throw new Error('Aggregation transaction failed');
       }
 
-      // Now call again with staticCall to get the encrypted results
-      const encryptedResults = await contract.getResultsForOwner.staticCall({
-        gasLimit: 15000000,
-      });
+      console.log('Step 2: Reading and decrypting results...');
       
-      console.log('Encrypted results received:', encryptedResults);
-      
-      // Get voting options to map labels
+      // Get voting options
       const options = await contract.getVotingOptions();
       
-      // Decrypt each result client-side
+      // Read and decrypt each encrypted result
       const mappedResults = [];
-      for (let i = 0; i < encryptedResults.length; i++) {
-        const encryptedCount = encryptedResults[i];
+      for (let i = 0; i < options.length; i++) {
+        const optionId = Number(options[i].id);
+        const optionLabel = options[i].label;
         
-        // Decrypt the count using the owner's wallet
         let decryptedCount = 0;
         try {
-          // The encrypted value is already FOR the owner, so we can decrypt it
-          const decrypted = await ownerWallet.decryptValue(encryptedCount);
+          // Get encrypted result for this option
+          const encryptedValue = await contract.getEncryptedResult(optionId);
+          
+          // Decrypt client-side using owner's wallet
+          const decrypted = await ownerWallet.decryptValue(encryptedValue);
           decryptedCount = typeof decrypted === 'bigint' ? Number(decrypted) : Number(decrypted);
-          console.log(`Decrypted count for option ${i + 1}:`, decryptedCount);
+          console.log(`Option ${optionId} - ${optionLabel}: ${decryptedCount} votes`);
         } catch (decryptError) {
-          console.error(`Error decrypting option ${i + 1}:`, decryptError);
+          console.error(`Error decrypting option ${optionId}:`, decryptError);
         }
         
         mappedResults.push({
-          optionId: Number(options[i].id),
-          optionLabel: options[i].label,
+          optionId: optionId,
+          optionLabel: optionLabel,
           voteCount: decryptedCount,
         });
       }
 
       return {
         results: mappedResults,
-        transactionHash: receipt.hash,
+        transactionHash: aggReceipt.hash,
       };
     } catch (error) {
       console.error('Error getting results:', error);
@@ -334,10 +333,10 @@ export function useVotingContract() {
       throw new Error('Contract address not set');
     }
 
-    // Use owner wallet (DEPLOYER_PRIVATE_KEY from .env)
-    const ownerPK = import.meta.env.VITE_DEPLOYER_PRIVATE_KEY;
+    // Use Alice (owner) wallet
+    const ownerPK = import.meta.env.VITE_ALICE_PK;
     if (!ownerPK) {
-      throw new Error('Owner private key not set. Please set VITE_DEPLOYER_PRIVATE_KEY in .env');
+      throw new Error('Owner private key not set. Please set VITE_ALICE_PK in .env');
     }
 
     const provider = new ethers.JsonRpcProvider(rpcUrl);
