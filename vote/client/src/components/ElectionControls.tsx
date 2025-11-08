@@ -20,7 +20,7 @@ export default function ElectionControls({
           <>
             <span className="font-medium">Contract:</span>
             <code className="px-2 py-1 bg-muted rounded text-xs font-mono">
-              {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
+              {contractAddress}
             </code>
           </>
         )}
