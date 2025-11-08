@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { ethers, Wallet } from '@coti-io/coti-ethers';
 
 // Contract ABI - only the functions we need
+// itUint8 is a struct with (uint256 ciphertext, bytes signature)
 const VOTING_CONTRACT_ABI = [
-  "function castVote(tuple(bytes ciphertext, bytes signature) encryptedVote) external",
+  "function castVote(tuple(uint256 ciphertext, bytes signature) encryptedVote) external",
   "function getVotingQuestion() external pure returns (string)",
   "function getVotingOptions() external view returns (tuple(uint8 id, string label)[])",
   "function isVoterRegistered(address voterId) external view returns (bool)",
@@ -86,9 +87,15 @@ export function useVotingContract() {
     }
 
     const contract = getContract(wallet);
-    const castVoteSelector = contract.interface.getFunction('castVote')?.selector;
     
-    if (!castVoteSelector) {
+    // Get the function selector from the contract interface
+    const castVoteFunction = contract.interface.getFunction('castVote');
+    if (!castVoteFunction) {
+      throw new Error('Could not get castVote function');
+    }
+    
+    const selector = castVoteFunction.selector;
+    if (!selector) {
       throw new Error('Could not get castVote function selector');
     }
 
@@ -96,7 +103,7 @@ export function useVotingContract() {
     const encryptedValue = await wallet.encryptValue(
       voteOption,
       contractAddress,
-      castVoteSelector,
+      selector,
     );
 
     return encryptedValue;
