@@ -177,16 +177,20 @@ export function useVotingContract() {
   };
 
   const aggregateVotes = async (): Promise<any> => {
-    if (!contractAddress || voters.length === 0) {
-      throw new Error('Contract not configured or no voters available');
+    if (!contractAddress) {
+      throw new Error('Contract not configured');
     }
 
     try {
-      // Use the first available voter's wallet
-      const wallet = voters[0].wallet;
-      if (!wallet) throw new Error('No wallet available');
+      // Use owner wallet for aggregation (has more funds)
+      const ownerPK = import.meta.env.VITE_DEPLOYER_PRIVATE_KEY;
+      if (!ownerPK) {
+        throw new Error('Owner private key not set. Please set VITE_DEPLOYER_PRIVATE_KEY in .env');
+      }
 
-      const contract = getContract(wallet);
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const ownerWallet = new ethers.Wallet(ownerPK, provider);
+      const contract = getContract(ownerWallet);
       
       // Call aggregateVotes to compute tallies
       const tx = await contract.aggregateVotes({
