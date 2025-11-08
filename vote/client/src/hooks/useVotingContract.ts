@@ -186,7 +186,17 @@ export function useVotingContract() {
       if (!wallet) return null;
 
       const contract = getContract(wallet);
-      const results = await contract.getResults();
+      
+      // Use staticCall to simulate the transaction and get the return value
+      // This calls getResults() which aggregates and decrypts, but doesn't actually send a transaction
+      const results = await contract.getResults.staticCall({
+        gasLimit: 15000000,
+      });
+      
+      if (!Array.isArray(results)) {
+        console.error('Results is not an array:', results);
+        return null;
+      }
       
       return results.map((result: any) => ({
         optionId: Number(result.optionId),
