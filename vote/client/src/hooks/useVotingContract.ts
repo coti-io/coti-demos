@@ -259,14 +259,35 @@ export function useVotingContract() {
       
       console.log('Calling getResults with owner wallet:', ownerWallet.address);
       
-      // First call getResults using staticCall to get the data without sending a transaction
-      // This will aggregate and decrypt internally
+      // Call getResults() as a transaction - it will aggregate and decrypt
+      // MPC operations (decrypt) cannot be done with staticCall
       try {
-        const results = await contract.getResults.staticCall({
+        console.log('Sending getResults transaction (aggregates and decrypts)...');
+        const tx = await contract.getResults({
           gasLimit: 15000000,
+          gasPrice: ethers.parseUnits('10', 'gwei'),
         });
         
-        console.log('Results retrieved via staticCall:', results);
+        console.log('Transaction sent:', tx.hash);
+        const receipt = await tx.wait();
+        console.log('Results transaction completed:', receipt.hash);
+        console.log('Transaction status:', receipt.status);
+
+        if (receipt.status === 0) {
+          throw new Error('Transaction failed - check if votes were cast and voters authorized the owner');
+        }
+
+        // Now read the results using viewResults (read-only)
+        // Add viewResults to ABI if not already there
+        const viewAbi = [
+          "function viewResults() external view returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[4])"
+        ];
+        const viewContract = new ethers.Contract(contractAddress, viewAbi, ownerWallet);
+        
+        console.log('Reading results with viewResults()...');
+        const results = await viewContract.viewResults();
+        
+        console.log('Results retrieved:', results);
         
         if (!Array.isArray(results)) {
           console.error('Results is not an array:', results);
@@ -279,16 +300,6 @@ export function useVotingContract() {
           voteCount: Number(result.voteCount),
         }));
 
-        // Now send the actual transaction to store the results on-chain
-        console.log('Sending getResults transaction...');
-        const tx = await contract.getResults({
-          gasLimit: 15000000,
-          gasPrice: ethers.parseUnits('10', 'gwei'),
-        });
-        
-        const receipt = await tx.wait();
-        console.log('Results transaction completed:', receipt.hash);
-
         return {
           results: mappedResults,
           transactionHash: receipt.hash,
@@ -297,8 +308,8 @@ export function useVotingContract() {
         console.error('Error calling getResults:', callError);
         
         // Provide more helpful error message
-        if (callError.message?.includes('missing revert data')) {
-          throw new Error('No votes were cast before the election was closed.\n\nTo see results:\n1. Reopen the election\n2. Cast votes by clicking on voter cards\n3. Close the election again\n4. Results will appear automatically');
+        if (callError.message?.includes('missing revert data') || callError.message?.includes('execution reverted')) {
+          throw new Error('Failed to fetch results. This could mean:\n• No votes were cast\n• Voters did not authorize the owner\n• MPC decryption failed\n\nTry reopening the election and casting votes again.');
         }
         throw callError;
       }
