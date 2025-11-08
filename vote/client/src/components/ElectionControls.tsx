@@ -4,18 +4,24 @@ interface ElectionControlsProps {
   isElectionOpen: boolean;
   onOpenElection: () => void;
   onCloseElection: () => void;
+  onFetchResults?: () => void;
   contractAddress?: string;
   isToggling?: boolean;
+  isFetchingResults?: boolean;
   toggleTransactionHash?: string | null;
+  resultsTransactionHash?: string | null;
 }
 
 export default function ElectionControls({
   isElectionOpen,
   onOpenElection,
   onCloseElection,
+  onFetchResults,
   contractAddress,
   isToggling = false,
+  isFetchingResults = false,
   toggleTransactionHash,
+  resultsTransactionHash,
 }: ElectionControlsProps) {
   return (
     <div className="flex items-center justify-between gap-4 py-6 border-t">
@@ -35,7 +41,7 @@ export default function ElectionControls({
         )}
         {toggleTransactionHash && (
           <div className="flex items-center gap-2">
-            <span className="font-medium">Last Toggle:</span>
+            <span className="font-medium">{isElectionOpen ? 'Opened' : 'Closed'}:</span>
             <a
               href={`https://testnet.cotiscan.io/tx/${toggleTransactionHash}`}
               target="_blank"
@@ -43,6 +49,19 @@ export default function ElectionControls({
               className="px-2 py-1 bg-muted rounded text-xs font-mono hover:bg-muted/80 transition-colors"
             >
               {toggleTransactionHash.slice(0, 10)}...{toggleTransactionHash.slice(-8)}
+            </a>
+          </div>
+        )}
+        {resultsTransactionHash && !isElectionOpen && (
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Results:</span>
+            <a
+              href={`https://testnet.cotiscan.io/tx/${resultsTransactionHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-1 bg-muted rounded text-xs font-mono hover:bg-muted/80 transition-colors"
+            >
+              {resultsTransactionHash.slice(0, 10)}...{resultsTransactionHash.slice(-8)}
             </a>
           </div>
         )}
@@ -68,6 +87,18 @@ export default function ElectionControls({
         >
           {isToggling ? "Processing..." : "Close Voting"}
         </Button>
+        {!isElectionOpen && onFetchResults && (
+          <Button
+            onClick={onFetchResults}
+            disabled={isFetchingResults}
+            variant="outline"
+            size="lg"
+            className="px-8"
+            data-testid="button-fetch-results"
+          >
+            {isFetchingResults ? "Fetching..." : "Fetch Results"}
+          </Button>
+        )}
       </div>
     </div>
   );

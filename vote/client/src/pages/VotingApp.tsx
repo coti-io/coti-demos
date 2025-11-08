@@ -73,6 +73,7 @@ export default function VotingApp() {
   const [currentVoterId, setCurrentVoterId] = useState<string | null>(null);
   const [currentVoterName, setCurrentVoterName] = useState<string | null>(null);
   const [toggleTransactionHash, setToggleTransactionHash] = useState<string | null>(null);
+  const [resultsTransactionHash, setResultsTransactionHash] = useState<string | null>(null);
 
   const votingOptions: VotingOption[] = [
     { id: "chocolate", label: "Chocolate", color: "#8B6914" },
@@ -95,43 +96,22 @@ export default function VotingApp() {
       // Fetch election status
       const status = await getElectionStatus();
       if (status) {
+        const wasOpen = isElectionOpen;
         setIsElectionOpen(status.isOpen);
         
-        // Only fetch results if election is closed
-        if (!status.isOpen) {
-          setIsLoadingResults(true);
-          try {
-            const results = await getResults();
-            if (results) {
-              const newVotes: Record<string, number> = {
-                chocolate: 0,
-                raspberry: 0,
-                sandwich: 0,
-                mango: 0,
-              };
-
-              results.forEach(result => {
-                const optionId = votingOptions.find(opt => opt.label === result.optionLabel)?.id;
-                if (optionId) {
-                  newVotes[optionId] = result.voteCount;
-                }
-              });
-
-              setVotes(newVotes);
-            }
-          } catch (error) {
-            console.error('Error fetching results:', error);
-          } finally {
-            setIsLoadingResults(false);
-          }
-        } else {
-          // Reset votes when election is open
+        // Only fetch results if election just closed (transition from open to closed)
+        // and we don't already have results
+        if (!status.isOpen && wasOpen && !resultsTransactionHash) {
+          await handleFetchResults();
+        } else if (status.isOpen) {
+          // Reset votes and results when election is open
           setVotes({
             chocolate: 0,
             raspberry: 0,
             sandwich: 0,
             mango: 0,
           });
+          setResultsTransactionHash(null);
         }
       }
     };
@@ -142,7 +122,7 @@ export default function VotingApp() {
     const interval = setInterval(fetchElectionData, 10000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isElectionOpen, resultsTransactionHash]);
 
   const handleVoteClick = (voterId: string) => {
     if (!isElectionOpen) return;
@@ -222,6 +202,50 @@ export default function VotingApp() {
     }
   };
 
+  const handleFetchResults = async () => {
+    setIsLoadingResults(true);
+    try {
+      toast({
+        title: "Fetching Results",
+        description: "Aggregating and decrypting votes...",
+      });
+
+      const resultsData = await getResults();
+      if (resultsData) {
+        const newVotes: Record<string, number> = {
+          chocolate: 0,
+          raspberry: 0,
+          sandwich: 0,
+          mango: 0,
+        };
+
+        resultsData.results.forEach(result => {
+          const optionId = votingOptions.find(opt => opt.label === result.optionLabel)?.id;
+          if (optionId) {
+            newVotes[optionId] = result.voteCount;
+          }
+        });
+
+        setVotes(newVotes);
+        setResultsTransactionHash(resultsData.transactionHash);
+
+        toast({
+          title: "Results Fetched",
+          description: `Transaction: ${resultsData.transactionHash.slice(0, 10)}...${resultsData.transactionHash.slice(-8)}`,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching results:', error);
+      toast({
+        title: "Fetch Failed",
+        description: error instanceof Error ? error.message : "Failed to fetch results",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingResults(false);
+    }
+  };
+
   const handleToggleElection = async () => {
     setIsTogglingElection(true);
     try {
@@ -246,33 +270,9 @@ export default function VotingApp() {
         description: `Transaction: ${receipt.hash.slice(0, 10)}...${receipt.hash.slice(-8)}`,
       });
 
-      // If election was just closed, fetch results
+      // If election was just closed, fetch results automatically
       if (!status?.isOpen) {
-        setIsLoadingResults(true);
-        try {
-          const results = await getResults();
-          if (results) {
-            const newVotes: Record<string, number> = {
-              chocolate: 0,
-              raspberry: 0,
-              sandwich: 0,
-              mango: 0,
-            };
-
-            results.forEach(result => {
-              const optionId = votingOptions.find(opt => opt.label === result.optionLabel)?.id;
-              if (optionId) {
-                newVotes[optionId] = result.voteCount;
-              }
-            });
-
-            setVotes(newVotes);
-          }
-        } catch (error) {
-          console.error('Error fetching results:', error);
-        } finally {
-          setIsLoadingResults(false);
-        }
+        await handleFetchResults();
       }
     } catch (error) {
       console.error("Error toggling election:", error);
@@ -332,9 +332,12 @@ export default function VotingApp() {
           isElectionOpen={isElectionOpen}
           onOpenElection={handleToggleElection}
           onCloseElection={handleToggleElection}
+          onFetchResults={handleFetchResults}
           contractAddress={contractAddress}
           isToggling={isTogglingElection}
+          isFetchingResults={isLoadingResults}
           toggleTransactionHash={toggleTransactionHash}
+          resultsTransactionHash={resultsTransactionHash}
         />
       </div>
 

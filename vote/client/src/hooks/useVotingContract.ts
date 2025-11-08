@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { ethers, Wallet } from '@coti-io/coti-ethers';
+import { ethers } from 'ethers';
+import { Wallet } from '@coti-io/coti-ethers';
 
 // Contract ABI - only the functions we need
 // itUint8 is a struct with (uint256 ciphertext, bytes signature)
@@ -10,7 +11,7 @@ const VOTING_CONTRACT_ABI = [
   "function isVoterRegistered(address voterId) external view returns (bool)",
   "function voters(address) external view returns (string name, address voterId, bytes encryptedVote, bool isRegistered, bool hasVoted, bool hasAuthorizedOwner)",
   "function getElectionStatus() external view returns (bool isOpen, uint256 voterCount, address electionOwner)",
-  "function getResults() external returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[])",
+  "function getResults() external returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[4])",
   "function aggregateVotes() external",
   "function toggleElection() external"
 ];
@@ -189,7 +190,7 @@ export function useVotingContract() {
       }
 
       const provider = new ethers.JsonRpcProvider(rpcUrl);
-      const ownerWallet = new ethers.Wallet(ownerPK, provider);
+      const ownerWallet = new Wallet(ownerPK, provider);
       const contract = getContract(ownerWallet);
       
       // Call aggregateVotes to compute tallies
@@ -206,29 +207,44 @@ export function useVotingContract() {
     }
   };
 
-  const getResults = async (): Promise<Array<{ optionId: number; optionLabel: string; voteCount: number }> | null> => {
+  const getResults = async (): Promise<{ results: Array<{ optionId: number; optionLabel: string; voteCount: number }>; transactionHash: string } | null> => {
     if (!contractAddress || voters.length === 0) {
       return null;
     }
 
     try {
-      // Use the first available voter's wallet to call getResults
+      // Check if election is closed first
+      const status = await getElectionStatus();
+      if (!status || status.isOpen) {
+        console.log('Election is still open - results not available yet');
+        return null;
+      }
+
+      // Use owner wallet since getResults() modifies state (aggregates and decrypts)
+      const ownerPK = import.meta.env.VITE_DEPLOYER_PRIVATE_KEY;
+      if (!ownerPK) {
+        throw new Error('Owner private key not set. Please set VITE_DEPLOYER_PRIVATE_KEY in .env');
+      }
+
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const ownerWallet = new Wallet(ownerPK, provider);
+      const contract = getContract(ownerWallet);
+      
+      // Call getResults as a transaction (it aggregates and decrypts internally)
+      const tx = await contract.getResults({
+        gasLimit: 15000000,
+        gasPrice: ethers.parseUnits('10', 'gwei'),
+      });
+      
+      const receipt = await tx.wait();
+      console.log('Results transaction completed:', receipt.hash);
+      
+      // Now read the results using staticCall with any wallet
       const wallet = voters[0].wallet;
       if (!wallet) return null;
-
-      const contract = getContract(wallet);
       
-      // First try to aggregate votes (this will fail if already aggregated, which is fine)
-      try {
-        await aggregateVotes();
-        console.log('Votes aggregated successfully');
-      } catch (aggError) {
-        // Ignore errors - votes might already be aggregated
-        console.log('Aggregation skipped (may already be done)');
-      }
-      
-      // Now get the results using staticCall
-      const results = await contract.getResults.staticCall({
+      const readContract = getContract(wallet);
+      const results = await readContract.getResults.staticCall({
         gasLimit: 15000000,
       });
       
@@ -237,11 +253,16 @@ export function useVotingContract() {
         return null;
       }
       
-      return results.map((result: any) => ({
+      const mappedResults = results.map((result: any) => ({
         optionId: Number(result.optionId),
         optionLabel: result.optionLabel,
         voteCount: Number(result.voteCount),
       }));
+
+      return {
+        results: mappedResults,
+        transactionHash: receipt.hash,
+      };
     } catch (error) {
       console.error('Error getting results:', error);
       return null;
@@ -260,7 +281,7 @@ export function useVotingContract() {
     }
 
     const provider = new ethers.JsonRpcProvider(rpcUrl);
-    const ownerWallet = new ethers.Wallet(ownerPK, provider);
+    const ownerWallet = new Wallet(ownerPK, provider);
     const contract = getContract(ownerWallet);
 
     // Send transaction
