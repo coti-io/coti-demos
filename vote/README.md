@@ -16,7 +16,7 @@ The COTI Voting Contract enables secure, private voting where individual votes r
 
 ## Contract Details
 
-- **Contract Address (Testnet)**: `0x92117A3827F122bD1dd123516aebE1964c0DEFbD`
+- **Contract Address (Testnet)**: `0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f`
 - **Network**: COTI Testnet (Chain ID: 7082400)
 - **Solidity Version**: 0.8.19
 - **License**: MIT
@@ -912,7 +912,7 @@ The web application requires several environment variables to connect to the COT
 
 ```env
 # Contract Configuration
-VITE_CONTRACT_ADDRESS=0x92117A3827F122bD1dd123516aebE1964c0DEFbD
+VITE_CONTRACT_ADDRESS=0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f
 
 # Network Configuration
 VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
@@ -1153,16 +1153,16 @@ npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
 ALICE_PK=your_key ALICE_AES_KEY=your_aes BOB_PK=your_key BOB_AES_KEY=your_aes BEA_PK=your_key BEA_AES_KEY=your_aes npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
 
 # Run against a specific deployed contract
-CONTRACT_ADDRESS=0x92117A3827F122bD1dd123516aebE1964c0DEFbD npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
+CONTRACT_ADDRESS=0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
 ```
 
 #### Testnet Tests
 ```bash
 # Set contract address and run testnet tests
-CONTRACT_ADDRESS=0x92117A3827F122bD1dd123516aebE1964c0DEFbD npx hardhat test test/testnet.test.js --network cotiTestnet
+CONTRACT_ADDRESS=0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f npx hardhat test test/testnet.test.js --network cotiTestnet
 
 # Run comprehensive testnet tests
-CONTRACT_ADDRESS=0x92117A3827F122bD1dd123516aebE1964c0DEFbD npx hardhat test test/testnet-comprehensive.test.js --network cotiTestnet
+CONTRACT_ADDRESS=0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f npx hardhat test test/testnet-comprehensive.test.js --network cotiTestnet
 ```
 
 ### Test Results Summary
@@ -1297,7 +1297,7 @@ Deployment transaction sent: 0x1234...
 Waiting for confirmation...
 
 ✅ COTIVotingContract deployed successfully!
-Contract address: 0x92117A3827F122bD1dd123516aebE1964c0DEFbD
+Contract address: 0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f
 Transaction hash: 0x1234...
 Gas used: 3,000,000
 Block number: 12345
@@ -1376,13 +1376,13 @@ Navigate to the `client/` directory (or root if using a monorepo structure) and 
 
 ```env
 # Contract Configuration
-VITE_CONTRACT_ADDRESS=0x92117A3827F122bD1dd123516aebE1964c0DEFbD
+VITE_CONTRACT_ADDRESS=0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f
 
 # Network Configuration (should match deployment)
 VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
 ```
 
-Replace `0x92117A3827F122bD1dd123516aebE1964c0DEFbD` with your actual deployed contract address from the deployment output.
+Replace `0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f` with your actual deployed contract address from the deployment output.
 
 **Step 2: Verify Configuration**
 
@@ -1542,7 +1542,7 @@ npx hardhat console --network cotiTestnet
 ```javascript
 const contract = await ethers.getContractAt(
   "COTIVotingContract",
-  "0x92117A3827F122bD1dd123516aebE1964c0DEFbD"
+  "0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f"
 );
 
 // Register voters
@@ -1589,7 +1589,7 @@ main().catch(console.error);
 
 Run the script:
 ```bash
-CONTRACT_ADDRESS=0x92117A3827F122bD1dd123516aebE1964c0DEFbD \
+CONTRACT_ADDRESS=0x86D03F5E6047525Bd42a0b96b1B46D9D368A1C1f \
 npx hardhat run scripts/register-voters.js --network cotiTestnet
 ```
 
