@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import VoterCard from "@/components/VoterCard";
 import VotingModal from "@/components/VotingModal";
 import ResultsChart from "@/components/ResultsChart";
@@ -22,9 +22,10 @@ interface VotingOption {
 }
 
 export default function VotingApp() {
-  const { voters: contractVoters, castVote, contractAddress } = useVotingContract();
+  const { voters: contractVoters, castVote, contractAddress, getElectionStatus, getResults } = useVotingContract();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingResults, setIsLoadingResults] = useState(false);
 
   // Load voters from environment variables (excluding Alice who is the contract owner)
   const [voters, setVoters] = useState<Voter[]>(() => {
@@ -78,13 +79,59 @@ export default function VotingApp() {
     { id: "mango", label: "Mango", color: "#7BC143" },
   ];
 
-  // todo: remove mock functionality
+  // Real vote counts from contract
   const [votes, setVotes] = useState<Record<string, number>>({
-    chocolate: 15,
-    raspberry: 12,
-    sandwich: 24,
-    mango: 9,
+    chocolate: 0,
+    raspberry: 0,
+    sandwich: 0,
+    mango: 0,
   });
+
+  // Fetch election status and results
+  useEffect(() => {
+    const fetchElectionData = async () => {
+      // Fetch election status
+      const status = await getElectionStatus();
+      if (status) {
+        setIsElectionOpen(status.isOpen);
+      }
+
+      // Fetch results if election is closed
+      if (status && !status.isOpen) {
+        setIsLoadingResults(true);
+        try {
+          const results = await getResults();
+          if (results) {
+            const newVotes: Record<string, number> = {
+              chocolate: 0,
+              raspberry: 0,
+              sandwich: 0,
+              mango: 0,
+            };
+
+            results.forEach(result => {
+              const optionId = votingOptions.find(opt => opt.label === result.optionLabel)?.id;
+              if (optionId) {
+                newVotes[optionId] = result.voteCount;
+              }
+            });
+
+            setVotes(newVotes);
+          }
+        } catch (error) {
+          console.error('Error fetching results:', error);
+        } finally {
+          setIsLoadingResults(false);
+        }
+      }
+    };
+
+    fetchElectionData();
+    
+    // Poll for updates every 10 seconds
+    const interval = setInterval(fetchElectionData, 10000);
+    return () => clearInterval(interval);
+  }, [getElectionStatus, getResults]);
 
   const handleVoteClick = (voterId: string) => {
     if (!isElectionOpen) return;
@@ -144,11 +191,6 @@ export default function VotingApp() {
           ? { ...voter, hasVoted: true, transactionHash: receipt.hash }
           : voter
       ));
-      
-      setVotes(prev => ({
-        ...prev,
-        [selectedOption]: (prev[selectedOption] || 0) + 1,
-      }));
 
       toast({
         title: "Vote Cast Successfully!",

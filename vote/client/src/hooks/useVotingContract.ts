@@ -8,7 +8,9 @@ const VOTING_CONTRACT_ABI = [
   "function getVotingQuestion() external pure returns (string)",
   "function getVotingOptions() external view returns (tuple(uint8 id, string label)[])",
   "function isVoterRegistered(address voterId) external view returns (bool)",
-  "function voters(address) external view returns (string name, address voterId, bytes encryptedVote, bool isRegistered, bool hasVoted, bool hasAuthorizedOwner)"
+  "function voters(address) external view returns (string name, address voterId, bytes encryptedVote, bool isRegistered, bool hasVoted, bool hasAuthorizedOwner)",
+  "function getElectionStatus() external view returns (bool isOpen, uint256 voterCount, address electionOwner)",
+  "function getResults() external returns (tuple(uint8 optionId, string optionLabel, uint64 voteCount)[])"
 ];
 
 export interface VoterAccount {
@@ -149,10 +151,59 @@ export function useVotingContract() {
     }
   };
 
+  const getElectionStatus = async (): Promise<{ isOpen: boolean; voterCount: number } | null> => {
+    if (!contractAddress || voters.length === 0) {
+      return null;
+    }
+
+    try {
+      // Use the first available voter's wallet to read contract state
+      const wallet = voters[0].wallet;
+      if (!wallet) return null;
+
+      const contract = getContract(wallet);
+      const status = await contract.getElectionStatus();
+      
+      return {
+        isOpen: status.isOpen,
+        voterCount: Number(status.voterCount),
+      };
+    } catch (error) {
+      console.error('Error getting election status:', error);
+      return null;
+    }
+  };
+
+  const getResults = async (): Promise<Array<{ optionId: number; optionLabel: string; voteCount: number }> | null> => {
+    if (!contractAddress || voters.length === 0) {
+      return null;
+    }
+
+    try {
+      // Use the first available voter's wallet to call getResults
+      const wallet = voters[0].wallet;
+      if (!wallet) return null;
+
+      const contract = getContract(wallet);
+      const results = await contract.getResults();
+      
+      return results.map((result: any) => ({
+        optionId: Number(result.optionId),
+        optionLabel: result.optionLabel,
+        voteCount: Number(result.voteCount),
+      }));
+    } catch (error) {
+      console.error('Error getting results:', error);
+      return null;
+    }
+  };
+
   return {
     voters,
     castVote,
     checkIfVoted,
+    getElectionStatus,
+    getResults,
     contractAddress,
   };
 }
