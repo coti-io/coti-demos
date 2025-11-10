@@ -2,6 +2,62 @@ import { useMemo } from 'react';
 import { ethers } from 'ethers';
 import { Wallet } from '@coti-io/coti-ethers';
 
+// Retry utility for handling transient RPC errors
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelay: number = 1000,
+  errorHandler?: (error: any, attempt: number) => boolean
+): Promise<T> {
+  let lastError: any;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      
+      // Check if error is retryable
+      const errorMessage = error?.message?.toLowerCase() || '';
+      const errorCode = error?.code;
+      
+      // "already known" means transaction is already in mempool - not a real error
+      if (errorMessage.includes('already known')) {
+        console.log('Transaction already in mempool, waiting for confirmation...');
+        // Wait a bit longer for the transaction to be mined
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        continue;
+      }
+      
+      // Other retryable errors
+      const isRetryable = 
+        errorMessage.includes('timeout') ||
+        errorMessage.includes('network') ||
+        errorMessage.includes('connection') ||
+        errorMessage.includes('econnrefused') ||
+        errorMessage.includes('nonce') ||
+        errorCode === 'NETWORK_ERROR' ||
+        errorCode === 'TIMEOUT' ||
+        errorCode === 'SERVER_ERROR' ||
+        errorCode === -32000;
+      
+      // Allow custom error handler to decide
+      const shouldRetry = errorHandler ? errorHandler(error, attempt) : isRetryable;
+      
+      if (!shouldRetry || attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Exponential backoff
+      const delay = initialDelay * Math.pow(2, attempt - 1);
+      console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`, error.message);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
+}
+
 // Contract ABI - only the functions we need
 // itUint8 is a struct with (uint256 ciphertext, bytes signature)
 const VOTING_CONTRACT_ABI = [
@@ -126,16 +182,17 @@ export function useVotingContract() {
     // Get contract instance
     const contract = getContract(wallet);
 
-    // Send transaction
-    const tx = await contract.castVote(encryptedVote, {
-      gasLimit: 15000000,
-      gasPrice: ethers.parseUnits('10', 'gwei'),
-    });
+    // Send transaction with retry logic
+    return await retryWithBackoff(async () => {
+      const tx = await contract.castVote(encryptedVote, {
+        gasLimit: 15000000,
+        gasPrice: ethers.parseUnits('10', 'gwei'),
+      });
 
-    // Wait for transaction to be mined
-    const receipt = await tx.wait();
-    
-    return receipt;
+      // Wait for transaction to be mined
+      const receipt = await tx.wait();
+      return receipt;
+    }, 3, 1000);
   };
 
   const checkIfVoted = async (voterName: string): Promise<boolean> => {
@@ -146,7 +203,11 @@ export function useVotingContract() {
 
     try {
       const contract = getContract(wallet);
-      const voterData = await contract.voters(wallet.address);
+      const voterData = await retryWithBackoff(
+        async () => await contract.voters(wallet.address),
+        3,
+        500
+      );
       return voterData.hasVoted;
     } catch (error) {
       console.error('Error checking vote status:', error);
@@ -187,7 +248,13 @@ export function useVotingContract() {
       if (!wallet) return null;
 
       const contract = getContract(wallet);
-      const status = await contract.getElectionStatus();
+      
+      // Retry read operations
+      const status = await retryWithBackoff(
+        async () => await contract.getElectionStatus(),
+        3,
+        500
+      );
       
       return {
         isOpen: status.isOpen,
@@ -204,18 +271,18 @@ export function useVotingContract() {
       throw new Error('Contract not configured');
     }
 
-    try {
-      // Use Alice (owner) wallet for aggregation
-      const ownerPK = import.meta.env.VITE_ALICE_PK;
-      if (!ownerPK) {
-        throw new Error('Owner private key not set. Please set VITE_ALICE_PK in .env');
-      }
+    // Use Alice (owner) wallet for aggregation
+    const ownerPK = import.meta.env.VITE_ALICE_PK;
+    if (!ownerPK) {
+      throw new Error('Owner private key not set. Please set VITE_ALICE_PK in .env');
+    }
 
-      const provider = new ethers.JsonRpcProvider(rpcUrl);
-      const ownerWallet = new Wallet(ownerPK, provider);
-      const contract = getContract(ownerWallet);
-      
-      // Call aggregateVotes to compute tallies
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const ownerWallet = new Wallet(ownerPK, provider);
+    const contract = getContract(ownerWallet);
+    
+    // Call aggregateVotes to compute tallies with retry logic
+    return await retryWithBackoff(async () => {
       const tx = await contract.aggregateVotes({
         gasLimit: 15000000,
         gasPrice: ethers.parseUnits('10', 'gwei'),
@@ -223,10 +290,7 @@ export function useVotingContract() {
 
       const receipt = await tx.wait();
       return receipt;
-    } catch (error) {
-      console.error('Error aggregating votes:', error);
-      throw error;
-    }
+    }, 3, 1000);
   };
 
   const getResults = async (): Promise<{ results: Array<{ optionId: number; optionLabel: string; voteCount: number }>; transactionHash: string } | null> => {
@@ -273,19 +337,25 @@ export function useVotingContract() {
       
       console.log('Step 1: Aggregating votes...');
       
-      // Call aggregateVotes to compute encrypted tallies
-      const aggTx = await contract.aggregateVotes({
-        gasLimit: 15000000,
-        gasPrice: ethers.parseUnits('10', 'gwei'),
-      });
-      
-      console.log('Aggregation transaction sent:', aggTx.hash);
-      const aggReceipt = await aggTx.wait();
-      console.log('Votes aggregated (block', aggReceipt.blockNumber, ')');
+      // Call aggregateVotes to compute encrypted tallies with retry logic
+      const aggReceipt = await retryWithBackoff(async () => {
+        const aggTx = await contract.aggregateVotes({
+          gasLimit: 15000000,
+          gasPrice: ethers.parseUnits('10', 'gwei'),
+        });
+        
+        console.log('Aggregation transaction sent:', aggTx.hash);
+        const receipt = await aggTx.wait();
+        console.log('Votes aggregated (block', receipt.blockNumber, ')');
 
-      if (aggReceipt.status === 0) {
-        throw new Error('Aggregation transaction failed');
-      }
+        if (receipt.status === 0) {
+          throw new Error('Aggregation transaction failed');
+        }
+        
+        return receipt;
+      }, 3, 1000);
+      
+      console.log('Aggregation completed successfully');
 
       console.log('Step 2: Reading and decrypting results...');
       
@@ -343,16 +413,17 @@ export function useVotingContract() {
     const ownerWallet = new Wallet(ownerPK, provider);
     const contract = getContract(ownerWallet);
 
-    // Send transaction
-    const tx = await contract.toggleElection({
-      gasLimit: 15000000,
-      gasPrice: ethers.parseUnits('10', 'gwei'),
-    });
+    // Send transaction with retry logic
+    return await retryWithBackoff(async () => {
+      const tx = await contract.toggleElection({
+        gasLimit: 15000000,
+        gasPrice: ethers.parseUnits('10', 'gwei'),
+      });
 
-    // Wait for transaction to be mined
-    const receipt = await tx.wait();
-    
-    return receipt;
+      // Wait for transaction to be mined
+      const receipt = await tx.wait();
+      return receipt;
+    }, 3, 1000);
   };
 
   return {
