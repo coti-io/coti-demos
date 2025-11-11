@@ -125,7 +125,14 @@ export default function VotingApp() {
   }, [isElectionOpen, resultsTransactionHash]);
 
   const handleVoteClick = (voterId: string) => {
-    if (!isElectionOpen) return;
+    if (!isElectionOpen) {
+      toast({
+        title: "Voting is Closed",
+        description: "Please open the voting session to cast votes.",
+        variant: "destructive",
+      });
+      return;
+    }
     const voter = voters.find(v => v.id === voterId);
     if (voter) {
       setCurrentVoterId(voterId);
