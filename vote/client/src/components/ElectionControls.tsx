@@ -39,6 +39,9 @@ export default function ElectionControls({
             </a>
           </div>
         )}
+        {(toggleTransactionHash || resultsTransactionHash) && (
+          <div className="font-medium mt-2">Transactions:</div>
+        )}
         {toggleTransactionHash && (
           <div className="flex items-center gap-2">
             <span className="font-medium">{isElectionOpen ? 'Opened' : 'Closed'}:</span>
