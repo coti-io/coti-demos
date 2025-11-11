@@ -35,37 +35,42 @@ export default function VotingApp() {
     const voterAccounts = [
       { 
         name: "Bob", 
+        address: import.meta.env.VITE_BOB_ADDRESS,
         pk: import.meta.env.VITE_BOB_PK,
         aesKey: import.meta.env.VITE_BOB_AES_KEY
       },
       { 
         name: "Bea", 
+        address: import.meta.env.VITE_BEA_ADDRESS,
         pk: import.meta.env.VITE_BEA_PK,
         aesKey: import.meta.env.VITE_BEA_AES_KEY
       },
       { 
         name: "Charlie", 
+        address: import.meta.env.VITE_CHARLIE_ADDRESS,
         pk: import.meta.env.VITE_CHARLIE_PK,
         aesKey: import.meta.env.VITE_CHARLIE_AES_KEY
       },
       { 
         name: "David", 
+        address: import.meta.env.VITE_DAVID_ADDRESS,
         pk: import.meta.env.VITE_DAVID_PK,
         aesKey: import.meta.env.VITE_DAVID_AES_KEY
       },
       { 
         name: "Ethan", 
+        address: import.meta.env.VITE_ETHAN_ADDRESS,
         pk: import.meta.env.VITE_ETHAN_PK,
         aesKey: import.meta.env.VITE_ETHAN_AES_KEY
       },
     ];
 
     return voterAccounts
-      .filter(account => account.pk && account.aesKey) // Only include if both PK and AES key exist
+      .filter(account => account.pk && account.aesKey && account.address) // Only include if all required fields exist
       .map((account, index) => ({
         id: (index + 1).toString(),
         name: account.name,
-        voterId: account.pk ? `0x${account.pk.slice(0, 6)}...${account.pk.slice(-4)}` : "0x...",
+        voterId: account.address || "0x...",
         hasVoted: false,
       }));
   });

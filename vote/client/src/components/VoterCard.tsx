@@ -17,9 +17,15 @@ export default function VoterCard({ name, voterId, hasVoted, transactionHash, on
         <h3 className="font-semibold text-card-foreground" data-testid={`text-voter-name-${voterId}`}>
           {name}
         </h3>
-        <p className="text-sm text-muted-foreground font-mono" data-testid={`text-voter-id-${voterId}`}>
+        <a
+          href={`https://testnet.cotiscan.io/address/${voterId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 font-mono block hover:underline"
+          data-testid={`text-voter-id-${voterId}`}
+        >
           {voterId}
-        </p>
+        </a>
         {transactionHash && (
           <a
             href={`https://testnet.cotiscan.io/tx/${transactionHash}`}
