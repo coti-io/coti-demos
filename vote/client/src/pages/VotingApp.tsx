@@ -3,6 +3,7 @@ import VoterCard from "@/components/VoterCard";
 import VotingModal from "@/components/VotingModal";
 import ResultsChart from "@/components/ResultsChart";
 import ElectionControls from "@/components/ElectionControls";
+import SplashScreen from "@/components/SplashScreen";
 import { Card } from "@/components/ui/card";
 import { useVotingContract } from "@/hooks/useVotingContract";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +28,7 @@ export default function VotingApp() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [isTogglingElection, setIsTogglingElection] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   // Load voters from environment variables (excluding Alice who is the contract owner)
   const [voters, setVoters] = useState<Voter[]>(() => {
@@ -322,8 +324,11 @@ export default function VotingApp() {
   }));
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <>
+      {showSplash && <SplashScreen onClose={() => setShowSplash(false)} />}
+      
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
           <div>
             <Card className="p-6">
@@ -379,6 +384,7 @@ export default function VotingApp() {
         options={votingOptions}
         onSubmit={handleSubmitVote}
       />
-    </div>
+      </div>
+    </>
   );
 }
