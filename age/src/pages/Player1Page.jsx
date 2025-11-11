@@ -1,26 +1,34 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ApiService } from '../apiService.js'
+import { useAgeContract } from '../hooks/useAgeContract.js'
 
 function Player1Page() {
   const navigate = useNavigate()
+  const { storeAge, contractAddress, adminWallet } = useAgeContract()
   const [loading, setLoading] = useState(false)
   const [storeDate, setStoreDate] = useState('')
   const [storeStatus, setStoreStatus] = useState('')
 
   useEffect(() => {
-    checkServerConnection()
+    checkContractConnection()
   }, [])
 
-  const checkServerConnection = async () => {
-    setStoreStatus('🔄 Checking server connection...')
+  const checkContractConnection = async () => {
+    setStoreStatus('🔄 Checking contract connection...')
     
     try {
-      await ApiService.healthCheck()
+      if (!contractAddress) {
+        setStoreStatus('❌ Contract address not configured. Please set VITE_CONTRACT_ADDRESS in .env')
+        return
+      }
+      if (!adminWallet) {
+        setStoreStatus('❌ Admin wallet not configured. Please set VITE_ADMIN_PK and VITE_ADMIN_AES_KEY in .env')
+        return
+      }
       setStoreStatus('✅ Connected to DateGame contract!')
     } catch (error) {
-      console.error('Error connecting to server:', error)
-      setStoreStatus('❌ Error connecting to server: ' + error.message)
+      console.error('Error connecting to contract:', error)
+      setStoreStatus('❌ Error connecting to contract: ' + error.message)
     }
   }
 
@@ -31,56 +39,59 @@ function Player1Page() {
     }
 
     setLoading(true)
-    setStoreStatus('Calculating age from birth date and storing encrypted...')
+    setStoreStatus('Calculating age from birth date and encrypting...')
 
     try {
       console.log('Storing birth date:', storeDate)
       
-      const result = await ApiService.storeDate(storeDate)
+      const result = await storeAge(storeDate)
       
       console.log('Store result:', result)
-      const txHash = result.transactionHash
-      const contractAddress = '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'
+      const txHash = result.receipt.hash
       const explorerLink = `https://testnet.cotiscan.io/address/${contractAddress}?tab=txs`
       setStoreStatus(
         <div>
-          ✅ Birth date stored and age calculated!
-          <br />
-          <strong>Encrypted Ciphertext:</strong>
-          <br />
           <div style={{
             wordBreak: 'break-all',
-            fontSize: '0.75rem',
-            padding: '0.5rem',
+            fontSize: '0.875rem',
+            padding: '1rem',
             backgroundColor: '#fff3cd',
             borderRadius: '4px',
-            marginTop: '0.5rem',
-            fontFamily: 'monospace',
+            marginBottom: '1rem',
             border: '1px solid #ffc107'
           }}>
-            {result.encryptedCiphertext || 'N/A'}
+            <strong>Age Stored (plain text):</strong> {result.age}
+            <br />
+            <br />
+            <strong>Age Stored (Encrypted Ciphertext):</strong>
+            <br />
+            <div style={{
+              fontFamily: 'monospace',
+              fontSize: '0.75rem',
+              marginTop: '0.5rem'
+            }}>
+              {result.encryptedCiphertext || 'N/A'}
+            </div>
           </div>
-          <strong style={{marginTop: '1rem', display: 'inline-block'}}>Transaction:</strong>
-          <br />
           <div style={{
             wordBreak: 'break-all',
             fontSize: '0.85rem',
-            padding: '0.5rem',
+            padding: '1rem',
             backgroundColor: '#f8f9fa',
             borderRadius: '4px',
-            marginTop: '0.5rem',
             fontFamily: 'monospace'
           }}>
-            {txHash}
+            <strong>Transaction:</strong>
+            <br />
+            <a href={explorerLink} target="_blank" rel="noopener noreferrer" style={{
+              color: '#007bff',
+              textDecoration: 'none',
+              display: 'inline-block',
+              marginTop: '0.5rem'
+            }}>
+              {txHash}
+            </a>
           </div>
-          <a href={explorerLink} target="_blank" rel="noopener noreferrer" style={{
-            color: '#007bff',
-            textDecoration: 'underline',
-            display: 'inline-block',
-            marginTop: '0.5rem'
-          }}>
-            View on Coti Explorer →
-          </a>
         </div>
       )
       
@@ -108,8 +119,8 @@ function Player1Page() {
             borderRadius: '8px',
             border: '1px solid #e9ecef'
           }}>
-            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Server-side encryption with Coti MPC</div>
-            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729</div>
+            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Client-side encryption with Coti MPC</div>
+            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: {contractAddress || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'}</div>
           </div>
           
           <div className="form-group">
@@ -135,6 +146,19 @@ function Player1Page() {
               {storeStatus}
             </div>
           )}
+
+          <button
+            className="btn"
+            onClick={() => navigate('/')}
+            style={{
+              backgroundColor: '#6c757d',
+              color: 'white',
+              marginTop: '1.5rem',
+              width: '100%'
+            }}
+          >
+            ← Back to Home
+          </button>
         </div>
       </div>
     </div>

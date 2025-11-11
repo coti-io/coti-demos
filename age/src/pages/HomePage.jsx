@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 function HomePage() {
   const navigate = useNavigate()
+  const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'
 
   return (
     <div className="app">
@@ -44,7 +45,7 @@ function HomePage() {
             </p>
 
             <div style={{marginTop: '1.5rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px', fontSize: '0.85rem', color: '#6c757d', textAlign: 'center'}}>
-              <p style={{margin: '0 0 0.5rem 0'}}><strong>Contract:</strong> 0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729</p>
+              <p style={{margin: '0 0 0.5rem 0', wordBreak: 'break-all'}}><strong>Contract:</strong> {contractAddress}</p>
               <p style={{margin: 0}}><strong>Network:</strong> Coti Testnet</p>
             </div>
           </div>

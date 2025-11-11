@@ -8,17 +8,12 @@
     "test": "hardhat test",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "server": "node server/index.js",
-    "dev:full": "concurrently \"npm run server\" \"npm run dev\""
+    "preview": "vite preview"
   },
   "dependencies": {
     "@coti-io/coti-contracts": "^1.0.0",
     "@coti-io/coti-ethers": "^1.0.5",
-    "concurrently": "^8.2.2",
-    "cors": "^2.8.5",
     "ethers": "^6.0.0",
-    "express": "^4.21.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.9.5"

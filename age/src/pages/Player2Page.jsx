@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ApiService } from '../apiService.js'
+import { useAgeContract } from '../hooks/useAgeContract.js'
 
 function Player2Page() {
   const navigate = useNavigate()
+  const { compareAge, checkAgeStatus, contractAddress, playerWallet } = useAgeContract()
   const [loading, setLoading] = useState(false)
   const [compareDate, setCompareDate] = useState('')
   const [compareStatus, setCompareStatus] = useState('')
@@ -17,7 +18,16 @@ function Player2Page() {
     setCompareStatus('🔄 Checking if age is stored...')
     
     try {
-      const isSet = await ApiService.isDateSet()
+      if (!contractAddress) {
+        setCompareStatus('❌ Contract address not configured. Please set VITE_CONTRACT_ADDRESS in .env')
+        return
+      }
+      if (!playerWallet) {
+        setCompareStatus('❌ Player wallet not configured. Please set VITE_PLAYER_PK and VITE_PLAYER_AES_KEY in .env')
+        return
+      }
+
+      const isSet = await checkAgeStatus()
       
       if (!isSet) {
         setCompareStatus('⚠️ No age has been stored yet. Player 1 needs to store their birth date first.')
@@ -26,7 +36,7 @@ function Player2Page() {
       }
     } catch (error) {
       console.error('Error checking age status:', error)
-      setCompareStatus('❌ Error connecting to server: ' + error.message)
+      setCompareStatus('❌ Error connecting to contract: ' + error.message)
     }
   }
 
@@ -42,8 +52,7 @@ function Player2Page() {
     try {
       console.log('Comparing age:', compareDate, 'operation:', operation)
       
-      // Pass age directly as a number (not a date)
-      const result = await ApiService.compareAge(parseInt(compareDate, 10), operation)
+      const result = await compareAge(compareDate, operation)
       
       console.log('Compare result:', result)
       
@@ -54,18 +63,18 @@ function Player2Page() {
       
       // operation 'greater' means stored > guessed (i.e., actual person is OLDER than guess)
       // operation 'less' means stored < guessed (i.e., actual person is YOUNGER than guess)
-      const booleanResult = result.result === 'true' || result.result === true
+      const booleanResult = result.result === true
       
       let statusMessage
       let guessResult
       if (operation === 'greater') {
         // Asked: Is actual person OLDER? Contract returned: Is stored > guess?
-        statusMessage = `✅ Is the person OLDER than ${compareDate}? ${booleanResult ? 'YES (guess higher) ⬆️' : 'NO (guess lower) ⬇️'}`
-        guessResult = booleanResult ? 'YES ⬆️' : 'NO ⬇️'
+        statusMessage = `✅ Is the person OLDER than ${compareDate}? ${booleanResult ? 'YES' : 'NO'}`
+        guessResult = booleanResult ? 'YES' : 'NO'
       } else {
         // Asked: Is actual person YOUNGER? Contract returned: Is stored < guess?
-        statusMessage = `✅ Is the person YOUNGER than ${compareDate}? ${booleanResult ? 'YES (guess lower) ⬇️' : 'NO (guess higher) ⬆️'}`
-        guessResult = booleanResult ? 'YES ⬇️' : 'NO ⬆️'
+        statusMessage = `✅ Is the person YOUNGER than ${compareDate}? ${booleanResult ? 'YES' : 'NO'}`
+        guessResult = booleanResult ? 'YES' : 'NO'
       }
       
       // Add to guess history
@@ -74,14 +83,10 @@ function Player2Page() {
         operation: operation === 'greater' ? 'OLDER?' : 'YOUNGER?',
         result: guessResult,
         timestamp: new Date().toLocaleTimeString(),
-        transactionHash: result.transactionHash
+        transactionHash: result.transactionHash,
+        encryptedCiphertext: result.encryptedCiphertext
       }
       setGuessHistory(prev => [...prev, guessEntry])
-      
-      // Add debugging info if available
-      if (result.storedValue && result.comparedValue) {
-        statusMessage += `\n📊 Debug: Stored=${result.storedValue}, Compared=${result.comparedValue}`
-      }
       
       setCompareStatus(statusMessage)
       
@@ -98,19 +103,6 @@ function Player2Page() {
   return (
     <div className="app">
       <h1 className="title">Age Guessing Game - Player</h1>
-      
-      <div style={{
-        textAlign: 'center',
-        marginBottom: '1rem',
-        padding: '1rem',
-        backgroundColor: '#fff3cd',
-        borderRadius: '8px',
-        border: '1px solid #ffc107',
-        maxWidth: '800px',
-        margin: '0 auto 1rem auto'
-      }}>
-        💰 Need test tokens? Get them from the <a href="https://discord.com/invite/Z4r8D6ez49" target="_blank" rel="noopener noreferrer">COTI Testnet Faucet</a>
-      </div>
 
       <div className="cards-container" style={{justifyContent: 'center'}}>
         <div className="card" style={{maxWidth: '500px'}}>
@@ -124,8 +116,8 @@ function Player2Page() {
             borderRadius: '8px',
             border: '1px solid #e9ecef'
           }}>
-            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Server-side encryption with Coti MPC</div>
-            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729</div>
+            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Client-side encryption with Coti MPC</div>
+            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: {contractAddress || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'}</div>
           </div>
           
           <div className="form-group">
@@ -210,6 +202,21 @@ function Player2Page() {
                         {guess.result}
                       </div>
                     </div>
+                    {guess.encryptedCiphertext && (
+                      <div style={{
+                        fontSize: '0.75rem',
+                        color: '#6c757d',
+                        marginTop: '0.5rem'
+                      }}>
+                        <strong>Age {guess.age}</strong>
+                        <div style={{
+                          wordBreak: 'break-all',
+                          marginTop: '0.25rem'
+                        }}>
+                          {guess.encryptedCiphertext}
+                        </div>
+                      </div>
+                    )}
                     {guess.transactionHash && (
                       <div style={{
                         fontSize: '0.75rem',

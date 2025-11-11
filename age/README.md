@@ -7,7 +7,7 @@ A decentralized application that demonstrates privacy-preserving age verificatio
 - **Contract Address**: `0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729`
 - **Network**: Coti Testnet
 - **Chain ID**: 7082400
-- **Backend Server**: Express.js server running on port 3002
+- **Architecture**: Standalone React app with client-side MPC encryption
 
 ## 🛠 Prerequisites
 
@@ -25,56 +25,58 @@ Before you begin, ensure you have the following installed:
    git clone https://github.com/cotitech-io/demos.git
    cd age
    ```
+
 2. **Install dependencies**
 
    ```bash
    npm install
    ```
-3. **Set up environment variables** (optional for custom deployment)
 
-   For deploying your own contract, create a `.env` file:
+3. **Set up environment variables**
+
+   Copy the `.env.example` file to `.env`:
 
    ```bash
-   DEPLOYER_PRIVATE_KEY=your_deployment_private_key_here
-   VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
-   AES_KEY=aes_key
+   cp .env.example .env
    ```
 
-   For the backend server, update `server/index.js` to use environment variables:
+   Update the `.env` file with your wallet credentials:
 
-   ```javascript
-   const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || 'your_wallet_private_key'
-   const AES_KEY = process.env.AES_KEY || 'aes_key'
+   ```bash
+   # Coti Testnet RPC URL
+   VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
+
+   # Deployed DateGame Contract Address
+   VITE_CONTRACT_ADDRESS=0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729
+
+   # Admin Account (Player 1 - stores the age)
+   VITE_ADMIN_PK=your_admin_private_key_here
+   VITE_ADMIN_AES_KEY=your_admin_aes_key_here
+
+   # Player Account (Player 2 - guesses the age)
+   VITE_PLAYER_PK=your_player_private_key_here
+   VITE_PLAYER_AES_KEY=your_player_aes_key_here
+
+   # Deployer Account (for hardhat deployment)
+   DEPLOYER_PRIVATE_KEY=your_deployer_private_key_here
    ```
 
 ## 🚀 Quick Start
 
 ### Option 1: Use Existing Deployment
 
-1. **Start the backend server**
-
-   ```bash
-   npm run server
-   ```
-
-   Server will run on `http://localhost:3002`
-2. **Start the React application** (in a new terminal)
+1. **Start the React application**
 
    ```bash
    npm run dev
    ```
 
-   Frontend will run on `http://localhost:5173`
+   Frontend will run on `http://localhost:3000`
 
-   **Alternative**: Run both concurrently
+2. **Open your browser**
+   Navigate to `http://localhost:3000`
 
-   ```bash
-   npm run dev:full
-   ```
-3. **Open your browser**
-   Navigate to `http://localhost:5173`
-4. **Play the game**
-
+3. **Play the game**
    - Choose "Start as Admin" to store a birth date
    - Choose "Start as Player" to guess the age
    - The app connects to the deployed contract at `0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729`
@@ -86,39 +88,24 @@ Before you begin, ensure you have the following installed:
    ```bash
    npm run compile
    ```
+
 2. **Deploy to Coti Testnet**
 
    ```bash
    npm run deploy:coti
    ```
+
 3. **Update contract address**
-   Copy the deployed contract address and update it in multiple locations:
-
-   - `server/index.js`:
-
-     ```javascript
-     const DATE_GAME_ADDRESS = 'your_new_contract_address'
-     ```
-   - `src/pages/HomePage.jsx` (in the contract display section):
-
-     ```jsx
-     <p>Contract: your_new_contract_address</p>
-     ```
-   - `src/pages/Player1Page.jsx` (in the explorer link):
-
-     ```javascript
-     const contractAddress = 'your_new_contract_address'
-     ```
-4. **Update your `.env` file** with your wallet configuration:
+   Copy the deployed contract address and update it in your `.env` file:
 
    ```bash
-   DEPLOYER_PRIVATE_KEY=your_wallet_private_key
-   AES_KEY=aes_key
+   VITE_CONTRACT_ADDRESS=your_new_contract_address
    ```
-5. **Start both backend and frontend**
+
+4. **Start the application**
 
    ```bash
-   npm run dev:full
+   npm run dev
    ```
 
 ## 📱 How to Use
@@ -128,10 +115,10 @@ Before you begin, ensure you have the following installed:
 1. Navigate to the **Admin Page** (`/admin`)
 2. **Select Birth Date**
    - Choose your birth date using the date picker
-   - The server calculates your current age in years
+   - The app calculates your current age in years client-side
 3. **Store Encrypted Age**
    - Click "Store Birth Date" to encrypt and store the calculated age on-chain
-   - The birth date is converted to age on the backend before encryption
+   - The birth date is converted to age in the browser before encryption
    - Wait for transaction confirmation
    - View the encrypted ciphertext and transaction hash
 
@@ -161,22 +148,14 @@ Before you begin, ensure you have the following installed:
 │  │  HomePage    │  │  Admin Page  │  │  Player Page │       │
 │  │     (/)      │  │   (/admin)   │  │  (/player)   │       │
 │  └──────────────┘  └──────────────┘  └──────────────┘       │
-└────────────────────────┬────────────────────────────────────┘
-                         │ API Calls (fetch)
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Backend Server (Express.js)                    │
-│  • Port 3002                                                │
-│  • Handles MPC encryption/decryption                        │
-│  • Birth date → Age conversion                              │
-│  • Manages Coti wallet with AES key                         │
-│  ┌──────────────────────────────────────────────────┐       │
-│  │  API Endpoints:                                  │       │
-│  │  • POST /api/store-date     (Store birth date)   │       │
-│  │  • POST /api/compare-date   (Compare ages)       │       │
-│  │  • GET  /api/is-date-set    (Check if set)       │       │
-│  │  • GET  /health             (Health check)       │       │
-│  └──────────────────────────────────────────────────┘       │
+│                         │                                    │
+│  ┌──────────────────────▼────────────────────────────────┐  │
+│  │  useAgeContract Hook (Custom React Hook)              │  │
+│  │  • Manages Coti wallets (Admin & Player)              │  │
+│  │  • Handles MPC encryption/decryption client-side      │  │
+│  │  • Birth date → Age conversion                         │  │
+│  │  • Direct smart contract interactions                  │  │
+│  └────────────────────────────────────────────────────────┘  │
 └────────────────────────┬────────────────────────────────────┘
                          │ Coti-Ethers SDK
                          ▼
@@ -186,12 +165,12 @@ Before you begin, ensure you have the following installed:
 │  │   DateGame Smart Contract (Solidity)                 │   │
 │  │   Address: 0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729│   │
 │  │                                                      │   │
-│  │   • setAge(itUint64)       - Store encrypted age.    │   │
-│  │   • greaterThan(itUint64)  - Compare (stored > input)│   │
-│  │   • lessThan(itUint64)     - Compare (stored < input)│   │
-│  │   • comparisonResult()     - Get encrypted result.   │   │
-│  │   • isAgeSet()             - Check if age stored.    │   │
-│  └────────────────────────────────────────v─────────────┘   │
+│  │   • setAge(itUint64)       - Store encrypted age    │   │
+│  │   • greaterThan(itUint64)  - Compare (stored > input)│  │
+│  │   • lessThan(itUint64)     - Compare (stored < input)│  │
+│  │   • comparisonResult()     - Get encrypted result   │   │
+│  │   • isAgeSet()             - Check if age stored    │   │
+│  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -203,22 +182,19 @@ age/
 │   └── DateGame.sol              # Smart contract with MPC operations
 ├── scripts/
 │   └── deploy-DateGame.js        # Hardhat deployment script
-├── server/
-│   ├── index.js                  # Express.js backend server
-│   └── DateGameABI.json          # Contract ABI for backend
 ├── src/
 │   ├── App.jsx                   # React Router setup
-│   ├── apiService.js             # API client for backend calls
-│   ├── cotiUtils.js              # Coti utility functions
-│   ├── DateGameABI.json          # Contract ABI for frontend
 │   ├── index.css                 # Global styles
 │   ├── main.jsx                  # React entry point
+│   ├── hooks/
+│   │   └── useAgeContract.js     # Custom hook for contract interactions
 │   └── pages/
 │       ├── HomePage.jsx          # Landing page with game rules
 │       ├── Player1Page.jsx       # Admin page (store birth date)
 │       └── Player2Page.jsx       # Player page (guess age)
 ├── artifacts/                    # Compiled contracts (Hardhat output)
 ├── cache/                        # Hardhat cache
+├── .env.example                  # Environment variables template
 ├── hardhat.config.js            # Hardhat configuration
 ├── vite.config.js               # Vite bundler configuration
 ├── package.json                 # Dependencies and scripts
@@ -234,18 +210,19 @@ age/
 - **Storage**: Encrypted age stored as `utUint64` (user + network ciphertext)
 - **Privacy**: All comparisons happen on encrypted data using `gtUint64` (garbled type)
 
-#### Backend Server (`server/index.js`)
+#### Custom Hook (`useAgeContract.js`)
 
-- **Framework**: Express.js with CORS
+- **Framework**: React Hooks
 - **SDK**: `@coti-io/coti-ethers` for MPC encryption/decryption
-- **Key Management**: Server-side wallet with AES key for encryption
+- **Key Management**: Client-side wallets with AES keys for encryption
 - **Date Processing**: Converts birth dates to age in years before encryption
+- **Retry Logic**: Handles transient RPC errors with exponential backoff
 
 #### Frontend (`src/`)
 
 - **Framework**: React 18 with React Router DOM
 - **Build Tool**: Vite
-- **API Client**: Custom `apiService.js` for backend communication
+- **Hook**: Custom `useAgeContract` hook for all contract interactions
 - **Pages**: Home, Admin (store), Player (guess)
 
 ## 🔧 Available Scripts
@@ -258,14 +235,9 @@ age/
 
 ### Frontend
 
-- `npm run dev` - Start Vite dev server (default: http://localhost:5173)
+- `npm run dev` - Start Vite dev server (default: http://localhost:3000)
 - `npm run build` - Build React app for production
 - `npm run preview` - Preview production build
-
-### Backend
-
-- `npm run server` - Start Express.js backend server (port 3002)
-- `npm run dev:full` - Run both backend server and frontend dev server concurrently
 
 ## 🔐 Smart Contract Features
 
@@ -316,39 +288,38 @@ function isAgeSet() external view returns (bool)
 
 ### Common Issues
 
-1. **Backend server not starting**
+1. **Contract not configured error**
+   - Ensure you've copied `.env.example` to `.env`
+   - Verify `VITE_CONTRACT_ADDRESS` is set in `.env`
+   - Check that the contract address is valid
 
-   - Ensure port 3002 is not already in use
-   - Check that `PRIVATE_KEY` and `AES_KEY` are set in `server/index.js`
-   - Verify Coti provider connection
-2. **"Failed to initialize Coti service" error**
+2. **Wallet not configured error**
+   - Verify `VITE_ADMIN_PK` and `VITE_ADMIN_AES_KEY` are set for admin page
+   - Verify `VITE_PLAYER_PK` and `VITE_PLAYER_AES_KEY` are set for player page
+   - Ensure private keys don't include the `0x` prefix
 
-   - Verify the contract address in `server/index.js`
-   - Check that the ABI file exists at `server/DateGameABI.json`
-   - Ensure the wallet has funds on Coti Testnet
 3. **Transaction failures**
-
-   - Ensure the backend wallet has sufficient ETH for gas fees
+   - Ensure the wallets have sufficient ETH for gas fees
    - Check that the contract address is correct
    - Verify network configuration (Chain ID: 7082400)
-4. **Build errors**
 
+4. **Build errors**
    - Delete `node_modules` and run `npm install` again
    - Ensure Node.js version is 16 or higher
    - Check that all dependencies are installed
-5. **API connection errors**
 
-   - Verify backend server is running on port 3002
-   - Check browser console for CORS errors
-   - Ensure `apiService.js` points to correct backend URL
+5. **RPC connection errors**
+   - Verify `VITE_APP_NODE_HTTPS_ADDRESS` is set correctly
+   - Check network connectivity
+   - Try using a different RPC endpoint if available
 
 ### Getting Test ETH
 
 To get test ETH for Coti Testnet:
 
-1. Visit the Coti Testnet faucet
-2. Enter your wallet address
-3. Request test tokens
+1. Visit the [Coti Discord](https://discord.com/invite/Z4r8D6ez49)
+2. Navigate to the testnet faucet channel
+3. Request test tokens for your wallet address
 
 ## 🔐 Privacy & Security
 
@@ -356,29 +327,28 @@ To get test ETH for Coti Testnet:
 
 The Age Guessing Game uses Coti's Multi-Party Computation (MPC) to ensure complete privacy:
 
-1. **Client-Server Separation**
+1. **Client-Side Encryption**
+   - All MPC operations happen in the browser using Coti wallets
+   - Private keys and AES keys stored in environment variables
+   - No server-side storage of sensitive data
 
-   - Frontend doesn't handle private keys or encryption
-   - Backend server manages wallet and performs encryption/decryption
-   - Reduces client-side complexity and security risks
 2. **Birth Date → Age Conversion**
-
-   - Birth date sent to server over HTTPS
-   - Server calculates age in years (not stored in plain text)
+   - Birth date converted to age in the browser
    - Only the age is encrypted and stored on-chain
-3. **Encrypted Storage**
+   - Original birth date never leaves the client
 
+3. **Encrypted Storage**
    - Age encrypted as `utUint64` (user + network ciphertext)
    - Stored on public blockchain, but value is encrypted
-   - Only the owner (with AES key) can decrypt
-4. **Encrypted Comparisons**
+   - Only users with proper AES keys can decrypt
 
+4. **Encrypted Comparisons**
    - Player's guess is encrypted before sending to contract
    - Comparison happens on `gtUint64` garbled types
    - Result is `gtBool` → `gtUint8` → `utUint8` (encrypted 0 or 1)
-   - Only the backend can decrypt the result to YES/NO
-5. **Zero Knowledge to Player**
+   - Player wallet decrypts the result to YES/NO
 
+5. **Zero Knowledge to Player**
    - Player only receives YES/NO answers
    - Actual age value never exposed
    - Even blockchain explorers only see encrypted ciphertexts
@@ -389,10 +359,12 @@ The Age Guessing Game uses Coti's Multi-Party Computation (MPC) to ensure comple
 
 - Store private keys in secure key management systems (e.g., AWS KMS, HashiCorp Vault)
 - Use environment variables for all sensitive data
+- Never commit `.env` files to version control
 - Implement proper authentication and authorization
 - Add rate limiting and input validation
 - Use HTTPS for all communications
 - Implement proper error handling without exposing sensitive information
+- Consider using hardware wallets or secure enclaves for key management
 
 ## 🤝 Contributing
 
@@ -429,12 +401,31 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **React Router DOM**: ^7.9.5 (routing)
 - **Vite**: ^4.4.0 (build tool)
 - **@vitejs/plugin-react**: ^4.0.0
+- **Coti-Ethers SDK**: `@coti-io/coti-ethers` ^1.0.5 (MPC encryption/decryption)
+- **Ethers.js**: ^6.0.0 (blockchain interactions)
 
 ### Key Dependencies
 
 - **@coti-io/coti-contracts**: MPC operations (MpcCore, ExtendedOperations)
 - **@coti-io/coti-ethers**: Wallet encryption/decryption utilities
-- **concurrently**: ^8.2.2 (run multiple processes)
+
+## 🔄 Migration from Server-Side to Client-Side
+
+This app was refactored from a server-side architecture (Express.js backend) to a standalone React app with client-side MPC operations:
+
+### What Changed
+
+- **Removed**: Express.js backend server, API endpoints, `apiService.js`, `cotiUtils.js`
+- **Added**: `useAgeContract` custom React hook for direct contract interactions
+- **Updated**: All MPC operations now happen in the browser
+- **Improved**: Better separation of concerns, reduced latency, no backend dependency
+
+### Benefits
+
+- **Simpler deployment**: Single static site hosting (Vercel, Netlify, etc.)
+- **Lower latency**: Direct blockchain communication without API middleware
+- **Better scalability**: No backend server to maintain
+- **Clearer architecture**: Similar to the example voting app structure
 
 ## 🀽� Links
 
