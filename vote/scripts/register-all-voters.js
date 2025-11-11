@@ -1,81 +1,74 @@
-import { ethers } from '@coti-io/coti-ethers';
+import { ethers } from 'ethers';
+import { Wallet } from '@coti-io/coti-ethers';
 import dotenv from 'dotenv';
-dotenv.config({ path: './client/.env' });
 
-async function registerVoters() {
-  const contractAddress = process.env.VITE_CONTRACT_ADDRESS || '0xB2aB38FFf4Dd617EAa2EC1BD43E176A528E85BBF';
-  const rpcUrl = process.env.VITE_APP_NODE_HTTPS_ADDRESS || 'https://testnet.coti.io/rpc';
-  const ownerPK = process.env.VITE_ALICE_PK; // Contract owner (Alice)
+dotenv.config();
 
+const contractAddress = process.env.CONTRACT || '0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf';
+const rpcUrl = process.env.VITE_APP_NODE_HTTPS_ADDRESS || 'https://testnet.coti.io/rpc';
+const ownerPK = process.env.ALICE_PK;
+
+const abi = [
+  'function addVoter(string memory name, address voterId) public',
+  'function isVoterRegistered(address voterId) external view returns (bool)'
+];
+
+async function registerAllVoters() {
   if (!ownerPK) {
-    console.error('Error: DEPLOYER_PRIVATE_KEY not found in .env file');
-    return;
+    console.error('Error: ALICE_PK not found in .env file');
+    process.exit(1);
   }
 
   const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const ownerWallet = new ethers.Wallet(ownerPK, provider);
-
-  console.log('Contract owner address:', ownerWallet.address);
-  console.log('Contract address:', contractAddress);
-
-  const abi = [
-    'function addVoter(string memory name, address voterId) public',
-    'function isVoterRegistered(address voterId) external view returns (bool)',
-    'function getElectionStatus() external view returns (bool isOpen, uint256 voterCount, address electionOwner)'
-  ];
-
+  const ownerWallet = new Wallet(ownerPK, provider);
   const contract = new ethers.Contract(contractAddress, abi, ownerWallet);
 
-  // Define voters to register
   const voters = [
-    { name: 'Bob', pk: process.env.VITE_BOB_PK || process.env.BOB_PK },
-    { name: 'Bea', pk: process.env.VITE_BEA_PK || process.env.BEA_PK },
-    { name: 'Charlie', pk: process.env.VITE_CHARLIE_PK || process.env.CHARLIE_PK },
-    { name: 'David', pk: process.env.VITE_DAVID_PK || process.env.DAVID_PK },
-    { name: 'Ethan', pk: process.env.VITE_ETHAN_PK || process.env.ETHAN_PK },
+    { name: 'Bob', address: process.env.BOB_ADDRESS },
+    { name: 'Bea', address: process.env.BEA_ADDRESS },
+    { name: 'Charlie', address: process.env.CHARLIE_ADDRESS },
+    { name: 'David', address: process.env.DAVID_ADDRESS },
+    { name: 'Ethan', address: process.env.ETHAN_ADDRESS }
   ];
 
-  console.log('\nRegistering voters...\n');
+  console.log(`Registering voters on contract: ${contractAddress}\n`);
 
   for (const voter of voters) {
-    if (!voter.pk) {
-      console.log(`⚠️  Skipping ${voter.name} - private key not found`);
+    if (!voter.address) {
+      console.log(`⚠️  Skipping ${voter.name} - address not found in .env`);
       continue;
     }
 
-    const voterWallet = new ethers.Wallet(voter.pk, provider);
-    const voterAddress = voterWallet.address;
-
     try {
       // Check if already registered
-      const isRegistered = await contract.isVoterRegistered(voterAddress);
+      const isRegistered = await contract.isVoterRegistered(voter.address);
       
       if (isRegistered) {
-        console.log(`✓ ${voter.name} (${voterAddress}) - already registered`);
+        console.log(`✓ ${voter.name} (${voter.address}) - already registered`);
         continue;
       }
 
-      // Register the voter
-      console.log(`Registering ${voter.name} (${voterAddress})...`);
-      const tx = await contract.addVoter(voter.name, voterAddress, {
-        gasLimit: 500000,
+      console.log(`Registering ${voter.name} (${voter.address})...`);
+      
+      const tx = await contract.addVoter(voter.name, voter.address, {
+        gasLimit: 15000000,
         gasPrice: ethers.parseUnits('10', 'gwei'),
       });
 
-      console.log(`  Transaction sent: ${tx.hash}`);
+      console.log(`  Transaction: ${tx.hash}`);
       const receipt = await tx.wait();
-      console.log(`✓ ${voter.name} registered successfully (block ${receipt.blockNumber})\n`);
-
+      
+      if (receipt.status === 1) {
+        console.log(`  ✓ ${voter.name} registered successfully!\n`);
+      } else {
+        console.log(`  ✗ ${voter.name} registration failed\n`);
+      }
     } catch (error) {
-      console.error(`✗ Error registering ${voter.name}:`, error.message, '\n');
+      console.error(`  ✗ Error registering ${voter.name}:`, error.message, '\n');
     }
   }
 
-  // Check final status
-  const finalStatus = await contract.getElectionStatus();
-  console.log('\n=== Final Status ===');
-  console.log('Total voters registered:', finalStatus.voterCount.toString());
-  console.log('Election is open:', finalStatus.isOpen);
+  console.log('Registration complete!');
 }
 
-registerVoters().catch(console.error);
+registerAllVoters().catch(console.error);
