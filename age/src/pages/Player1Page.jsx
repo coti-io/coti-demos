@@ -39,7 +39,7 @@ function Player1Page() {
     }
 
     setLoading(true)
-    setStoreStatus('Calculating age from birth date and encrypting...')
+    setStoreStatus('Encrypting age and storing it on smart contract...')
 
     try {
       console.log('Storing birth date:', storeDate)
@@ -70,7 +70,7 @@ function Player1Page() {
               fontSize: '0.75rem',
               marginTop: '0.5rem'
             }}>
-              {result.encryptedCiphertext || 'N/A'}
+              {result.encryptedCiphertext ? `${result.encryptedCiphertext} 🔒` : 'N/A'}
             </div>
           </div>
           <div style={{
@@ -108,7 +108,7 @@ function Player1Page() {
       <h1 className="title">Age Guessing Game - Admin</h1>
       
       <div className="cards-container" style={{justifyContent: 'center'}}>
-        <div className="card" style={{maxWidth: '500px'}}>
+        <div className="card" style={{maxWidth: '600px'}}>
           <h2 className="card-title">Store Birth Date</h2>
           
           <div style={{
@@ -162,7 +162,7 @@ function Player1Page() {
             onClick={handleStoreDate}
             disabled={loading}
           >
-            {loading ? 'Storing...' : 'Store Birth Date'}
+            {loading ? 'Storing...' : 'Store Age'}
           </button>
           
           {storeStatus && (
