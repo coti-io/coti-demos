@@ -40,7 +40,7 @@ export default function VoterCard({ name, voterId, hasVoted, transactionHash, en
             </a>
             {encryptedVote && (
               <div className="text-xs text-muted-foreground font-mono break-all">
-                Encrypted: {encryptedVote}
+                Encrypted Vote: {encryptedVote} 🔒
               </div>
             )}
           </div>
