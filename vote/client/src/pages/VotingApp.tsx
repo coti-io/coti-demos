@@ -14,6 +14,7 @@ interface Voter {
   voterId: string;
   hasVoted: boolean;
   transactionHash?: string;
+  encryptedVote?: string;
 }
 
 interface VotingOption {
@@ -188,18 +189,23 @@ export default function VotingApp() {
       });
 
       // Cast vote on the blockchain
-      const receipt = await castVote(currentVoterName, voteValue);
+      const result = await castVote(currentVoterName, voteValue);
 
       // Update local state
       setVoters(voters.map(voter => 
         voter.id === currentVoterId 
-          ? { ...voter, hasVoted: true, transactionHash: receipt.hash }
+          ? { 
+              ...voter, 
+              hasVoted: true, 
+              transactionHash: result.receipt.hash,
+              encryptedVote: result.encryptedVote
+            }
           : voter
       ));
 
       toast({
         title: "Vote Cast Successfully!",
-        description: `Transaction: ${receipt.hash.slice(0, 10)}...${receipt.hash.slice(-8)}`,
+        description: `Transaction: ${result.receipt.hash.slice(0, 10)}...${result.receipt.hash.slice(-8)}`,
       });
     } catch (error) {
       console.error("Error casting vote:", error);
@@ -348,6 +354,7 @@ export default function VotingApp() {
                     voterId={voter.voterId}
                     hasVoted={voter.hasVoted}
                     transactionHash={voter.transactionHash}
+                    encryptedVote={voter.encryptedVote}
                     onVoteClick={() => handleVoteClick(voter.id)}
                   />
                 ))}

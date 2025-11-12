@@ -7,10 +7,11 @@ interface VoterCardProps {
   voterId: string;
   hasVoted: boolean;
   transactionHash?: string;
+  encryptedVote?: string;
   onVoteClick: () => void;
 }
 
-export default function VoterCard({ name, voterId, hasVoted, transactionHash, onVoteClick }: VoterCardProps) {
+export default function VoterCard({ name, voterId, hasVoted, transactionHash, encryptedVote, onVoteClick }: VoterCardProps) {
   return (
     <Card className="p-4 flex items-center justify-between gap-4">
       <div className="flex-1 min-w-0">
@@ -27,15 +28,22 @@ export default function VoterCard({ name, voterId, hasVoted, transactionHash, on
           {voterId}
         </a>
         {transactionHash && (
-          <a
-            href={`https://testnet.cotiscan.io/tx/${transactionHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-mono block mt-1 hover:underline"
-            data-testid={`link-tx-${voterId}`}
-          >
-            Tx: {transactionHash.slice(0, 10)}...{transactionHash.slice(-8)}
-          </a>
+          <div className="mt-1 space-y-1">
+            <a
+              href={`https://testnet.cotiscan.io/tx/${transactionHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-mono block hover:underline"
+              data-testid={`link-tx-${voterId}`}
+            >
+              Tx: {transactionHash.slice(0, 10)}...{transactionHash.slice(-8)}
+            </a>
+            {encryptedVote && (
+              <div className="text-xs text-muted-foreground font-mono break-all">
+                Encrypted: {encryptedVote}
+              </div>
+            )}
+          </div>
         )}
       </div>
       {hasVoted ? (

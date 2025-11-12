@@ -179,11 +179,26 @@ export function useVotingContract() {
     // Encrypt the vote
     const encryptedVote = await encryptVote(voteOption, wallet);
 
+    // Extract the ciphertext for display
+    // encryptedVote is a tuple/object with ciphertext and signature
+    let ciphertextDisplay = '';
+    try {
+      if (Array.isArray(encryptedVote)) {
+        ciphertextDisplay = encryptedVote[0]?.toString() || '';
+      } else if (encryptedVote.ciphertext) {
+        ciphertextDisplay = encryptedVote.ciphertext.toString();
+      } else {
+        ciphertextDisplay = JSON.stringify(encryptedVote);
+      }
+    } catch (e) {
+      ciphertextDisplay = 'encrypted';
+    }
+
     // Get contract instance
     const contract = getContract(wallet);
 
     // Send transaction with retry logic
-    return await retryWithBackoff(async () => {
+    const receipt = await retryWithBackoff(async () => {
       const tx = await contract.castVote(encryptedVote, {
         gasLimit: 15000000,
         gasPrice: ethers.parseUnits('10', 'gwei'),
@@ -193,6 +208,12 @@ export function useVotingContract() {
       const receipt = await tx.wait();
       return receipt;
     }, 3, 1000);
+
+    // Return both receipt and encrypted ciphertext
+    return {
+      receipt,
+      encryptedVote: ciphertextDisplay,
+    };
   };
 
   const checkIfVoted = async (voterName: string): Promise<boolean> => {
