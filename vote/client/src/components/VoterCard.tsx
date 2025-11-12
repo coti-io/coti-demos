@@ -33,10 +33,10 @@ export default function VoterCard({ name, voterId, hasVoted, transactionHash, en
               href={`https://testnet.cotiscan.io/tx/${transactionHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-mono block hover:underline"
+              className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-mono block hover:underline break-all"
               data-testid={`link-tx-${voterId}`}
             >
-              Tx: {transactionHash.slice(0, 10)}...{transactionHash.slice(-8)}
+              Tx: {transactionHash}
             </a>
             {encryptedVote && (
               <div className="text-xs text-muted-foreground font-mono break-all">
