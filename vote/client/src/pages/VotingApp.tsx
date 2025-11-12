@@ -81,6 +81,7 @@ export default function VotingApp() {
   const [currentVoterId, setCurrentVoterId] = useState<string | null>(null);
   const [currentVoterName, setCurrentVoterName] = useState<string | null>(null);
   const [toggleTransactionHash, setToggleTransactionHash] = useState<string | null>(null);
+  const [toggleTransactionLabel, setToggleTransactionLabel] = useState<string>("Toggle Election");
   const [resultsTransactionHash, setResultsTransactionHash] = useState<string | null>(null);
 
   const votingOptions: VotingOption[] = [
@@ -294,8 +295,9 @@ export default function VotingApp() {
 
       const receipt = await toggleElection();
 
-      // Store the transaction hash
+      // Store the transaction hash and label
       setToggleTransactionHash(receipt.hash);
+      setToggleTransactionLabel(isElectionOpen ? "Close Election" : "Open Election");
 
       // Fetch updated status
       const status = await getElectionStatus();
@@ -349,6 +351,7 @@ export default function VotingApp() {
           isToggling={isTogglingElection}
           isFetchingResults={isLoadingResults}
           toggleTransactionHash={toggleTransactionHash}
+          toggleTransactionLabel={toggleTransactionLabel}
           resultsTransactionHash={resultsTransactionHash}
         />
 

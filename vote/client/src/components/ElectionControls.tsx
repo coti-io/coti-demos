@@ -9,6 +9,7 @@ interface ElectionControlsProps {
   isToggling?: boolean;
   isFetchingResults?: boolean;
   toggleTransactionHash?: string | null;
+  toggleTransactionLabel?: string;
   resultsTransactionHash?: string | null;
 }
 
@@ -21,6 +22,7 @@ export default function ElectionControls({
   isToggling = false,
   isFetchingResults = false,
   toggleTransactionHash,
+  toggleTransactionLabel = "Toggle Election",
   resultsTransactionHash,
 }: ElectionControlsProps) {
   return (
@@ -57,7 +59,7 @@ export default function ElectionControls({
         )}
         {toggleTransactionHash && (
           <div className="flex items-center gap-2">
-            <span className="font-medium">Toggle:</span>
+            <span className="font-medium">{toggleTransactionLabel}:</span>
             <a
               href={`https://testnet.cotiscan.io/tx/${toggleTransactionHash}`}
               target="_blank"
@@ -70,7 +72,7 @@ export default function ElectionControls({
         )}
         {resultsTransactionHash && (
           <div className="flex items-center gap-2">
-            <span className="font-medium">Results:</span>
+            <span className="font-medium">Fetch Results:</span>
             <a
               href={`https://testnet.cotiscan.io/tx/${resultsTransactionHash}`}
               target="_blank"
