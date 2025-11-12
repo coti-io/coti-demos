@@ -57,27 +57,27 @@ export default function ElectionControls({
         )}
         {toggleTransactionHash && (
           <div className="flex items-center gap-2">
-            <span className="font-medium">{isElectionOpen ? 'Opened' : 'Closed'}:</span>
+            <span className="font-medium">Toggle:</span>
             <a
               href={`https://testnet.cotiscan.io/tx/${toggleTransactionHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-2 py-1 bg-muted rounded text-xs font-mono hover:bg-muted/80 transition-colors"
+              className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-mono hover:underline break-all"
             >
-              {toggleTransactionHash.slice(0, 10)}...{toggleTransactionHash.slice(-8)}
+              {toggleTransactionHash}
             </a>
           </div>
         )}
-        {resultsTransactionHash && !isElectionOpen && (
+        {resultsTransactionHash && (
           <div className="flex items-center gap-2">
             <span className="font-medium">Results:</span>
             <a
               href={`https://testnet.cotiscan.io/tx/${resultsTransactionHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-2 py-1 bg-muted rounded text-xs font-mono hover:bg-muted/80 transition-colors"
+              className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-mono hover:underline break-all"
             >
-              {resultsTransactionHash.slice(0, 10)}...{resultsTransactionHash.slice(-8)}
+              {resultsTransactionHash}
             </a>
           </div>
         )}
