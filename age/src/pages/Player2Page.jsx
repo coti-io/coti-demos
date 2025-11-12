@@ -102,21 +102,19 @@ function Player2Page() {
 
   return (
     <div className="app">
-      <h1 className="title">Age Guessing Game - Player</h1>
-
       <div className="cards-container" style={{justifyContent: 'center'}}>
-        <div className="card" style={{maxWidth: '500px'}}>
-          <h2 className="card-title">Guess Age</h2>
+        <div className="card" style={{maxWidth: '600px'}}>
+          <h1 className="title" style={{color: '#000', marginTop: 0, textShadow: 'none', fontWeight: '600'}}>Age Guessing Game - Player</h1>
           
           <div style={{
-            textAlign: 'center',
+            textAlign: 'left',
             marginBottom: '1.5rem',
             padding: '1rem',
             backgroundColor: '#f8f9fa',
             borderRadius: '8px',
             border: '1px solid #e9ecef'
           }}>
-            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Client-side encryption with Coti MPC</div>
+            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Guessing implemented by Encrypted Data Computing by COTI MPC</div>
             <div style={{fontSize: '0.85rem', color: '#6c757d'}}>
               📍 Contract:{' '}
               <a 
@@ -193,7 +191,7 @@ function Player2Page() {
                 fontSize: '1.1rem',
                 marginBottom: '1rem',
                 color: '#495057',
-                textAlign: 'center'
+                textAlign: 'left'
               }}>
                 📊 GUESSES
               </h3>
@@ -230,15 +228,10 @@ function Player2Page() {
                       <div style={{
                         fontSize: '0.75rem',
                         color: '#6c757d',
-                        marginTop: '0.5rem'
+                        marginTop: '0.5rem',
+                        wordBreak: 'break-all'
                       }}>
-                        <strong>Age {guess.age}</strong>
-                        <div style={{
-                          wordBreak: 'break-all',
-                          marginTop: '0.25rem'
-                        }}>
-                          {guess.encryptedCiphertext}
-                        </div>
+                        <strong>Encrypted age:</strong> {guess.encryptedCiphertext} 🔒
                       </div>
                     )}
                     {guess.transactionHash && (

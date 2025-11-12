@@ -105,21 +105,19 @@ function Player1Page() {
 
   return (
     <div className="app">
-      <h1 className="title">Age Guessing Game - Admin</h1>
-      
       <div className="cards-container" style={{justifyContent: 'center'}}>
         <div className="card" style={{maxWidth: '600px'}}>
-          <h2 className="card-title">Store Birth Date</h2>
-          
+          <h1 className="title" style={{color: '#000', marginTop: 0, textShadow: 'none', fontWeight: '600'}}>Age Guessing Game - Admin</h1>
+
           <div style={{
-            textAlign: 'center',
+            textAlign: 'left',
             marginBottom: '1.5rem',
             padding: '1rem',
             backgroundColor: '#f8f9fa',
             borderRadius: '8px',
             border: '1px solid #e9ecef'
           }}>
-            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Client-side encryption with Coti MPC</div>
+            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Protected Coti MPC Core Encrypting using Admin AES Key</div>
             <div style={{fontSize: '0.85rem', color: '#6c757d'}}>
               📍 Contract:{' '}
               <a 

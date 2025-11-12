@@ -7,14 +7,12 @@ function HomePage() {
 
   return (
     <div className="app">
-      <h1 className="title">Age Guessing Game</h1>
-
       <div className="cards-container" style={{justifyContent: 'center'}}>
-        <div className="card" style={{maxWidth: '600px'}}>
-          <h2 className="card-title">How to Play</h2>
-          
+        <div className="card" style={{maxWidth: '900px', width: '90%'}}>
+          <h1 className="title" style={{marginTop: 0, color: '#000', textShadow: 'none', fontWeight: '600'}}>Age Guessing Game</h1>
+
           <div style={{
-            textAlign: 'center', 
+            textAlign: 'left',
             marginBottom: '1.5rem',
             padding: '1rem',
             backgroundColor: '#f8f9fa',
@@ -29,7 +27,7 @@ function HomePage() {
             <p><strong>🎯 Admin:</strong></p>
             <ul style={{marginLeft: '1.5rem'}}>
               <li>Store your birth date (encrypted on-chain)</li>
-              <li>Your age is calculated and stored privately</li>
+              <li>Your age is encrypted and stored privately</li>
             </ul>
             
             <p style={{marginTop: '1.5rem'}}><strong>🎮 Player:</strong></p>
@@ -40,16 +38,15 @@ function HomePage() {
               <li>Keep guessing until you find the correct age!</li>
             </ul>
 
-            <p style={{marginTop: '1.5rem', padding: '1rem', backgroundColor: '#e7f3ff', borderRadius: '8px', fontSize: '0.9rem'}}>
-              <strong>🔐 Privacy Guarantee:</strong> Player never sees the actual age - all comparisons happen on encrypted data using Coti's Multi-Party Computation (MPC).
-            </p>
-
-            <div style={{marginTop: '1.5rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px', fontSize: '0.85rem', color: '#6c757d', textAlign: 'center'}}>
-              <p style={{margin: '0 0 0.5rem 0'}}>
+            <div style={{marginTop: '1.5rem', padding: '1rem', backgroundColor: '#e7f3ff', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'left'}}>
+              <p style={{margin: '0 0 1rem 0'}}>
+                <strong>🔐 Privacy Guarantee:</strong> Player never sees the actual age - all comparisons happen on encrypted data using Coti's Multi-Party Computation (MPC).
+              </p>
+              <p style={{margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#6c757d'}}>
                 <strong>Contract:</strong>{' '}
-                <a 
+                <a
                   href={`https://testnet.cotiscan.io/address/${contractAddress}`}
-                  target="_blank" 
+                  target="_blank"
                   rel="noopener noreferrer"
                   style={{color: '#0066cc', textDecoration: 'none', wordBreak: 'break-all'}}
                   onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
@@ -58,10 +55,10 @@ function HomePage() {
                   {contractAddress}
                 </a>
               </p>
-              <p style={{margin: '0 0 0.5rem 0'}}>
-                <a 
-                  href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol" 
-                  target="_blank" 
+              <p style={{margin: '0 0 0.5rem 0', fontSize: '0.85rem'}}>
+                <a
+                  href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol"
+                  target="_blank"
                   rel="noopener noreferrer"
                   style={{color: '#0066cc', textDecoration: 'none'}}
                   onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
@@ -70,7 +67,7 @@ function HomePage() {
                   📄 Contract Source Code
                 </a>
               </p>
-              <p style={{margin: 0}}><strong>Network:</strong> Coti Testnet</p>
+              <p style={{margin: 0, fontSize: '0.85rem', color: '#6c757d'}}><strong>Network:</strong> Coti Testnet</p>
             </div>
           </div>
 
