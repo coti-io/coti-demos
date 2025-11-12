@@ -27,17 +27,30 @@ export default function ElectionControls({
     <div className="flex items-center justify-between gap-4 py-6 border-t">
       <div className="flex flex-col gap-1 text-sm text-muted-foreground">
         {contractAddress && (
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Contract:</span>
-            <a
-              href={`https://testnet.cotiscan.io/address/${contractAddress}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-2 py-1 bg-muted rounded text-xs font-mono hover:bg-muted/80 transition-colors"
-            >
-              {contractAddress}
-            </a>
-          </div>
+          <>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Contract:</span>
+              <a
+                href={`https://testnet.cotiscan.io/address/${contractAddress}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 py-1 bg-muted rounded text-xs font-mono hover:bg-muted/80 transition-colors"
+              >
+                {contractAddress}
+              </a>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Source Code:</span>
+              <a
+                href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/PrivateVoting.sol"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 py-1 bg-muted rounded text-xs hover:bg-muted/80 transition-colors text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                View on GitHub
+              </a>
+            </div>
+          </>
         )}
         {(toggleTransactionHash || resultsTransactionHash) && (
           <div className="font-medium mt-2">Transactions:</div>
