@@ -120,7 +120,31 @@ function Player1Page() {
             border: '1px solid #e9ecef'
           }}>
             <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Client-side encryption with Coti MPC</div>
-            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: {contractAddress || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'}</div>
+            <div style={{fontSize: '0.85rem', color: '#6c757d'}}>
+              📍 Contract:{' '}
+              <a 
+                href={`https://testnet.cotiscan.io/address/${contractAddress || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{color: '#0066cc', textDecoration: 'none', wordBreak: 'break-all'}}
+                onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+                onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+              >
+                {contractAddress || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'}
+              </a>
+            </div>
+            <div style={{marginTop: '0.5rem'}}>
+              <a 
+                href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{color: '#0066cc', textDecoration: 'none', fontSize: '0.85rem'}}
+                onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+                onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+              >
+                📄 Contract Source Code
+              </a>
+            </div>
           </div>
           
           <div className="form-group">

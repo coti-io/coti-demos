@@ -473,6 +473,43 @@
       "artifacts": [
         "IERC165"
       ]
+    },
+    "/Users/percival.lucena/coti/demo/vote/contracts/PrivateVoting.sol": {
+      "lastModificationDate": 1762955739790,
+      "contentHash": "28a8308ccacf8e8128e728aab11597ce",
+      "sourceName": "contracts/PrivateVoting.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@coti-io/coti-contracts/contracts/utils/mpc/MpcCore.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "PrivateVoting"
+      ]
     }
   }
 }

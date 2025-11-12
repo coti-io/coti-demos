@@ -45,7 +45,31 @@ function HomePage() {
             </p>
 
             <div style={{marginTop: '1.5rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px', fontSize: '0.85rem', color: '#6c757d', textAlign: 'center'}}>
-              <p style={{margin: '0 0 0.5rem 0', wordBreak: 'break-all'}}><strong>Contract:</strong> {contractAddress}</p>
+              <p style={{margin: '0 0 0.5rem 0'}}>
+                <strong>Contract:</strong>{' '}
+                <a 
+                  href={`https://testnet.cotiscan.io/address/${contractAddress}`}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{color: '#0066cc', textDecoration: 'none', wordBreak: 'break-all'}}
+                  onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+                  onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+                >
+                  {contractAddress}
+                </a>
+              </p>
+              <p style={{margin: '0 0 0.5rem 0'}}>
+                <a 
+                  href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{color: '#0066cc', textDecoration: 'none'}}
+                  onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+                  onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+                >
+                  📄 Contract Source Code
+                </a>
+              </p>
               <p style={{margin: 0}}><strong>Network:</strong> Coti Testnet</p>
             </div>
           </div>
