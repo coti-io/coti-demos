@@ -340,7 +340,19 @@ export default function VotingApp() {
       
       <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+        <ElectionControls
+          isElectionOpen={isElectionOpen}
+          onOpenElection={handleToggleElection}
+          onCloseElection={handleToggleElection}
+          onFetchResults={handleFetchResults}
+          contractAddress={contractAddress}
+          isToggling={isTogglingElection}
+          isFetchingResults={isLoadingResults}
+          toggleTransactionHash={toggleTransactionHash}
+          resultsTransactionHash={resultsTransactionHash}
+        />
+
+        <div className="grid lg:grid-cols-2 gap-8 mt-8">
           <div>
             <Card className="p-6">
               <h2 className="text-2xl font-bold mb-6" data-testid="text-voter-list-title">
@@ -369,18 +381,6 @@ export default function VotingApp() {
             />
           </div>
         </div>
-
-        <ElectionControls
-          isElectionOpen={isElectionOpen}
-          onOpenElection={handleToggleElection}
-          onCloseElection={handleToggleElection}
-          onFetchResults={handleFetchResults}
-          contractAddress={contractAddress}
-          isToggling={isTogglingElection}
-          isFetchingResults={isLoadingResults}
-          toggleTransactionHash={toggleTransactionHash}
-          resultsTransactionHash={resultsTransactionHash}
-        />
       </div>
 
       <VotingModal
