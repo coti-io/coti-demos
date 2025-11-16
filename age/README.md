@@ -1,11 +1,11 @@
 # Age Guessing Game - Privacy-Preserving Age Verification
 
-A decentralized application that demonstrates privacy-preserving age verification using Coti's Multi-Party Computation (MPC) technology. The game allows an admin to store their birth date (converted to age) encrypted on-chain, while players try to guess the age through encrypted comparisons without ever seeing the actual value.
+A decentralized application that demonstrates privacy-preserving age verification using COTI's Multi-Party Computation (MPC) technology. The game allows an admin to store their birth date (converted to age) encrypted on-chain, while players try to guess the age through encrypted comparisons without ever seeing the actual value.
 
 ## 🚀 Live Deployment
 
 - **Contract Address**: `0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729`
-- **Network**: Coti Testnet
+- **Network**: COTI Testnet
 - **Chain ID**: 7082400
 - **Architecture**: Standalone React app with client-side MPC encryption
 
@@ -43,7 +43,7 @@ Before you begin, ensure you have the following installed:
    Update the `.env` file with your wallet credentials:
 
    ```bash
-   # Coti Testnet RPC URL
+   # COTI Testnet RPC URL
    VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
 
    # Deployed DateGame Contract Address
@@ -89,7 +89,7 @@ Before you begin, ensure you have the following installed:
    npm run compile
    ```
 
-2. **Deploy to Coti Testnet**
+2. **Deploy to COTI Testnet**
 
    ```bash
    npm run deploy:coti
@@ -151,16 +151,16 @@ Before you begin, ensure you have the following installed:
 │                         │                                    │
 │  ┌──────────────────────▼────────────────────────────────┐  │
 │  │  useAgeContract Hook (Custom React Hook)              │  │
-│  │  • Manages Coti wallets (Admin & Player)              │  │
+│  │  • Manages COTI wallets (Admin & Player)              │  │
 │  │  • Handles MPC encryption/decryption client-side      │  │
 │  │  • Birth date → Age conversion                         │  │
 │  │  • Direct smart contract interactions                  │  │
 │  └────────────────────────────────────────────────────────┘  │
 └────────────────────────┬────────────────────────────────────┘
-                         │ Coti-Ethers SDK
+                         │ COTI-Ethers SDK
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Coti Testnet (Chain ID: 7082400)               │
+│              COTI Testnet (Chain ID: 7082400)               │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │   DateGame Smart Contract (Solidity)                 │   │
 │  │   Address: 0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729│   │
@@ -230,7 +230,7 @@ age/
 ### Smart Contract
 
 - `npm run compile` - Compile smart contracts with Hardhat
-- `npm run deploy:coti` - Deploy DateGame contract to Coti Testnet
+- `npm run deploy:coti` - Deploy DateGame contract to COTI Testnet
 - `npm run test` - Run Hardhat tests
 
 ### Frontend
@@ -243,7 +243,7 @@ age/
 
 The DateGame contract provides:
 
-- **Encrypted Age Storage**: Store ages as encrypted `utUint64` values using Coti's MPC
+- **Encrypted Age Storage**: Store ages as encrypted `utUint64` values using COTI's MPC
 - **Secure Comparisons**: Compare ages without revealing actual values
 - **Privacy Preservation**: Admin's age is never exposed to players
 - **MPC Operations**: Uses garbled types (`gtUint64`, `gtBool`) for encrypted computation
@@ -268,7 +268,7 @@ function isAgeSet() external view returns (bool)
 
 ### MPC Flow
 
-1. **Encryption** (Backend): Birth date → Age calculation → Encrypt with Coti wallet
+1. **Encryption** (Backend): Birth date → Age calculation → Encrypt with COTI wallet
 2. **Storage** (Contract): `itUint64` (input type) → `gtUint64` (garbled type) → `utUint64` (user+network ciphertext)
 3. **Comparison** (Contract): Load `utUint64` → `gtUint64` → Compare → `gtBool` → `gtUint8` → `utUint8`
 4. **Decryption** (Backend): Read `ctUint8` → Decrypt → Boolean result (YES/NO)
@@ -282,7 +282,7 @@ function isAgeSet() external view returns (bool)
 - **Modern Design**: Clean, card-based interface with responsive layout
 - **Real-time Feedback**: Loading states, transaction hashes, and encrypted ciphertext display
 - **API-based Architecture**: Frontend communicates with Express.js backend for all MPC operations
-- **Transaction Tracking**: Links to Coti Explorer for transaction verification
+- **Transaction Tracking**: Links to COTI Explorer for transaction verification
 
 ## 🔍 Troubleshooting
 
@@ -315,9 +315,9 @@ function isAgeSet() external view returns (bool)
 
 ### Getting Test ETH
 
-To get test ETH for Coti Testnet:
+To get test ETH for COTI Testnet:
 
-1. Visit the [Coti Discord](https://discord.com/invite/Z4r8D6ez49)
+1. Visit the [COTI Discord](https://discord.com/invite/Z4r8D6ez49)
 2. Navigate to the testnet faucet channel
 3. Request test tokens for your wallet address
 
@@ -325,10 +325,10 @@ To get test ETH for Coti Testnet:
 
 ### How MPC Ensures Privacy
 
-The Age Guessing Game uses Coti's Multi-Party Computation (MPC) to ensure complete privacy:
+The Age Guessing Game uses COTI's Multi-Party Computation (MPC) to ensure complete privacy:
 
 1. **Client-Side Encryption**
-   - All MPC operations happen in the browser using Coti wallets
+   - All MPC operations happen in the browser using COTI wallets
    - Private keys and AES keys stored in environment variables
    - No server-side storage of sensitive data
 
@@ -383,7 +383,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Smart Contract Layer
 
 - **Solidity**: ^0.8.19
-- **Coti MPC Library**: `@coti-io/coti-contracts` ^1.0.0
+- **COTI MPC Library**: `@coti-io/coti-contracts` ^1.0.0
 - **Hardhat**: ^2.19.0 (development framework)
 - **Hardhat-Ethers**: ^3.0.0 (Ethers.js integration)
 
@@ -391,7 +391,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Node.js**: v16+
 - **Express.js**: ^4.21.2 (API server)
-- **Coti-Ethers SDK**: `@coti-io/coti-ethers` ^1.0.5 (MPC encryption/decryption)
+- **COTI-Ethers SDK**: `@coti-io/coti-ethers` ^1.0.5 (MPC encryption/decryption)
 - **Ethers.js**: ^6.0.0 (blockchain interactions)
 - **CORS**: ^2.8.5 (cross-origin support)
 
@@ -401,7 +401,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **React Router DOM**: ^7.9.5 (routing)
 - **Vite**: ^4.4.0 (build tool)
 - **@vitejs/plugin-react**: ^4.0.0
-- **Coti-Ethers SDK**: `@coti-io/coti-ethers` ^1.0.5 (MPC encryption/decryption)
+- **COTI-Ethers SDK**: `@coti-io/coti-ethers` ^1.0.5 (MPC encryption/decryption)
 - **Ethers.js**: ^6.0.0 (blockchain interactions)
 
 ### Key Dependencies
@@ -429,9 +429,9 @@ This app was refactored from a server-side architecture (Express.js backend) to 
 
 ## 🀽� Links
 
-- [Coti Documentation](https://docs.coti.io/)
-- [Coti MPC Documentation](https://docs.coti.io/coti-v2-documentation/build-on-coti/mpc)
-- [Coti Testnet Explorer](https://testnet.cotiscan.io/)
+- [COTI Documentation](https://docs.coti.io/)
+- [COTI MPC Documentation](https://docs.coti.io/coti-v2-documentation/build-on-coti/mpc)
+- [COTI Testnet Explorer](https://testnet.cotiscan.io/)
 - [Hardhat Documentation](https://hardhat.org/docs)
 - [React Documentation](https://reactjs.org/docs)
 - [Vite Documentation](https://vitejs.dev/guide/)
@@ -441,9 +441,9 @@ This app was refactored from a server-side architecture (Express.js backend) to 
 For support and questions:
 
 - Open an issue on GitHub
-- Check the Coti Discord community
+- Check the COTI Discord community
 - Review the documentation links above
 
 ---
 
-Built with ❤️ using Coti's MPC technology for secure, private computations on blockchain.
+Built with ❤️ using COTI's MPC technology for secure, private computations on blockchain.
