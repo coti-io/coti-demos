@@ -117,7 +117,7 @@ function Player1Page() {
             borderRadius: '8px',
             border: '1px solid #e9ecef'
           }}>
-            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Protected Coti MPC Core Encrypting using Admin AES Key</div>
+            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Protected COTI MPC Core Encrypting using Admin AES Key</div>
             <div style={{fontSize: '0.85rem', color: '#6c757d'}}>
               📍 Contract:{' '}
               <a 

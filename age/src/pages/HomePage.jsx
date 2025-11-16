@@ -20,7 +20,7 @@ function HomePage() {
             border: '1px solid #e9ecef'
           }}>
             <div style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}>🔐 Privacy-Preserving Age Verification</div>
-            <div style={{fontSize: '0.9rem', color: '#6c757d'}}>Powered by Coti's MPC Technology</div>
+            <div style={{fontSize: '0.9rem', color: '#6c757d'}}>Powered by COTI's GC Technology</div>
           </div>
           
           <div style={{textAlign: 'left', lineHeight: '1.8'}}>
@@ -40,7 +40,7 @@ function HomePage() {
 
             <div style={{marginTop: '1.5rem', padding: '1rem', backgroundColor: '#e7f3ff', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'left'}}>
               <p style={{margin: '0 0 1rem 0'}}>
-                <strong>🔐 Privacy Guarantee:</strong> Player never sees the actual age - all comparisons happen on encrypted data using Coti's Multi-Party Computation (MPC).
+                <strong>🔐 Privacy Guarantee:</strong> Player never sees the actual age - all comparisons happen on encrypted data using COTI's Garbling Circuit Technology.
               </p>
               <p style={{margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#6c757d'}}>
                 <strong>Contract:</strong>{' '}
@@ -67,7 +67,7 @@ function HomePage() {
                   📄 Contract Source Code
                 </a>
               </p>
-              <p style={{margin: 0, fontSize: '0.85rem', color: '#6c757d'}}><strong>Network:</strong> Coti Testnet</p>
+              <p style={{margin: 0, fontSize: '0.85rem', color: '#6c757d'}}><strong>Network:</strong> COTI Testnet</p>
             </div>
           </div>
 

@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 import { JsonRpcApiProvider, Wallet, getDefaultProvider } from '@coti-io/coti-ethers'
 
-// Server-based Coti operations using stored private key
+// Server-based COTI operations using stored private key
 export class CotiService {
   constructor(contractAddress) {
     this.contractAddress = contractAddress
@@ -10,24 +10,24 @@ export class CotiService {
     this.contract = null
   }
 
-  // Initialize Coti provider and wallet with server-stored private key
+  // Initialize COTI provider and wallet with server-stored private key
   async initialize() {
     try {
-      console.log('Initializing Coti service...')
+      console.log('Initializing COTI service...')
       
-      // Create Coti provider
-      console.log('Creating Coti provider...')
-      // Try using getDefaultProvider for Coti testnet
+      // Create COTI provider
+      console.log('Creating COTI provider...')
+      // Try using getDefaultProvider for COTI testnet
       this.cotiProvider = getDefaultProvider('https://testnet.coti.io/rpc')
-      console.log('Coti provider created successfully')
+      console.log('COTI provider created successfully')
       
       // Use your private key stored on server
       const privateKey = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306'
       
-      // Create Coti wallet with your private key
-      console.log('Creating Coti wallet...')
+      // Create COTI wallet with your private key
+      console.log('Creating COTI wallet...')
       this.cotiWallet = new Wallet(privateKey, this.cotiProvider)
-      console.log('Coti wallet created with address:', this.cotiWallet.address)
+      console.log('COTI wallet created with address:', this.cotiWallet.address)
       
       // Create contract instance
       console.log('Creating contract instance...')
@@ -77,11 +77,11 @@ export class CotiService {
       const sum = await this.contract.sum()
       console.log('Contract connection test successful. Sum:', sum.toString())
       
-      console.log('✅ Coti service initialized successfully!')
+      console.log('✅ COTI service initialized successfully!')
       return true
       
     } catch (error) {
-      console.error('❌ Failed to initialize Coti service:', error)
+      console.error('❌ Failed to initialize COTI service:', error)
       console.error('Error details:', error.message)
       console.error('Error stack:', error.stack)
       return false
@@ -97,7 +97,7 @@ export class CotiService {
       if (!this.cotiWallet) {
         const initialized = await this.initialize()
         if (!initialized) {
-          throw new Error('Failed to initialize Coti service')
+          throw new Error('Failed to initialize COTI service')
         }
       }
       
@@ -107,7 +107,7 @@ export class CotiService {
       
       console.log('Converting date to days since epoch:', daysSinceEpoch)
       
-      // Encrypt using Coti wallet
+      // Encrypt using COTI wallet
       console.log('Encrypting value with server wallet...')
       const encryptedValue = await this.cotiWallet.encryptValue(
         bigIntValue,
@@ -149,7 +149,7 @@ export class CotiService {
       if (!this.cotiWallet) {
         const initialized = await this.initialize()
         if (!initialized) {
-          throw new Error('Failed to initialize Coti service')
+          throw new Error('Failed to initialize COTI service')
         }
       }
       
@@ -159,7 +159,7 @@ export class CotiService {
       
       console.log('Converting date to days since epoch:', daysSinceEpoch)
       
-      // Encrypt using Coti wallet
+      // Encrypt using COTI wallet
       console.log('Encrypting comparison value with server wallet...')
       const encryptedValue = await this.cotiWallet.encryptValue(
         bigIntValue,
@@ -198,7 +198,7 @@ export class CotiService {
       if (!this.contract) {
         const initialized = await this.initialize()
         if (!initialized) {
-          throw new Error('Failed to initialize Coti service')
+          throw new Error('Failed to initialize COTI service')
         }
       }
       

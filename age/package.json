@@ -1,7 +1,7 @@
 {
   "name": "date-game-hardhat",
   "version": "1.0.0",
-  "description": "DateGame smart contract deployment on Coti Testnet",
+  "description": "DateGame smart contract deployment on COTI Testnet",
   "scripts": {
     "deploy:coti": "hardhat run scripts/deploy-DateGame.js --network cotiTestnet",
     "compile": "hardhat compile",

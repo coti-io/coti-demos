@@ -2,7 +2,7 @@ import hre from "hardhat";
 const { ethers } = hre;
 
 async function main() {
-  console.log("Deploying DateGame contract to Coti Testnet...");
+  console.log("Deploying DateGame contract to COTI Testnet...");
 
   // Get the deployer account
   const signers = await ethers.getSigners();
@@ -21,7 +21,7 @@ async function main() {
   
   console.log("Deploying DateGame...");
   
-  // Deploy with explicit gas settings for Coti Testnet
+  // Deploy with explicit gas settings for COTI Testnet
   const dateGame = await DateGame.deploy({
     gasLimit: 3000000,
     gasPrice: ethers.parseUnits("10", "gwei")

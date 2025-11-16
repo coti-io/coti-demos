@@ -25,15 +25,15 @@ const AES_KEY = '8d41ade6e238d837bdbd44bac75dfac4'
 const DateGameABIFile = JSON.parse(readFileSync(join(__dirname, 'DateGameABI.json'), 'utf8'))
 const DateGameABI = DateGameABIFile.abi
 
-// Initialize Coti provider and wallet
+// Initialize COTI provider and wallet
 let cotiProvider, cotiWallet, contract
 
 async function initializeCoti() {
   try {
-    console.log('Initializing Coti provider...')
+    console.log('Initializing COTI provider...')
     cotiProvider = getDefaultProvider(CotiNetwork.Testnet)
 
-    console.log('Creating Coti wallet...')
+    console.log('Creating COTI wallet...')
     cotiWallet = new Wallet(PRIVATE_KEY, cotiProvider)
     cotiWallet.setAesKey(AES_KEY)
     console.log('Wallet address:', cotiWallet.address)
@@ -41,10 +41,10 @@ async function initializeCoti() {
     console.log('Creating contract instance...')
     contract = new Contract(DATE_GAME_ADDRESS, DateGameABI, cotiWallet)
 
-    console.log('✅ Coti service initialized successfully!')
+    console.log('✅ COTI service initialized successfully!')
     return true
   } catch (error) {
-    console.error('❌ Failed to initialize Coti:', error)
+    console.error('❌ Failed to initialize COTI:', error)
     return false
   }
 }
@@ -60,7 +60,7 @@ function dateToEpochDays(dateString) {
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Coti Date Game Server is running' })
+  res.json({ status: 'ok', message: 'COTI Date Game Server is running' })
 })
 
 // Removed sum endpoint - not needed for DateGame functionality
@@ -77,7 +77,7 @@ app.post('/api/store-date', async (req, res) => {
     if (!contract) {
       const initialized = await initializeCoti()
       if (!initialized) {
-        return res.status(500).json({ error: 'Failed to initialize Coti service' })
+        return res.status(500).json({ error: 'Failed to initialize COTI service' })
       }
     }
 
@@ -100,7 +100,7 @@ app.post('/api/store-date', async (req, res) => {
     console.log('Calculated age in years:', age)
     console.log('BigInt value for storage:', bigIntValue.toString())
 
-    // Encrypt using Coti wallet
+    // Encrypt using COTI wallet
     console.log('Encrypting value...')
     const encryptedValue = await cotiWallet.encryptValue(
       bigIntValue,
@@ -138,7 +138,7 @@ app.get('/api/is-date-set', async (req, res) => {
     if (!contract) {
       const initialized = await initializeCoti()
       if (!initialized) {
-        return res.status(500).json({ error: 'Failed to initialize Coti service' })
+        return res.status(500).json({ error: 'Failed to initialize COTI service' })
       }
     }
 
@@ -203,7 +203,7 @@ app.post('/api/compare-date', async (req, res) => {
     if (!contract) {
       const initialized = await initializeCoti()
       if (!initialized) {
-        return res.status(500).json({ error: 'Failed to initialize Coti service' })
+        return res.status(500).json({ error: 'Failed to initialize COTI service' })
       }
     }
 
@@ -243,7 +243,7 @@ app.post('/api/compare-date', async (req, res) => {
       console.log('Could not check date status')
     }
 
-    // Encrypt using Coti wallet
+    // Encrypt using COTI wallet
     console.log('Encrypting comparison value...')
     const functionSelector = operation === 'greater' ?
       contract.greaterThan.fragment.selector :
@@ -311,11 +311,11 @@ app.post('/api/compare-date', async (req, res) => {
 async function startServer() {
   const initialized = await initializeCoti()
   if (!initialized) {
-    console.error('Failed to initialize Coti service. Server will start but API calls may fail.')
+    console.error('Failed to initialize COTI service. Server will start but API calls may fail.')
   }
 
   app.listen(PORT, () => {
-    console.log(`🚀 Coti Date Game Server running on port ${PORT}`)
+    console.log(`🚀 COTI Date Game Server running on port ${PORT}`)
     console.log(`📍 Health check: http://localhost:${PORT}/health`)
   })
 }
