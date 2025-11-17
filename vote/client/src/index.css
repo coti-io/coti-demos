@@ -208,6 +208,51 @@ body {
   margin-top: 0.25rem;
 }
 
+/* Ensure voting closed modal has solid white background */
+.voting-closed-bg {
+  background: red !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+}
+
+/* Force white background for voting closed modal dialog */
+.voting-closed-bg,
+.voting-closed-bg[data-testid="modal-voting"],
+.voting-closed-bg .sm\:max-w-lg {
+  background: white !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+}
+
+.voting-closed-bg,
+.sm\:max-w-lg.voting-closed-bg,
+.radix-dialog-content.voting-closed-bg {
+  background: white !important;
+  border: 1px solid #eee !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+}
+
+#voting-closed-content {
+  background: red !important;
+  border: 2px solid #333 !important;
+}
+
+.voting-closed-overlay {
+  background: lime !important;
+}
+
+/* DEBUG: force all dialog backgrounds to white */
+[role="dialog"],
+[role="dialog"] *,
+[class*="dialog"],
+[class*="Dialog"],
+[class*="radix"],
+[class*="Radix"],
+[class*="overlay"],
+[class*="Overlay"],
+[class*="content"],
+[class*="Content"] {
+  background: white !important;
+}
+
 @media (max-width: 768px) {
   .cards-container {
     flex-direction: column;

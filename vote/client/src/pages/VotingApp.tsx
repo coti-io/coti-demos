@@ -389,9 +389,9 @@ export default function VotingApp() {
               setCurrentVoterName(null);
             }
           }}
-          question="What is your favorite food?"
-          options={votingOptions}
-          onSubmit={handleSubmitVote}
+          question={isElectionOpen ? "What is your favorite food?" : "Voting is closed. Please open the election to allow voting."}
+          options={isElectionOpen ? votingOptions : []}
+          onSubmit={isElectionOpen ? handleSubmitVote : () => setModalOpen(false)}
         />
       </div>
     </>

@@ -46,7 +46,12 @@ export default function VotingModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg" data-testid="modal-voting">
+      <DialogContent
+        className={`sm:max-w-lg${options.length === 0 ? ' voting-closed-bg' : ''}`}
+        data-testid="modal-voting"
+        id={options.length === 0 ? "voting-closed-content" : undefined}
+        overlayClassName={options.length === 0 ? "voting-closed-overlay" : undefined}
+      >
         <DialogHeader>
           <DialogTitle className="text-xl" data-testid="text-question">
             {question}
@@ -82,11 +87,12 @@ export default function VotingModal({
             Cancel
           </Button>
           <Button 
-            onClick={handleSubmit} 
-            disabled={!selectedOption}
+            onClick={handleSubmit}
+            disabled={options.length > 0 ? !selectedOption : false}
             data-testid="button-submit-vote"
+            style={options.length === 0 ? { background: 'white', color: '#333', border: '1px solid #ccc' } : {}}
           >
-            Submit Vote
+            {options.length === 0 ? 'Open Election' : 'Submit Vote'}
           </Button>
         </DialogFooter>
       </DialogContent>
