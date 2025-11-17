@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Check } from "lucide-react";
 
 interface VoterCardProps {
@@ -9,37 +7,75 @@ interface VoterCardProps {
   transactionHash?: string;
   encryptedVote?: string;
   onVoteClick: () => void;
+  isElectionOpen?: boolean;
 }
 
-export default function VoterCard({ name, voterId, hasVoted, transactionHash, encryptedVote, onVoteClick }: VoterCardProps) {
+export default function VoterCard({ name, voterId, hasVoted, transactionHash, encryptedVote, onVoteClick, isElectionOpen = true }: VoterCardProps) {
   return (
-    <Card className="p-4 flex items-center justify-between gap-4">
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-card-foreground" data-testid={`text-voter-name-${voterId}`}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '1rem',
+        padding: '1rem',
+        background: '#f8f9fa',
+        border: '1px solid #e9ecef',
+        borderRadius: '8px',
+        width: '100%'
+      }}
+    >
+      <div style={{ flex: '1', minWidth: '0', maxWidth: 'calc(100% - 100px)' }}>
+        <h3 style={{ fontWeight: '600', color: '#333', marginBottom: '0.25rem' }} data-testid={`text-voter-name-${voterId}`}>
           {name}
         </h3>
         <a
           href={`https://testnet.cotiscan.io/address/${voterId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 font-mono block hover:underline"
+          style={{
+            fontSize: '0.875rem',
+            color: '#666',
+            fontFamily: 'monospace',
+            display: 'block',
+            textDecoration: 'none',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.color = '#0066cc';
+            e.currentTarget.style.textDecoration = 'underline';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.color = '#666';
+            e.currentTarget.style.textDecoration = 'none';
+          }}
           data-testid={`text-voter-id-${voterId}`}
         >
           {voterId}
         </a>
         {transactionHash && (
-          <div className="mt-1 space-y-1">
+          <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <a
               href={`https://testnet.cotiscan.io/tx/${transactionHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-mono block hover:underline break-all"
+              style={{
+                fontSize: '0.75rem',
+                color: '#0066cc',
+                fontFamily: 'monospace',
+                display: 'block',
+                textDecoration: 'none',
+                wordBreak: 'break-all'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
               data-testid={`link-tx-${voterId}`}
             >
               Tx: {transactionHash}
             </a>
             {encryptedVote && (
-              <div className="text-xs text-muted-foreground font-mono break-all">
+              <div style={{ fontSize: '0.75rem', color: '#666', fontFamily: 'monospace', wordBreak: 'break-all' }}>
                 Encrypted Vote: {encryptedVote} 🔒
               </div>
             )}
@@ -47,24 +83,45 @@ export default function VoterCard({ name, voterId, hasVoted, transactionHash, en
         )}
       </div>
       {hasVoted ? (
-        <Button 
-          variant="secondary" 
-          disabled 
-          className="shrink-0"
+        <button
+          disabled
+          className="btn"
+          style={{
+            background: '#6c757d',
+            color: 'white',
+            padding: '0.5rem 1rem',
+            fontSize: '0.875rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            width: 'auto'
+          }}
           data-testid={`button-voted-${voterId}`}
         >
-          <Check className="w-4 h-4 mr-2" />
+          <Check style={{ width: '1rem', height: '1rem' }} />
           Voted
-        </Button>
+        </button>
       ) : (
-        <Button 
+        <button
           onClick={onVoteClick}
-          className="shrink-0"
+          disabled={!isElectionOpen}
+          className="btn btn-primary"
+          style={{
+            padding: '0.5rem 1rem',
+            fontSize: '0.875rem',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            width: 'auto',
+            opacity: isElectionOpen ? 1 : 0.5,
+            cursor: isElectionOpen ? 'pointer' : 'not-allowed'
+          }}
           data-testid={`button-vote-${voterId}`}
         >
           Vote
-        </Button>
+        </button>
       )}
-    </Card>
+    </div>
   );
 }

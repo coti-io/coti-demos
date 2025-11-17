@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 interface Voter {
   id: string;
@@ -88,198 +84,238 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold mb-8" data-testid="text-admin-title">
-          Admin Panel
-        </h1>
+    <div className="app">
+      <h1 className="title">Admin Panel</h1>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Voter Management */}
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-6" data-testid="text-voter-management-title">
-              Manage Voters
-            </h2>
+      <div className="cards-container" style={{ width: '100%', maxWidth: '1400px' }}>
+        {/* Voter Management */}
+        <div className="card" style={{ maxWidth: '600px', flex: '1' }}>
+          <h2 className="card-title" data-testid="text-voter-management-title">
+            Manage Voters
+          </h2>
 
-            <div className="space-y-4 mb-6">
-              <div>
-                <Label htmlFor="voter-name">Voter Name</Label>
-                <Input
-                  id="voter-name"
-                  value={newVoterName}
-                  onChange={(e) => setNewVoterName(e.target.value)}
-                  placeholder="Enter voter name"
-                  data-testid="input-voter-name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="voter-address">Voter Address (0x...)</Label>
-                <Input
-                  id="voter-address"
-                  value={newVoterAddress}
-                  onChange={(e) => setNewVoterAddress(e.target.value)}
-                  placeholder="0x..."
-                  data-testid="input-voter-address"
-                />
-              </div>
-              <div>
-                <Label htmlFor="voter-pk">PK</Label>
-                <Input
-                  id="voter-pk"
-                  type="password"
-                  value={newVoterPK}
-                  onChange={(e) => setNewVoterPK(e.target.value)}
-                  placeholder="Enter private key"
-                  data-testid="input-voter-pk"
-                />
-              </div>
-              <div>
-                <Label htmlFor="voter-aes">AES Key</Label>
-                <Input
-                  id="voter-aes"
-                  type="password"
-                  value={newVoterAESKey}
-                  onChange={(e) => setNewVoterAESKey(e.target.value)}
-                  placeholder="Enter AES key"
-                  data-testid="input-voter-aes"
-                />
-              </div>
-              <Button 
-                onClick={handleAddVoter} 
-                className="w-full"
-                data-testid="button-add-voter"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Voter
-              </Button>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="voter-name">Voter Name</label>
+              <input
+                id="voter-name"
+                className="form-input"
+                value={newVoterName}
+                onChange={(e) => setNewVoterName(e.target.value)}
+                placeholder="Enter voter name"
+                data-testid="input-voter-name"
+              />
             </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="voter-address">Voter Address (0x...)</label>
+              <input
+                id="voter-address"
+                className="form-input"
+                value={newVoterAddress}
+                onChange={(e) => setNewVoterAddress(e.target.value)}
+                placeholder="0x..."
+                data-testid="input-voter-address"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="voter-pk">PK</label>
+              <input
+                id="voter-pk"
+                className="form-input"
+                type="password"
+                value={newVoterPK}
+                onChange={(e) => setNewVoterPK(e.target.value)}
+                placeholder="Enter private key"
+                data-testid="input-voter-pk"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="voter-aes">AES Key</label>
+              <input
+                id="voter-aes"
+                className="form-input"
+                type="password"
+                value={newVoterAESKey}
+                onChange={(e) => setNewVoterAESKey(e.target.value)}
+                placeholder="Enter AES key"
+                data-testid="input-voter-aes"
+              />
+            </div>
+            <button
+              onClick={handleAddVoter}
+              className="btn btn-success"
+              style={{ width: '100%' }}
+              data-testid="button-add-voter"
+            >
+              Add Voter
+            </button>
+          </div>
 
-            <div className="space-y-2">
-              <h3 className="font-semibold mb-3">Current Voters ({voters.length})</h3>
+          <div>
+            <h3 style={{ fontWeight: '600', marginBottom: '1rem' }}>Current Voters ({voters.length})</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {voters.map((voter) => (
                 <div
                   key={voter.id}
-                  className="flex items-center justify-between p-3 bg-card border border-card-border rounded-md"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.75rem',
+                    background: '#f8f9fa',
+                    border: '1px solid #e9ecef',
+                    borderRadius: '8px'
+                  }}
                   data-testid={`voter-item-${voter.id}`}
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium">{voter.name}</p>
-                    <p className="text-sm text-muted-foreground font-mono">
+                  <div style={{ flex: '1', minWidth: '0' }}>
+                    <p style={{ fontWeight: '500' }}>{voter.name}</p>
+                    <p style={{ fontSize: '0.875rem', color: '#666', fontFamily: 'monospace' }}>
                       Address: {voter.address}
                     </p>
-                    <p className="text-sm text-muted-foreground font-mono truncate">
+                    <p style={{ fontSize: '0.875rem', color: '#666', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       PK: {voter.pk}
                     </p>
-                    <p className="text-sm text-muted-foreground font-mono truncate">
+                    <p style={{ fontSize: '0.875rem', color: '#666', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       AES: {voter.aesKey}
                     </p>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="shrink-0"
+                  <button
+                    className="btn"
+                    style={{
+                      background: 'linear-gradient(135deg, #dc3545, #c82333)',
+                      color: 'white',
+                      padding: '0.5rem',
+                      width: 'auto',
+                      minWidth: 'auto',
+                      flexShrink: 0,
+                      marginLeft: '0.75rem'
+                    }}
                     onClick={() => handleRemoveVoter(voter.id)}
                     data-testid={`button-remove-voter-${voter.id}`}
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                    <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                  </button>
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
+        </div>
 
-          {/* Quiz Management */}
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-6" data-testid="text-quiz-management-title">
-              Manage Quiz
-            </h2>
+        {/* Quiz Management */}
+        <div className="card" style={{ maxWidth: '600px', flex: '1' }}>
+          <h2 className="card-title" data-testid="text-quiz-management-title">
+            Manage Quiz
+          </h2>
 
-            <div className="space-y-4 mb-6">
-              <div>
-                <Label htmlFor="quiz-question">Quiz Question</Label>
-                <Input
-                  id="quiz-question"
-                  value={quizQuestion}
-                  onChange={(e) => setQuizQuestion(e.target.value)}
-                  placeholder="Enter quiz question"
-                  data-testid="input-quiz-question"
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="quiz-question">Quiz Question</label>
+              <input
+                id="quiz-question"
+                className="form-input"
+                value={quizQuestion}
+                onChange={(e) => setQuizQuestion(e.target.value)}
+                placeholder="Enter quiz question"
+                data-testid="input-quiz-question"
+              />
+            </div>
+          </div>
+
+          <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '1.5rem' }}>
+            <h3 style={{ fontWeight: '600', marginBottom: '1rem' }}>Quiz Options</h3>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="option-label">Option Label</label>
+                <input
+                  id="option-label"
+                  className="form-input"
+                  value={newOptionLabel}
+                  onChange={(e) => setNewOptionLabel(e.target.value)}
+                  placeholder="Enter option label"
+                  data-testid="input-option-label"
                 />
               </div>
-            </div>
-
-            <div className="border-t pt-6">
-              <h3 className="font-semibold mb-4">Quiz Options</h3>
-              <div className="space-y-4 mb-6">
-                <div>
-                  <Label htmlFor="option-label">Option Label</Label>
-                  <Input
-                    id="option-label"
-                    value={newOptionLabel}
-                    onChange={(e) => setNewOptionLabel(e.target.value)}
-                    placeholder="Enter option label"
-                    data-testid="input-option-label"
+              <div className="form-group">
+                <label className="form-label" htmlFor="option-color">Option Color</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    id="option-color"
+                    type="color"
+                    value={newOptionColor}
+                    onChange={(e) => setNewOptionColor(e.target.value)}
+                    style={{ width: '5rem', height: '2.5rem', border: '2px solid #e1e5e9', borderRadius: '8px' }}
+                    data-testid="input-option-color"
+                  />
+                  <input
+                    className="form-input"
+                    value={newOptionColor}
+                    onChange={(e) => setNewOptionColor(e.target.value)}
+                    placeholder="#3B82F6"
+                    style={{ flex: '1' }}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="option-color">Option Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="option-color"
-                      type="color"
-                      value={newOptionColor}
-                      onChange={(e) => setNewOptionColor(e.target.value)}
-                      className="w-20 h-10"
-                      data-testid="input-option-color"
-                    />
-                    <Input
-                      value={newOptionColor}
-                      onChange={(e) => setNewOptionColor(e.target.value)}
-                      placeholder="#3B82F6"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-                <Button 
-                  onClick={handleAddOption} 
-                  className="w-full"
-                  data-testid="button-add-option"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Option
-                </Button>
               </div>
+              <button
+                onClick={handleAddOption}
+                className="btn btn-success"
+                style={{ width: '100%' }}
+                data-testid="button-add-option"
+              >
+                Add Option
+              </button>
+            </div>
 
-              <div className="space-y-2">
-                <h3 className="font-semibold mb-3">Current Options ({quizOptions.length})</h3>
+            <div>
+              <h3 style={{ fontWeight: '600', marginBottom: '1rem' }}>Current Options ({quizOptions.length})</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {quizOptions.map((option) => (
                   <div
                     key={option.id}
-                    className="flex items-center justify-between p-3 bg-card border border-card-border rounded-md"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.75rem',
+                      background: '#f8f9fa',
+                      border: '1px solid #e9ecef',
+                      borderRadius: '8px'
+                    }}
                     data-testid={`option-item-${option.id}`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <div
-                        className="w-6 h-6 rounded"
-                        style={{ backgroundColor: option.color }}
+                        style={{
+                          width: '1.5rem',
+                          height: '1.5rem',
+                          borderRadius: '4px',
+                          backgroundColor: option.color
+                        }}
                       />
-                      <span className="font-medium">{option.label}</span>
-                      <span className="text-sm text-muted-foreground font-mono">
+                      <span style={{ fontWeight: '500' }}>{option.label}</span>
+                      <span style={{ fontSize: '0.875rem', color: '#666', fontFamily: 'monospace' }}>
                         {option.color}
                       </span>
                     </div>
-                    <Button
-                      variant="destructive"
-                      size="icon"
+                    <button
+                      className="btn"
+                      style={{
+                        background: 'linear-gradient(135deg, #dc3545, #c82333)',
+                        color: 'white',
+                        padding: '0.5rem',
+                        width: 'auto',
+                        minWidth: 'auto'
+                      }}
                       onClick={() => handleRemoveOption(option.id)}
                       data-testid={`button-remove-option-${option.id}`}
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                      <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>

@@ -4,7 +4,6 @@ import VotingModal from "@/components/VotingModal";
 import ResultsChart from "@/components/ResultsChart";
 import ElectionControls from "@/components/ElectionControls";
 import SplashScreen from "@/components/SplashScreen";
-import { Card } from "@/components/ui/card";
 import { useVotingContract } from "@/hooks/useVotingContract";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,7 +23,7 @@ interface VotingOption {
 }
 
 export default function VotingApp() {
-  const { voters: contractVoters, castVote, contractAddress, getElectionStatus, getResults, toggleElection, countVotesCast } = useVotingContract();
+  const { castVote, contractAddress, getElectionStatus, getResults, toggleElection, countVotesCast } = useVotingContract();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
@@ -339,66 +338,61 @@ export default function VotingApp() {
   return (
     <>
       {showSplash && <SplashScreen onClose={() => setShowSplash(false)} />}
-      
-      <div className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-        <ElectionControls
-          isElectionOpen={isElectionOpen}
-          onOpenElection={handleToggleElection}
-          onCloseElection={handleToggleElection}
-          onFetchResults={handleFetchResults}
-          contractAddress={contractAddress}
-          isToggling={isTogglingElection}
-          isFetchingResults={isLoadingResults}
-          toggleTransactionHash={toggleTransactionHash}
-          toggleTransactionLabel={toggleTransactionLabel}
-          resultsTransactionHash={resultsTransactionHash}
-        />
 
-        <div className="grid lg:grid-cols-2 gap-8 mt-8">
-          <div>
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-6" data-testid="text-voter-list-title">
-                Voter List
-              </h2>
-              <div className="space-y-3">
-                {voters.map((voter) => (
-                  <VoterCard
-                    key={voter.id}
-                    name={voter.name}
-                    voterId={voter.voterId}
-                    hasVoted={voter.hasVoted}
-                    transactionHash={voter.transactionHash}
-                    encryptedVote={voter.encryptedVote}
-                    onVoteClick={() => handleVoteClick(voter.id)}
-                  />
-                ))}
-              </div>
-            </Card>
+      <div className="app">
+        <h1 className="title">Voting Application</h1>
+
+        <div className="cards-container" style={{ width: '100%', maxWidth: '1400px' }}>
+          <div className="card" style={{ maxWidth: '600px', flex: '1' }}>
+            <ElectionControls
+              contractAddress={contractAddress}
+            />
+
+            <h2 className="card-title">Voter List</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {voters.map((voter) => (
+                <VoterCard
+                  key={voter.id}
+                  name={voter.name}
+                  voterId={voter.voterId}
+                  hasVoted={voter.hasVoted}
+                  transactionHash={voter.transactionHash}
+                  encryptedVote={voter.encryptedVote}
+                  onVoteClick={() => handleVoteClick(voter.id)}
+                />
+              ))}
+            </div>
           </div>
 
-          <div>
-            <ResultsChart 
-              results={results} 
-              isElectionClosed={!isElectionOpen} 
+          <div className="card" style={{ maxWidth: '600px', flex: '1' }}>
+            <ResultsChart
+              results={results}
+              isElectionClosed={!isElectionOpen}
+              onOpenElection={handleToggleElection}
+              onCloseElection={handleToggleElection}
+              onFetchResults={handleFetchResults}
+              isToggling={isTogglingElection}
+              isFetchingResults={isLoadingResults}
+              toggleTransactionHash={toggleTransactionHash}
+              toggleTransactionLabel={toggleTransactionLabel}
+              resultsTransactionHash={resultsTransactionHash}
             />
           </div>
         </div>
-      </div>
 
-      <VotingModal
-        open={modalOpen}
-        onClose={() => {
-          if (!isSubmitting) {
-            setModalOpen(false);
-            setCurrentVoterId(null);
-            setCurrentVoterName(null);
-          }
-        }}
-        question="What is your favorite food?"
-        options={votingOptions}
-        onSubmit={handleSubmitVote}
-      />
+        <VotingModal
+          open={modalOpen}
+          onClose={() => {
+            if (!isSubmitting) {
+              setModalOpen(false);
+              setCurrentVoterId(null);
+              setCurrentVoterName(null);
+            }
+          }}
+          question="What is your favorite food?"
+          options={votingOptions}
+          onSubmit={handleSubmitVote}
+        />
       </div>
     </>
   );
