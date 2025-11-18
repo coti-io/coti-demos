@@ -419,6 +419,51 @@ export function useVotingContract() {
     }
   };
 
+  const getVoterDataFromBlockchain = async (voterName: string) => {
+    const wallet = getVoterWallet(voterName);
+    if (!wallet) {
+      throw new Error(`Wallet not found for voter: ${voterName}`);
+    }
+
+    console.log(`[getVoterData] Fetching voter data for ${voterName} from blockchain...`);
+    console.log(`[getVoterData] Voter address: ${wallet.address}`);
+
+    // Get contract instance
+    const contract = getContract(wallet);
+
+    try {
+      // Read voter struct from public mapping
+      console.log('[getVoterData] Calling contract.voters()...');
+      const voterData = await contract.voters(wallet.address);
+
+      console.log('[getVoterData] Raw voter data from blockchain:', voterData);
+      console.log('[getVoterData] Voter details:', {
+        name: voterData.name,
+        voterId: voterData.voterId,
+        isRegistered: voterData.isRegistered,
+        hasVoted: voterData.hasVoted,
+        hasAuthorizedOwner: voterData.hasAuthorizedOwner,
+      });
+
+      // The encryptedVote is a ctUint8 (uint256 in ABI)
+      console.log('[getVoterData] Encrypted vote (ctUint8):', voterData.encryptedVote);
+      console.log('[getVoterData] Encrypted vote type:', typeof voterData.encryptedVote);
+      console.log('[getVoterData] Encrypted vote toString:', voterData.encryptedVote?.toString());
+
+      return {
+        name: voterData.name,
+        voterId: voterData.voterId,
+        isRegistered: voterData.isRegistered,
+        hasVoted: voterData.hasVoted,
+        hasAuthorizedOwner: voterData.hasAuthorizedOwner,
+        encryptedVote: voterData.encryptedVote?.toString() || 'No vote cast',
+      };
+    } catch (error) {
+      console.error('[getVoterData] Error reading voter data:', error);
+      throw error;
+    }
+  };
+
   const toggleElection = async (): Promise<any> => {
     if (!contractAddress) {
       throw new Error('Contract address not set');
@@ -456,6 +501,7 @@ export function useVotingContract() {
     getResults,
     aggregateVotes,
     toggleElection,
+    getVoterDataFromBlockchain,
     contractAddress,
   };
 }

@@ -149,7 +149,22 @@ export default function ResultsChart({
           }}
         >
           <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: '#555' }}>
-            Transactions:
+            Judge Transactions (
+            <a
+              href="https://testnet.cotiscan.io/address/0x841bcafec082e856709ae082f77c9783cae76163"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: '#0066cc',
+                textDecoration: 'none',
+                fontFamily: 'monospace'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
+            >
+              0x841bcafec082e856709ae082f77c9783cae76163
+            </a>
+            ):
           </div>
           {toggleTransactionHash && (
             <div style={{ marginBottom: '0.5rem' }}>

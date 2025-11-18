@@ -14,6 +14,11 @@ interface Voter {
   hasVoted: boolean;
   transactionHash?: string;
   encryptedVote?: string;
+  blockchainData?: {
+    encryptedVoteFromChain: string;
+    hasVoted: boolean;
+    hasAuthorizedOwner: boolean;
+  };
 }
 
 interface VotingOption {
@@ -23,12 +28,13 @@ interface VotingOption {
 }
 
 export default function VotingApp() {
-  const { castVote, contractAddress, getElectionStatus, getResults, toggleElection, countVotesCast } = useVotingContract();
+  const { castVote, contractAddress, getElectionStatus, getResults, toggleElection, countVotesCast, getVoterDataFromBlockchain } = useVotingContract();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [isTogglingElection, setIsTogglingElection] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [isFetchingBlockchainData, setIsFetchingBlockchainData] = useState<string | null>(null);
 
   // Load voters from environment variables (excluding Alice who is the contract owner)
   const [voters, setVoters] = useState<Voter[]>(() => {
@@ -222,6 +228,48 @@ export default function VotingApp() {
     }
   };
 
+  const handleFetchBlockchainData = async (voterId: string, voterName: string) => {
+    setIsFetchingBlockchainData(voterId);
+    try {
+      toast({
+        title: "Fetching Blockchain Data",
+        description: `Reading encrypted vote data for ${voterName} from blockchain...`,
+      });
+
+      console.log(`=== Fetching blockchain data for ${voterName} ===`);
+      const blockchainData = await getVoterDataFromBlockchain(voterName);
+      console.log('=== Blockchain data received ===', blockchainData);
+
+      // Update voter state with blockchain data
+      setVoters(voters.map(voter =>
+        voter.id === voterId
+          ? {
+              ...voter,
+              blockchainData: {
+                encryptedVoteFromChain: blockchainData.encryptedVote,
+                hasVoted: blockchainData.hasVoted,
+                hasAuthorizedOwner: blockchainData.hasAuthorizedOwner,
+              }
+            }
+          : voter
+      ));
+
+      toast({
+        title: "Blockchain Data Fetched!",
+        description: `Successfully retrieved data for ${voterName}`,
+      });
+    } catch (error) {
+      console.error("Error fetching blockchain data:", error);
+      toast({
+        title: "Fetch Failed",
+        description: error instanceof Error ? error.message : "Failed to fetch blockchain data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetchingBlockchainData(null);
+    }
+  };
+
   const handleFetchResults = async () => {
     setIsLoadingResults(true);
     try {
@@ -358,7 +406,10 @@ export default function VotingApp() {
                   hasVoted={voter.hasVoted}
                   transactionHash={voter.transactionHash}
                   encryptedVote={voter.encryptedVote}
+                  blockchainData={voter.blockchainData}
+                  isFetchingBlockchainData={isFetchingBlockchainData === voter.id}
                   onVoteClick={() => handleVoteClick(voter.id)}
+                  onFetchBlockchainData={() => handleFetchBlockchainData(voter.id, voter.name)}
                 />
               ))}
             </div>

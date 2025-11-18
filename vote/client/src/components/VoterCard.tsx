@@ -6,11 +6,18 @@ interface VoterCardProps {
   hasVoted: boolean;
   transactionHash?: string;
   encryptedVote?: string;
+  blockchainData?: {
+    encryptedVoteFromChain: string;
+    hasVoted: boolean;
+    hasAuthorizedOwner: boolean;
+  };
+  isFetchingBlockchainData?: boolean;
   onVoteClick: () => void;
+  onFetchBlockchainData?: () => void;
   isElectionOpen?: boolean;
 }
 
-export default function VoterCard({ name, voterId, hasVoted, transactionHash, encryptedVote, onVoteClick, isElectionOpen = true }: VoterCardProps) {
+export default function VoterCard({ name, voterId, hasVoted, transactionHash, encryptedVote, blockchainData, isFetchingBlockchainData = false, onVoteClick, onFetchBlockchainData, isElectionOpen = true }: VoterCardProps) {
   return (
     <div
       style={{
@@ -79,30 +86,71 @@ export default function VoterCard({ name, voterId, hasVoted, transactionHash, en
                 Encrypted Vote: {encryptedVote} 🔒
               </div>
             )}
+            {blockchainData && (
+              <div style={{
+                fontSize: '0.75rem',
+                marginTop: '0.5rem',
+                padding: '0.5rem',
+                background: '#e7f3ff',
+                border: '1px solid #b3d9ff',
+                borderRadius: '4px',
+                color: '#004085'
+              }}>
+                <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>📦 Blockchain Data:</div>
+                <div style={{ fontSize: '0.7rem', marginBottom: '0.15rem', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                  <span style={{ color: '#0056b3' }}>Encrypted Vote (ctUint8):</span>
+                  <div style={{ marginTop: '0.15rem' }}>{blockchainData.encryptedVoteFromChain}</div>
+                </div>
+                <div style={{ fontSize: '0.7rem', display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                  <span style={{ color: '#0056b3' }}>Judge can read vote:</span> {blockchainData.hasAuthorizedOwner ? '✓ Yes' : '✗ No'}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
       {hasVoted ? (
-        <button
-          disabled
-          className="btn"
-          style={{
-            background: '#6c757d',
-            color: 'white',
-            padding: '0.5rem 1rem',
-            fontSize: '0.875rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            width: 'auto'
-          }}
-          data-testid={`button-voted-${voterId}`}
-        >
-          <Check style={{ width: '1rem', height: '1rem' }} />
-          Voted
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flexShrink: 0 }}>
+          <button
+            disabled
+            className="btn"
+            style={{
+              background: '#6c757d',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              whiteSpace: 'nowrap',
+              width: 'auto'
+            }}
+            data-testid={`button-voted-${voterId}`}
+          >
+            <Check style={{ width: '1rem', height: '1rem' }} />
+            Voted
+          </button>
+          {onFetchBlockchainData && (
+            <button
+              onClick={onFetchBlockchainData}
+              disabled={isFetchingBlockchainData}
+              className="btn btn-secondary"
+              style={{
+                background: isFetchingBlockchainData ? '#6c757d' : '#007bff',
+                color: 'white',
+                padding: '0.5rem 1rem',
+                fontSize: '0.75rem',
+                whiteSpace: 'nowrap',
+                width: 'auto',
+                opacity: isFetchingBlockchainData ? 0.7 : 1,
+                cursor: isFetchingBlockchainData ? 'not-allowed' : 'pointer'
+              }}
+              data-testid={`button-fetch-blockchain-${voterId}`}
+            >
+              {isFetchingBlockchainData ? 'Fetching...' : '📦 Fetch from Chain'}
+            </button>
+          )}
+        </div>
       ) : (
         <button
           onClick={onVoteClick}
