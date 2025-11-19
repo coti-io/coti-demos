@@ -102,4 +102,13 @@ contract DateGame {
         return _comparisonResult.userCiphertext;
     }
 
+    /**
+     * @notice Returns the encrypted age value for the owner to decrypt
+     * @return The encrypted age as ctUint64 (userCiphertext for owner)
+     */
+    function getAge() public view returns (ctUint64) {
+        require(_ageSet, "No age has been stored yet");
+        return _age.userCiphertext;
+    }
+
 }

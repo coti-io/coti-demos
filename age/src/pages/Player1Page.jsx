@@ -4,10 +4,12 @@ import { useAgeContract } from '../hooks/useAgeContract.js'
 
 function Player1Page() {
   const navigate = useNavigate()
-  const { storeAge, contractAddress, adminWallet } = useAgeContract()
+  const { storeAge, getEncryptedAge, contractAddress, adminWallet } = useAgeContract()
   const [loading, setLoading] = useState(false)
   const [storeDate, setStoreDate] = useState('')
   const [storeStatus, setStoreStatus] = useState('')
+  const [encryptedAge, setEncryptedAge] = useState(null)
+  const [fetchingAge, setFetchingAge] = useState(false)
 
   useEffect(() => {
     checkContractConnection()
@@ -32,6 +34,23 @@ function Player1Page() {
     }
   }
 
+  const handleFetchAge = async () => {
+    setFetchingAge(true)
+    try {
+      const encryptedCiphertext = await getEncryptedAge()
+      if (encryptedCiphertext === null) {
+        setEncryptedAge('No age stored yet')
+      } else {
+        setEncryptedAge(encryptedCiphertext)
+      }
+    } catch (error) {
+      console.error('Error fetching age:', error)
+      setEncryptedAge('Error: ' + error.message)
+    } finally {
+      setFetchingAge(false)
+    }
+  }
+
   const handleStoreDate = async () => {
     if (!storeDate) {
       setStoreStatus('Please select a birth date')
@@ -43,7 +62,7 @@ function Player1Page() {
 
     try {
       console.log('Storing birth date:', storeDate)
-      
+
       const result = await storeAge(storeDate)
       
       console.log('Store result:', result)
@@ -168,6 +187,44 @@ function Player1Page() {
               {storeStatus}
             </div>
           )}
+
+          <div style={{
+            marginTop: '2rem',
+            padding: '1.5rem',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+            border: '1px solid #e9ecef'
+          }}>
+            <h3 style={{marginTop: 0, marginBottom: '1rem', fontSize: '1.1rem'}}>
+              🔐 View Encrypted Age from Contract
+            </h3>
+
+            <button
+              className="btn btn-primary"
+              onClick={handleFetchAge}
+              disabled={fetchingAge}
+              style={{width: '100%', marginBottom: '1rem'}}
+            >
+              {fetchingAge ? 'Fetching...' : 'Fetch Encrypted Age'}
+            </button>
+
+            {encryptedAge && (
+              <div style={{
+                padding: '1rem',
+                backgroundColor: '#fff',
+                borderRadius: '4px',
+                border: '1px solid #dee2e6',
+                wordBreak: 'break-all',
+                fontFamily: 'monospace',
+                fontSize: '0.85rem'
+              }}>
+                <strong style={{display: 'block', marginBottom: '0.5rem', fontFamily: 'system-ui'}}>
+                  Encrypted Age (Ciphertext):
+                </strong>
+                {encryptedAge}
+              </div>
+            )}
+          </div>
 
           <button
             className="btn"

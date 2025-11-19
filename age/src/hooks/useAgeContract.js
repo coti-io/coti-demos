@@ -63,7 +63,8 @@ const DATE_GAME_ABI = [
   "function greaterThan(tuple(uint256 ciphertext, bytes signature) value) external",
   "function lessThan(tuple(uint256 ciphertext, bytes signature) value) external",
   "function isAgeSet() external view returns (bool)",
-  "function comparisonResult() external view returns (uint256)"
+  "function comparisonResult() external view returns (uint256)",
+  "function getAge() public view returns (uint256)"
 ];
 
 export function useAgeContract() {
@@ -272,10 +273,41 @@ export function useAgeContract() {
     }
   };
 
+  const getEncryptedAge = async () => {
+    if (!adminWallet) {
+      throw new Error('Admin wallet not configured');
+    }
+
+    if (!contractAddress) {
+      throw new Error('Contract address not set');
+    }
+
+    try {
+      const contract = getContract(adminWallet);
+
+      // Check if age is set
+      const isSet = await contract.isAgeSet();
+      if (!isSet) {
+        return null;
+      }
+
+      // Get encrypted age from contract
+      const encryptedAge = await contract.getAge();
+      console.log('Encrypted age retrieved:', encryptedAge.toString());
+
+      // Return the encrypted ciphertext (not decrypted!)
+      return encryptedAge.toString();
+    } catch (error) {
+      console.error('Error getting encrypted age:', error);
+      throw error;
+    }
+  };
+
   return {
     storeAge,
     compareAge,
     checkAgeStatus,
+    getEncryptedAge,
     contractAddress,
     adminWallet,
     playerWallet
