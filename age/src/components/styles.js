@@ -171,7 +171,7 @@ export const InfoBox = styled.div`
 `;
 
 export const InfoTitle = styled.div`
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: ${(props) => props.theme.colors.text.default} !important;

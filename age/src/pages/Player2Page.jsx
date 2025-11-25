@@ -28,9 +28,10 @@ const PageTitle = styled.h1`
 
 const ContractDetail = styled.p`
   margin: 0 0 0.5rem 0;
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   color: ${props => props.theme.colors.text.default} !important;
-  
+  line-height: 1.6;
+
   &:last-child {
     margin-bottom: 0;
   }
