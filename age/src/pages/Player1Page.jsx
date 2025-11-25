@@ -200,7 +200,7 @@ function Player1Page() {
   return (
     <AppContainer>
       <CardsContainer $justifyContent="center">
-        <Card $maxWidth="600px">
+        <Card $maxWidth="900px">
           <PageTitle>Age Guessing Game - Admin</PageTitle>
 
           <InfoBox>
@@ -243,13 +243,15 @@ function Player1Page() {
               text={loading ? 'Storing...' : 'Store Age'}
               onClick={handleStoreDate}
               disabled={loading}
-              fullWidth
             />
             <ButtonAction
               text={fetchingAge ? 'Fetching...' : 'Fetch Age'}
               onClick={handleFetchAge}
               disabled={fetchingAge}
-              fullWidth
+            />
+            <ButtonAction
+              text="Back"
+              onClick={() => navigate(-1)}
             />
           </ButtonGroup>
 
@@ -262,20 +264,13 @@ function Player1Page() {
           {encryptedAge && (
             <ResultBox style={{ marginTop: '1.5rem' }}>
               <div>
-                <strong>Encrypted Age (Ciphertext):</strong>
+                <strong>Encrypted Age Blockchain (Ciphertext):</strong>
                 <MonospaceText>
                   {encryptedAge}
                 </MonospaceText>
               </div>
             </ResultBox>
           )}
-
-          <Button
-            text="← Back to Home"
-            onClick={() => navigate('/')}
-            fullWidth
-            primary
-          />
         </Card>
       </CardsContainer>
     </AppContainer>
