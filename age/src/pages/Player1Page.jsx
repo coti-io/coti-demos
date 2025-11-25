@@ -14,7 +14,8 @@ import {
   InfoBox,
   InfoTitle,
   InfoText,
-  Link
+  Link,
+  ButtonGroup
 } from '../components/styles'
 
 const PageTitle = styled.h1`
@@ -28,24 +29,24 @@ const PageTitle = styled.h1`
 
 const ResultBox = styled.div`
   word-break: break-all;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   padding: 1rem;
-  background-color: ${props => props.$variant === 'warning'
-    ? 'rgba(255, 193, 7, 0.2)'
-    : props.theme.colors.background.alternative};
+  background-color: ${props => props.theme.colors.secondary.default10};
   border-radius: 12px;
   margin-bottom: 1rem;
-  border: 1px solid ${props => props.$variant === 'warning'
-    ? 'rgba(255, 193, 7, 0.5)'
-    : 'rgba(255, 255, 255, 0.2)'};
+  border: 1px solid ${props => props.theme.colors.primary.default};
   color: ${props => props.theme.colors.text.default} !important;
+  line-height: 1.6;
+  text-align: left;
 `;
 
 const MonospaceText = styled.div`
   font-family: monospace;
-  font-size: 0.75rem;
-  margin-top: 0.5rem;
+  font-size: 1.05rem;
+  margin-top: 0.75rem;
   color: ${props => props.theme.colors.text.default} !important;
+  line-height: 1.6;
+  opacity: 0.85;
 `;
 
 const SectionBox = styled.div`
@@ -165,27 +166,25 @@ function Player1Page() {
 
       // Set a custom status message with structured data
       setStoreStatus(
-        <div>
-          <ResultBox $variant="warning">
+        <ResultBox>
+          <div style={{ marginBottom: '1rem' }}>
             <strong>Age Stored (plain text):</strong> {result.age}
-            <br />
-            <br />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
             <strong>Age Stored (Encrypted Ciphertext):</strong>
             <MonospaceText>
               {result.encryptedCiphertext ? `${result.encryptedCiphertext} 🔒` : 'N/A'}
             </MonospaceText>
-          </ResultBox>
-          <ResultBox>
+          </div>
+          <div>
             <strong>Transaction:</strong>
-            <br />
-            <Link href={explorerLink} target="_blank" rel="noopener noreferrer" style={{
-              display: 'inline-block',
-              marginTop: '0.5rem'
-            }}>
-              {txHash}
-            </Link>
-          </ResultBox>
-        </div>
+            <MonospaceText>
+              <Link href={explorerLink} target="_blank" rel="noopener noreferrer">
+                {txHash}
+              </Link>
+            </MonospaceText>
+          </div>
+        </ResultBox>
       )
       setStoreStatusVariant('success')
 
@@ -239,12 +238,20 @@ function Player1Page() {
             />
           </FormGroup>
 
-          <ButtonAction
-            text={loading ? 'Storing...' : 'Store Age'}
-            onClick={handleStoreDate}
-            disabled={loading}
-            fullWidth
-          />
+          <ButtonGroup>
+            <ButtonAction
+              text={loading ? 'Storing...' : 'Store Age'}
+              onClick={handleStoreDate}
+              disabled={loading}
+              fullWidth
+            />
+            <ButtonAction
+              text={fetchingAge ? 'Fetching...' : 'Fetch Age'}
+              onClick={handleFetchAge}
+              disabled={fetchingAge}
+              fullWidth
+            />
+          </ButtonGroup>
 
           {storeStatus && (
             <StatusMessage $variant={storeStatusVariant}>
@@ -252,27 +259,16 @@ function Player1Page() {
             </StatusMessage>
           )}
 
-          <SectionBox>
-            <SectionTitle>
-              🔐 View Encrypted Age from Contract
-            </SectionTitle>
-
-            <ButtonAction
-              text={fetchingAge ? 'Fetching...' : 'Fetch Encrypted Age'}
-              onClick={handleFetchAge}
-              disabled={fetchingAge}
-              fullWidth
-            />
-
-            {encryptedAge && (
-              <EncryptedAgeDisplay style={{ marginTop: '1rem' }}>
-                <DisplayLabel>
-                  Encrypted Age (Ciphertext):
-                </DisplayLabel>
-                {encryptedAge}
-              </EncryptedAgeDisplay>
-            )}
-          </SectionBox>
+          {encryptedAge && (
+            <ResultBox style={{ marginTop: '1.5rem' }}>
+              <div>
+                <strong>Encrypted Age (Ciphertext):</strong>
+                <MonospaceText>
+                  {encryptedAge}
+                </MonospaceText>
+              </div>
+            </ResultBox>
+          )}
 
           <Button
             text="← Back to Home"
