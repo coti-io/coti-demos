@@ -1,13 +1,104 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import styled from 'styled-components'
 import { useAgeContract } from '../hooks/useAgeContract.js'
+import { ButtonAction, Button } from '../components/Button'
+import {
+  AppContainer,
+  CardsContainer,
+  Card,
+  FormGroup,
+  FormLabel,
+  FormInput,
+  StatusMessage,
+  InfoBox,
+  InfoTitle,
+  InfoText,
+  Link
+} from '../components/styles'
+
+const PageTitle = styled.h1`
+  color: ${props => props.theme.colors.text.default} !important;
+  margin-top: 0;
+  text-shadow: none;
+  font-weight: 600;
+  font-size: ${props => props.theme.fontSizes.title};
+  text-align: center;
+`;
+
+const ResultBox = styled.div`
+  word-break: break-all;
+  font-size: 0.875rem;
+  padding: 1rem;
+  background-color: ${props => props.$variant === 'warning'
+    ? 'rgba(255, 193, 7, 0.2)'
+    : props.theme.colors.background.alternative};
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid ${props => props.$variant === 'warning'
+    ? 'rgba(255, 193, 7, 0.5)'
+    : 'rgba(255, 255, 255, 0.2)'};
+  color: ${props => props.theme.colors.text.default} !important;
+`;
+
+const MonospaceText = styled.div`
+  font-family: monospace;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  color: ${props => props.theme.colors.text.default} !important;
+`;
+
+const SectionBox = styled.div`
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: ${props => props.theme.colors.background.alternative};
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+const SectionTitle = styled.h3`
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: ${props => props.theme.colors.text.default} !important;
+`;
+
+const EncryptedAgeDisplay = styled.div`
+  padding: 1rem;
+  background-color: ${props => props.theme.colors.card.default};
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: ${props => props.theme.colors.text.default} !important;
+`;
+
+const DisplayLabel = styled.strong`
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: ${props => props.theme.fonts.default};
+  color: ${props => props.theme.colors.text.default} !important;
+`;
+
+const ContractDetail = styled.p`
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: ${props => props.theme.colors.text.default} !important;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
 
 function Player1Page() {
   const navigate = useNavigate()
   const { storeAge, getEncryptedAge, contractAddress, adminWallet } = useAgeContract()
   const [loading, setLoading] = useState(false)
   const [storeDate, setStoreDate] = useState('')
+  const [connectionStatus, setConnectionStatus] = useState('')
   const [storeStatus, setStoreStatus] = useState('')
+  const [storeStatusVariant, setStoreStatusVariant] = useState('info')
   const [encryptedAge, setEncryptedAge] = useState(null)
   const [fetchingAge, setFetchingAge] = useState(false)
 
@@ -16,21 +107,21 @@ function Player1Page() {
   }, [])
 
   const checkContractConnection = async () => {
-    setStoreStatus('🔄 Checking contract connection...')
-    
+    setConnectionStatus('🔄 Checking contract connection...')
+
     try {
       if (!contractAddress) {
-        setStoreStatus('❌ Contract address not configured. Please set VITE_CONTRACT_ADDRESS in .env')
+        setConnectionStatus('❌ Contract address not configured. Please set VITE_CONTRACT_ADDRESS in .env')
         return
       }
       if (!adminWallet) {
-        setStoreStatus('❌ Admin wallet not configured. Please set VITE_ADMIN_PK and VITE_ADMIN_AES_KEY in .env')
+        setConnectionStatus('❌ Admin wallet not configured. Please set VITE_ADMIN_PK and VITE_ADMIN_AES_KEY in .env')
         return
       }
-      setStoreStatus('✅ Connected to DateGame contract!')
+      setConnectionStatus('✅ Connected to DateGame contract!')
     } catch (error) {
       console.error('Error connecting to contract:', error)
-      setStoreStatus('❌ Error connecting to contract: ' + error.message)
+      setConnectionStatus('❌ Error connecting to contract: ' + error.message)
     }
   }
 
@@ -54,193 +145,143 @@ function Player1Page() {
   const handleStoreDate = async () => {
     if (!storeDate) {
       setStoreStatus('Please select a birth date')
+      setStoreStatusVariant('error')
       return
     }
 
     setLoading(true)
     setStoreStatus('Encrypting age and storing it on smart contract...')
+    setStoreStatusVariant('info')
 
     try {
       console.log('Storing birth date:', storeDate)
 
       const result = await storeAge(storeDate)
-      
+
       console.log('Store result:', result)
       const txHash = result.receipt.hash
       const explorerLink = `https://testnet.cotiscan.io/address/${contractAddress}?tab=txs`
+
+      // Set a custom status message with structured data
       setStoreStatus(
         <div>
-          <div style={{
-            wordBreak: 'break-all',
-            fontSize: '0.875rem',
-            padding: '1rem',
-            backgroundColor: '#fff3cd',
-            borderRadius: '4px',
-            marginBottom: '1rem',
-            border: '1px solid #ffc107'
-          }}>
+          <ResultBox $variant="warning">
             <strong>Age Stored (plain text):</strong> {result.age}
             <br />
             <br />
             <strong>Age Stored (Encrypted Ciphertext):</strong>
-            <br />
-            <div style={{
-              fontFamily: 'monospace',
-              fontSize: '0.75rem',
-              marginTop: '0.5rem'
-            }}>
+            <MonospaceText>
               {result.encryptedCiphertext ? `${result.encryptedCiphertext} 🔒` : 'N/A'}
-            </div>
-          </div>
-          <div style={{
-            wordBreak: 'break-all',
-            fontSize: '0.85rem',
-            padding: '1rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '4px',
-            fontFamily: 'monospace'
-          }}>
+            </MonospaceText>
+          </ResultBox>
+          <ResultBox>
             <strong>Transaction:</strong>
             <br />
-            <a href={explorerLink} target="_blank" rel="noopener noreferrer" style={{
-              color: '#007bff',
-              textDecoration: 'none',
+            <Link href={explorerLink} target="_blank" rel="noopener noreferrer" style={{
               display: 'inline-block',
               marginTop: '0.5rem'
             }}>
               {txHash}
-            </a>
-          </div>
+            </Link>
+          </ResultBox>
         </div>
       )
-      
+      setStoreStatusVariant('success')
+
     } catch (error) {
       console.error('Error storing birth date:', error)
       setStoreStatus('❌ Error storing birth date: ' + (error.message || error.toString()))
+      setStoreStatusVariant('error')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="app">
-      <div className="cards-container" style={{justifyContent: 'center'}}>
-        <div className="card" style={{maxWidth: '600px'}}>
-          <h1 className="title" style={{color: '#000', marginTop: 0, textShadow: 'none', fontWeight: '600'}}>Age Guessing Game - Admin</h1>
+    <AppContainer>
+      <CardsContainer $justifyContent="center">
+        <Card $maxWidth="600px">
+          <PageTitle>Age Guessing Game - Admin</PageTitle>
 
-          <div style={{
-            textAlign: 'left',
-            marginBottom: '1.5rem',
-            padding: '1rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            border: '1px solid #e9ecef'
-          }}>
-            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Protected COTI MPC Core Encrypting using Admin AES Key</div>
-            <div style={{fontSize: '0.85rem', color: '#6c757d'}}>
-              📍 Contract:{' '}
-              <a 
+          <InfoBox>
+            <InfoTitle>🔐 Protected COTI MPC Core Encrypting using Admin AES Key</InfoTitle>
+            {connectionStatus && (
+              <InfoText style={{ marginBottom: '1rem' }}>{connectionStatus}</InfoText>
+            )}
+            <ContractDetail>
+              <strong>Contract:</strong>{' '}
+              <Link
                 href={`https://testnet.cotiscan.io/address/${contractAddress || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'}`}
-                target="_blank" 
+                target="_blank"
                 rel="noopener noreferrer"
-                style={{color: '#0066cc', textDecoration: 'none', wordBreak: 'break-all'}}
-                onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                onMouseOut={(e) => e.target.style.textDecoration = 'none'}
               >
                 {contractAddress || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'}
-              </a>
-            </div>
-            <div style={{marginTop: '0.5rem'}}>
-              <a 
-                href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol" 
-                target="_blank" 
+              </Link>
+            </ContractDetail>
+            <ContractDetail>
+              <Link
+                href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol"
+                target="_blank"
                 rel="noopener noreferrer"
-                style={{color: '#0066cc', textDecoration: 'none', fontSize: '0.85rem'}}
-                onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                onMouseOut={(e) => e.target.style.textDecoration = 'none'}
               >
                 📄 Contract Source Code
-              </a>
-            </div>
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label">Select Birth Date:</label>
-            <input
+              </Link>
+            </ContractDetail>
+          </InfoBox>
+
+          <FormGroup>
+            <FormLabel>Select Birth Date:</FormLabel>
+            <FormInput
               type="date"
-              className="form-input"
               value={storeDate}
               onChange={(e) => setStoreDate(e.target.value)}
             />
-          </div>
-          
-          <button
-            className="btn btn-primary"
+          </FormGroup>
+
+          <ButtonAction
+            text={loading ? 'Storing...' : 'Store Age'}
             onClick={handleStoreDate}
             disabled={loading}
-          >
-            {loading ? 'Storing...' : 'Store Age'}
-          </button>
-          
+            fullWidth
+          />
+
           {storeStatus && (
-            <div className={`status-message ${typeof storeStatus === 'string' && storeStatus.includes('Error') ? 'status-error' : typeof storeStatus === 'string' && storeStatus.includes('success') ? 'status-success' : 'status-info'}`}>
+            <StatusMessage $variant={storeStatusVariant}>
               {storeStatus}
-            </div>
+            </StatusMessage>
           )}
 
-          <div style={{
-            marginTop: '2rem',
-            padding: '1.5rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            border: '1px solid #e9ecef'
-          }}>
-            <h3 style={{marginTop: 0, marginBottom: '1rem', fontSize: '1.1rem'}}>
+          <SectionBox>
+            <SectionTitle>
               🔐 View Encrypted Age from Contract
-            </h3>
+            </SectionTitle>
 
-            <button
-              className="btn btn-primary"
+            <ButtonAction
+              text={fetchingAge ? 'Fetching...' : 'Fetch Encrypted Age'}
               onClick={handleFetchAge}
               disabled={fetchingAge}
-              style={{width: '100%', marginBottom: '1rem'}}
-            >
-              {fetchingAge ? 'Fetching...' : 'Fetch Encrypted Age'}
-            </button>
+              fullWidth
+            />
 
             {encryptedAge && (
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#fff',
-                borderRadius: '4px',
-                border: '1px solid #dee2e6',
-                wordBreak: 'break-all',
-                fontFamily: 'monospace',
-                fontSize: '0.85rem'
-              }}>
-                <strong style={{display: 'block', marginBottom: '0.5rem', fontFamily: 'system-ui'}}>
+              <EncryptedAgeDisplay style={{ marginTop: '1rem' }}>
+                <DisplayLabel>
                   Encrypted Age (Ciphertext):
-                </strong>
+                </DisplayLabel>
                 {encryptedAge}
-              </div>
+              </EncryptedAgeDisplay>
             )}
-          </div>
+          </SectionBox>
 
-          <button
-            className="btn"
+          <Button
+            text="← Back to Home"
             onClick={() => navigate('/')}
-            style={{
-              backgroundColor: '#6c757d',
-              color: 'white',
-              marginTop: '1.5rem',
-              width: '100%'
-            }}
-          >
-            ← Back to Home
-          </button>
-        </div>
-      </div>
-    </div>
+            fullWidth
+            primary
+          />
+        </Card>
+      </CardsContainer>
+    </AppContainer>
   )
 }
 

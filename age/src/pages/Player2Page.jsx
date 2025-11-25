@@ -1,13 +1,110 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import styled from 'styled-components'
 import { useAgeContract } from '../hooks/useAgeContract.js'
+import { ButtonAction, Button } from '../components/Button'
+import {
+  AppContainer,
+  CardsContainer,
+  Card,
+  FormGroup,
+  FormLabel,
+  FormInput,
+  StatusMessage,
+  InfoBox,
+  InfoTitle,
+  Link,
+  ButtonGroup
+} from '../components/styles'
+
+const PageTitle = styled.h1`
+  color: ${props => props.theme.colors.text.default} !important;
+  margin-top: 0;
+  text-shadow: none;
+  font-weight: 600;
+  font-size: ${props => props.theme.fontSizes.title};
+  text-align: center;
+`;
+
+const ContractDetail = styled.p`
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: ${props => props.theme.colors.text.default} !important;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const HistoryBox = styled.div`
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: ${props => props.theme.colors.background.alternative};
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+const HistoryTitle = styled.h3`
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: ${props => props.theme.colors.text.default} !important;
+  text-align: left;
+`;
+
+const HistoryScroll = styled.div`
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+`;
+
+const GuessItem = styled.div`
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: ${props => props.theme.colors.card.default};
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: ${props => props.theme.colors.text.default} !important;
+`;
+
+const GuessHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 1rem;
+  
+  ${({ theme }) => theme.mediaQueries.small} {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
+
+const GuessDetail = styled.div`
+  flex: 1;
+  text-align: ${props => props.$align || 'left'};
+  color: ${props => props.theme.colors.text.default} !important;
+  
+  ${({ theme }) => theme.mediaQueries.small} {
+    text-align: left;
+  }
+`;
+
+const GuessMetadata = styled.div`
+  font-size: 0.75rem;
+  color: ${props => props.theme.colors.text.default} !important;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  word-break: break-all;
+`;
 
 function Player2Page() {
   const navigate = useNavigate()
   const { compareAge, checkAgeStatus, contractAddress, playerWallet } = useAgeContract()
   const [loading, setLoading] = useState(false)
   const [compareDate, setCompareDate] = useState('')
+  const [connectionStatus, setConnectionStatus] = useState('')
   const [compareStatus, setCompareStatus] = useState('')
+  const [compareStatusVariant, setCompareStatusVariant] = useState('info')
   const [guessHistory, setGuessHistory] = useState([])
 
   useEffect(() => {
@@ -16,55 +113,63 @@ function Player2Page() {
 
   const checkIfAgeStored = async () => {
     setCompareStatus('🔄 Checking if age is stored...')
-    
+    setCompareStatusVariant('info')
+
     try {
       if (!contractAddress) {
         setCompareStatus('❌ Contract address not configured. Please set VITE_CONTRACT_ADDRESS in .env')
+        setCompareStatusVariant('error')
         return
       }
       if (!playerWallet) {
         setCompareStatus('❌ Player wallet not configured. Please set VITE_PLAYER_PK and VITE_PLAYER_AES_KEY in .env')
+        setCompareStatusVariant('error')
         return
       }
 
       const isSet = await checkAgeStatus()
-      
+
       if (!isSet) {
         setCompareStatus('⚠️ No age has been stored yet. Player 1 needs to store their birth date first.')
+        setCompareStatusVariant('error')
       } else {
         setCompareStatus('✅ Ready to guess! Enter an age and start guessing.')
+        setCompareStatusVariant('success')
       }
     } catch (error) {
       console.error('Error checking age status:', error)
       setCompareStatus('❌ Error connecting to contract: ' + error.message)
+      setCompareStatusVariant('error')
     }
   }
 
   const handleCompareDate = async (operation) => {
     if (!compareDate) {
       setCompareStatus('Please enter an age')
+      setCompareStatusVariant('error')
       return
     }
 
     setLoading(true)
     setCompareStatus(`Encrypting and comparing age (${operation})...`)
+    setCompareStatusVariant('info')
 
     try {
       console.log('Comparing age:', compareDate, 'operation:', operation)
-      
+
       const result = await compareAge(compareDate, operation)
-      
+
       console.log('Compare result:', result)
-      
+
       // Check if the result is valid
       if (result.result === null || result.result === undefined) {
         throw new Error('Comparison returned no result. Please try again.')
       }
-      
+
       // operation 'greater' means stored > guessed (i.e., actual person is OLDER than guess)
       // operation 'less' means stored < guessed (i.e., actual person is YOUNGER than guess)
       const booleanResult = result.result === true
-      
+
       let statusMessage
       let guessResult
       if (operation === 'greater') {
@@ -76,7 +181,7 @@ function Player2Page() {
         statusMessage = `✅ Is the person YOUNGER than ${compareDate}? ${booleanResult ? 'YES' : 'NO'}`
         guessResult = booleanResult ? 'YES' : 'NO'
       }
-      
+
       // Add to guess history
       const guessEntry = {
         age: compareDate,
@@ -87,178 +192,136 @@ function Player2Page() {
         encryptedCiphertext: result.encryptedCiphertext
       }
       setGuessHistory(prev => [...prev, guessEntry])
-      
+
       setCompareStatus(statusMessage)
-      
+      setCompareStatusVariant('success')
+
     } catch (error) {
       console.error('Error comparing age:', error)
       setCompareStatus('❌ Error comparing age: ' + (error.message || error.toString()))
+      setCompareStatusVariant('error')
     } finally {
       setLoading(false)
     }
   }
 
-
-
   return (
-    <div className="app">
-      <div className="cards-container" style={{justifyContent: 'center'}}>
-        <div className="card" style={{maxWidth: '600px'}}>
-          <h1 className="title" style={{color: '#000', marginTop: 0, textShadow: 'none', fontWeight: '600'}}>Age Guessing Game - Player</h1>
-          
-          <div style={{
-            textAlign: 'left',
-            marginBottom: '1.5rem',
-            padding: '1rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            border: '1px solid #e9ecef'
-          }}>
-            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Guessing implemented by Encrypted Data Computing by COTI MPC</div>
-            <div style={{fontSize: '0.85rem', color: '#6c757d'}}>
-              📍 Contract:{' '}
-              <a 
+    <AppContainer>
+      <CardsContainer $justifyContent="center">
+        <Card $maxWidth="600px">
+          <PageTitle>Age Guessing Game - Player</PageTitle>
+
+          <InfoBox>
+            <InfoTitle>Guessing implemented by Encrypted Data Computing by COTI MPC</InfoTitle>
+            {connectionStatus && (
+              <InfoText style={{ marginBottom: '1rem' }}>{connectionStatus}</InfoText>
+            )}
+            <ContractDetail>
+              <strong>Contract:</strong>{' '}
+              <Link
                 href={`https://testnet.cotiscan.io/address/${contractAddress || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'}`}
-                target="_blank" 
+                target="_blank"
                 rel="noopener noreferrer"
-                style={{color: '#0066cc', textDecoration: 'none', wordBreak: 'break-all'}}
-                onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                onMouseOut={(e) => e.target.style.textDecoration = 'none'}
               >
                 {contractAddress || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'}
-              </a>
-            </div>
-            <div style={{marginTop: '0.5rem'}}>
-              <a 
-                href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol" 
-                target="_blank" 
+              </Link>
+            </ContractDetail>
+            <ContractDetail>
+              <Link
+                href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol"
+                target="_blank"
                 rel="noopener noreferrer"
-                style={{color: '#0066cc', textDecoration: 'none', fontSize: '0.85rem'}}
-                onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                onMouseOut={(e) => e.target.style.textDecoration = 'none'}
               >
                 📄 Contract Source Code
-              </a>
-            </div>
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label">Enter Age to Compare:</label>
-            <input
+              </Link>
+            </ContractDetail>
+          </InfoBox>
+
+          <FormGroup>
+            <FormLabel>Enter Age to Compare:</FormLabel>
+            <FormInput
               type="number"
-              className="form-input"
               placeholder="Enter age (e.g., 25)"
               min="0"
               max="150"
               value={compareDate}
               onChange={(e) => setCompareDate(e.target.value)}
             />
-          </div>
-          
-          <div className="button-group">
-            <button
-              className="btn btn-success"
+          </FormGroup>
+
+          <ButtonGroup>
+            <ButtonAction
+              text={loading ? 'Comparing...' : 'OLDER?'}
               onClick={() => handleCompareDate('greater')}
               disabled={loading}
-            >
-              {loading ? 'Comparing...' : 'OLDER?'}
-            </button>
-            
-            <button
-              className="btn btn-warning"
+              fullWidth
+            />
+
+            <ButtonAction
+              text={loading ? 'Comparing...' : 'YOUNGER?'}
               onClick={() => handleCompareDate('less')}
               disabled={loading}
-            >
-              {loading ? 'Comparing...' : 'YOUNGER?'}
-            </button>
-          </div>
-          
+              fullWidth
+            />
+          </ButtonGroup>
+
           {compareStatus && (
-            <div className={`status-message ${typeof compareStatus === 'string' && compareStatus.includes('Error') ? 'status-error' : typeof compareStatus === 'string' && compareStatus.includes('Result') ? 'status-success' : 'status-info'}`}>
+            <StatusMessage $variant={compareStatusVariant}>
               {compareStatus}
-            </div>
+            </StatusMessage>
           )}
 
           {guessHistory.length > 0 && (
-            <div id="guess-history" style={{
-              marginTop: '2rem',
-              padding: '1rem',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '8px',
-              border: '1px solid #dee2e6'
-            }}>
-              <h3 style={{
-                fontSize: '1.1rem',
-                marginBottom: '1rem',
-                color: '#495057',
-                textAlign: 'left'
-              }}>
+            <HistoryBox id="guess-history">
+              <HistoryTitle>
                 📊 GUESSES
-              </h3>
-              <div style={{
-                maxHeight: '300px',
-                overflowY: 'auto',
-                fontSize: '0.9rem'
-              }}>
+              </HistoryTitle>
+              <HistoryScroll>
                 {guessHistory.map((guess, index) => (
-                  <div key={index} style={{
-                    padding: '0.75rem',
-                    marginBottom: '0.5rem',
-                    backgroundColor: 'white',
-                    borderRadius: '6px',
-                    border: '1px solid #e9ecef'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <div style={{flex: 1}}>
+                  <GuessItem key={index}>
+                    <GuessHeader>
+                      <GuessDetail>
                         <strong>Guess #{index + 1}:</strong> {guess.age} years
-                      </div>
-                      <div style={{flex: 1, textAlign: 'center'}}>
+                      </GuessDetail>
+                      <GuessDetail $align="center">
                         {guess.operation}
-                      </div>
-                      <div style={{flex: 1, textAlign: 'right'}}>
+                      </GuessDetail>
+                      <GuessDetail $align="right">
                         {guess.result}
-                      </div>
-                    </div>
+                      </GuessDetail>
+                    </GuessHeader>
                     {guess.encryptedCiphertext && (
-                      <div style={{
-                        fontSize: '0.75rem',
-                        color: '#6c757d',
-                        marginTop: '0.5rem',
-                        wordBreak: 'break-all'
-                      }}>
+                      <GuessMetadata>
                         <strong>Encrypted age:</strong> {guess.encryptedCiphertext} 🔒
-                      </div>
+                      </GuessMetadata>
                     )}
                     {guess.transactionHash && (
-                      <div style={{
-                        fontSize: '0.75rem',
-                        color: '#6c757d',
-                        wordBreak: 'break-all',
-                        marginTop: '0.25rem'
-                      }}>
-                        <strong>TX:</strong> <a 
+                      <GuessMetadata>
+                        <strong>TX:</strong>{' '}
+                        <Link
                           href={`https://testnet.cotiscan.io/tx/${guess.transactionHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{color: '#0066cc', textDecoration: 'none'}}
                         >
                           {guess.transactionHash}
-                        </a>
-                      </div>
+                        </Link>
+                      </GuessMetadata>
                     )}
-                  </div>
+                  </GuessItem>
                 ))}
-              </div>
-            </div>
+              </HistoryScroll>
+            </HistoryBox>
           )}
-        </div>
-      </div>
-    </div>
+
+          <Button
+            text="← Back to Home"
+            onClick={() => navigate('/')}
+            fullWidth
+            primary
+          />
+        </Card>
+      </CardsContainer>
+    </AppContainer>
   )
 }
 

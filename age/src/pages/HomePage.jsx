@@ -1,95 +1,130 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import styled from 'styled-components'
+import { ButtonAction } from '../components/Button'
+import {
+  AppContainer,
+  CardsContainer,
+  Card,
+  ContentTitle,
+  InfoBox,
+  InfoTitle,
+  InfoText,
+  List,
+  ListItem,
+  Link,
+  ButtonGroup
+} from '../components/styles'
+
+const PageTitle = styled.h1`
+  margin-top: 0;
+  color: ${props => props.theme.colors.text.default} !important;
+  text-shadow: none;
+  font-weight: 600;
+  font-size: ${props => props.theme.fontSizes.title};
+  text-align: center;
+`;
+
+const SectionTitle = styled.p`
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: ${props => props.theme.colors.text.default} !important;
+  font-size: ${props => props.theme.fontSizes.small};
+`;
+
+const TextContent = styled.div`
+  text-align: left;
+  line-height: 1.8;
+  color: ${props => props.theme.colors.text.default} !important;
+`;
+
+const ContractInfo = styled.div`
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: ${props => props.theme.colors.secondary.default10};
+  border-radius: 12px;
+  font-size: 0.9rem;
+  text-align: left;
+`;
+
+const ContractDetail = styled.p`
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: ${props => props.theme.colors.text.default} !important;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
 
 function HomePage() {
   const navigate = useNavigate()
   const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'
 
   return (
-    <div className="app">
-      <div className="cards-container" style={{justifyContent: 'center'}}>
-        <div className="card" style={{maxWidth: '900px', width: '90%'}}>
-          <h1 className="title" style={{marginTop: 0, color: '#000', textShadow: 'none', fontWeight: '600'}}>Age Guessing Game</h1>
+    <AppContainer>
+      <CardsContainer $justifyContent="center">
+        <Card $maxWidth="900px" $width="90%">
+          <PageTitle>Age Guessing Game</PageTitle>
 
-          <div style={{
-            textAlign: 'left',
-            marginBottom: '1.5rem',
-            padding: '1rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            border: '1px solid #e9ecef'
-          }}>
-            <div style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}>🔐 Privacy-Preserving Age Verification</div>
-            <div style={{fontSize: '0.9rem', color: '#6c757d'}}>Powered by COTI's GC Technology</div>
-          </div>
-          
-          <div style={{textAlign: 'left', lineHeight: '1.8'}}>
-            <p><strong>🎯 Admin:</strong></p>
-            <ul style={{marginLeft: '1.5rem'}}>
-              <li>Store your birth date (encrypted on-chain)</li>
-              <li>Your age is encrypted and stored privately</li>
-            </ul>
-            
-            <p style={{marginTop: '1.5rem'}}><strong>🎮 Player:</strong></p>
-            <ul style={{marginLeft: '1.5rem'}}>
-              <li>Try to guess Admin's age</li>
-              <li>Ask if they are OLDER or YOUNGER than your guess</li>
-              <li>The answer is computed using encrypted comparison</li>
-              <li>Keep guessing until you find the correct age!</li>
-            </ul>
+          <InfoBox>
+            <InfoTitle>Privacy-Preserving Age Verification</InfoTitle>
 
-            <div style={{marginTop: '1.5rem', padding: '1rem', backgroundColor: '#e7f3ff', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'left'}}>
-              <p style={{margin: '0 0 1rem 0'}}>
-                <strong>🔐 Privacy Guarantee:</strong> Player never sees the actual age - all comparisons happen on encrypted data using COTI's Garbling Circuit Technology.
-              </p>
-              <p style={{margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#6c757d'}}>
-                <strong>Contract:</strong>{' '}
-                <a
-                  href={`https://testnet.cotiscan.io/address/${contractAddress}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{color: '#0066cc', textDecoration: 'none', wordBreak: 'break-all'}}
-                  onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                  onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-                >
-                  {contractAddress}
-                </a>
-              </p>
-              <p style={{margin: '0 0 0.5rem 0', fontSize: '0.85rem'}}>
-                <a
-                  href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{color: '#0066cc', textDecoration: 'none'}}
-                  onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                  onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-                >
-                  📄 Contract Source Code
-                </a>
-              </p>
-              <p style={{margin: 0, fontSize: '0.85rem', color: '#6c757d'}}><strong>Network:</strong> COTI Testnet</p>
-            </div>
-          </div>
+            <ContractDetail>
+              <strong>🔐 Privacy Guarantee:</strong> Player never sees the actual age - all comparisons happen on encrypted data using COTI's Garbling Circuit Technology.
+            </ContractDetail>
+            <ContractDetail>
+              <strong>Contract:</strong>{' '}
+              <Link
+                href={`https://testnet.cotiscan.io/address/${contractAddress}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {contractAddress}
+              </Link>
+            </ContractDetail>
+            <ContractDetail>
+              <Link
+                href="https://github.com/coti-io/coti-contracts-examples/blob/main/contracts/DateGame.sol"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                📄 Contract Source Code
+              </Link>
+            </ContractDetail>
+            <ContractDetail><strong>Network:</strong> COTI Testnet</ContractDetail>
+          </InfoBox>
 
-          <div style={{marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap'}}>
-            <button
-              className="btn btn-primary"
+          <TextContent>
+            <SectionTitle>🎯 Admin:</SectionTitle>
+            <List>
+              <ListItem>Store your birth date (encrypted on-chain)</ListItem>
+              <ListItem>Your age is encrypted and stored privately</ListItem>
+            </List>
+
+            <SectionTitle>🎮 Player:</SectionTitle>
+            <List>
+              <ListItem>Try to guess Admin's age</ListItem>
+              <ListItem>Ask if they are OLDER or YOUNGER than your guess</ListItem>
+              <ListItem>The answer is computed using encrypted comparison</ListItem>
+              <ListItem>Keep guessing until you find the correct age!</ListItem>
+            </List>
+          </TextContent>
+
+          <ButtonGroup $justifyContent="center" style={{ marginTop: '2rem' }}>
+            <ButtonAction
+              text="Start as Admin →"
               onClick={() => navigate('/admin')}
-              style={{minWidth: '150px'}}
-            >
-              Start as Admin →
-            </button>
-            <button
-              className="btn btn-success"
+            />
+            <ButtonAction
+              text="Start as Player →"
               onClick={() => navigate('/player')}
-              style={{minWidth: '150px'}}
-            >
-              Start as Player →
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+            />
+          </ButtonGroup>
+        </Card>
+      </CardsContainer>
+    </AppContainer>
   )
 }
 
