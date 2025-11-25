@@ -40,40 +40,48 @@ const ContractDetail = styled.p`
 const HistoryBox = styled.div`
   margin-top: 2rem;
   padding: 1rem;
-  background-color: ${props => props.theme.colors.background.alternative};
+  background-color: ${props => props.theme.colors.secondary.default10};
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid ${props => props.theme.colors.primary.default};
 `;
 
 const HistoryTitle = styled.h3`
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   margin-bottom: 1rem;
   color: ${props => props.theme.colors.text.default} !important;
   text-align: left;
+  font-weight: 600;
 `;
 
 const HistoryScroll = styled.div`
   max-height: 300px;
   overflow-y: auto;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 `;
 
 const GuessItem = styled.div`
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-  background-color: ${props => props.theme.colors.card.default};
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: transparent;
+  border-radius: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   color: ${props => props.theme.colors.text.default} !important;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
 `;
 
 const GuessHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   gap: 1rem;
-  
+  font-size: 1.2rem;
+  line-height: 1.5;
+
   ${({ theme }) => theme.mediaQueries.small} {
     flex-direction: column;
     align-items: flex-start;
@@ -84,18 +92,20 @@ const GuessDetail = styled.div`
   flex: 1;
   text-align: ${props => props.$align || 'left'};
   color: ${props => props.theme.colors.text.default} !important;
-  
+  font-weight: 500;
+
   ${({ theme }) => theme.mediaQueries.small} {
     text-align: left;
   }
 `;
 
 const GuessMetadata = styled.div`
-  font-size: 0.75rem;
+  font-size: 1.05rem;
   color: ${props => props.theme.colors.text.default} !important;
-  opacity: 0.7;
-  margin-top: 0.5rem;
+  opacity: 0.85;
+  margin-top: 0.75rem;
   word-break: break-all;
+  line-height: 1.6;
 `;
 
 function Player2Page() {
