@@ -4,7 +4,7 @@ A decentralized application that demonstrates privacy-preserving age verificatio
 
 ## 🚀 Live Deployment
 
-- **Contract Address**: `0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729`
+- **Contract Address**: `0x831b9d372bB5e740c688112433609754F7e1E06c`
 - **Network**: COTI Testnet
 - **Chain ID**: 7082400
 - **Architecture**: Standalone React app with client-side MPC encryption
@@ -47,7 +47,7 @@ Before you begin, ensure you have the following installed:
    VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
 
    # Deployed DateGame Contract Address
-   VITE_CONTRACT_ADDRESS=0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729
+   VITE_CONTRACT_ADDRESS=0x831b9d372bB5e740c688112433609754F7e1E06c
 
    # Admin Account (Player 1 - stores the age)
    VITE_ADMIN_PK=your_admin_private_key_here
@@ -79,7 +79,7 @@ Before you begin, ensure you have the following installed:
 3. **Play the game**
    - Choose "Start as Admin" to store a birth date
    - Choose "Start as Player" to guess the age
-   - The app connects to the deployed contract at `0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729`
+   - The app connects to the deployed contract at `0x831b9d372bB5e740c688112433609754F7e1E06c`
 
 ### Option 2: Deploy Your Own Contract
 
@@ -163,7 +163,7 @@ Before you begin, ensure you have the following installed:
 │              COTI Testnet (Chain ID: 7082400)               │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │   DateGame Smart Contract (Solidity)                 │   │
-│  │   Address: 0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729│   │
+│  │   Address: 0x831b9d372bB5e740c688112433609754F7e1E06c│   │
 │  │                                                      │   │
 │  │   • setAge(itUint64)       - Store encrypted age    │   │
 │  │   • greaterThan(itUint64)  - Compare (stored > input)│  │
