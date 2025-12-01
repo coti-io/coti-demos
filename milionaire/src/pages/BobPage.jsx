@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { useMillionaireContract } from '../hooks/useMillionaireContract.js'
-import { ButtonAction, Button } from '../components/Button'
+import { ButtonAction } from '../components/Button'
 import {
     AppContainer,
     CardsContainer,
@@ -67,6 +67,7 @@ function BobPage() {
         performComparison,
         getBobComparisonResult,
         checkWealthStatus,
+        resetContract,
         contractAddress,
         bobWallet
     } = useMillionaireContract()
@@ -230,17 +231,21 @@ function BobPage() {
 
                     <ButtonGroup>
                         <ButtonAction
-                            text={loading ? 'Submitting...' : 'Submit Wealth'}
+                            text={loading ? 'Submitting...' : 'Submit'}
                             onClick={handleSubmitWealth}
                             disabled={loading || wealthSubmitted}
                         />
                         <ButtonAction
-                            text={loading ? 'Comparing...' : 'Compare Wealth'}
+                            text={loading ? 'Comparing...' : 'Compare'}
                             onClick={handleCompare}
                             disabled={loading || !wealthSubmitted}
                         />
-                        <Button
-                            text="← Back"
+                        <ButtonAction
+                            text="← Alice"
+                            onClick={() => navigate('/alice')}
+                        />
+                        <ButtonAction
+                            text="← Home"
                             onClick={() => navigate('/')}
                         />
                     </ButtonGroup>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { useMillionaireContract } from '../hooks/useMillionaireContract.js'
-import { ButtonAction, Button } from '../components/Button'
+import { ButtonAction } from '../components/Button'
 import {
     AppContainer,
     CardsContainer,
@@ -67,6 +67,7 @@ function AlicePage() {
         performComparison,
         getAliceComparisonResult,
         checkWealthStatus,
+        resetContract,
         contractAddress,
         aliceWallet
     } = useMillionaireContract()
@@ -189,6 +190,28 @@ function AlicePage() {
         }
     }
 
+    const handleReset = async () => {
+        setLoading(true)
+        setSubmitStatus('Resetting contract...')
+        setSubmitStatusVariant('info')
+
+        try {
+            await resetContract()
+            setWealthSubmitted(false)
+            setWealth('')
+            setComparisonResult(null)
+            setSubmitStatus('✅ Contract reset successfully! You can now submit new wealth values.')
+            setSubmitStatusVariant('success')
+            setConnectionStatus('✅ Connected to MillionaireComparison contract!')
+        } catch (error) {
+            console.error('Error resetting contract:', error)
+            setSubmitStatus('❌ Error resetting: ' + (error.message || error.toString()))
+            setSubmitStatusVariant('error')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <AppContainer>
             <CardsContainer $justifyContent="center">
@@ -230,17 +253,21 @@ function AlicePage() {
 
                     <ButtonGroup>
                         <ButtonAction
-                            text={loading ? 'Submitting...' : 'Submit Wealth'}
+                            text={loading ? 'Submitting...' : 'Submit'}
                             onClick={handleSubmitWealth}
                             disabled={loading || wealthSubmitted}
                         />
                         <ButtonAction
-                            text={loading ? 'Comparing...' : 'Compare Wealth'}
+                            text={loading ? 'Comparing...' : 'Compare'}
                             onClick={handleCompare}
                             disabled={loading || !wealthSubmitted}
                         />
-                        <Button
-                            text="← Back"
+                        <ButtonAction
+                            text="Bob →"
+                            onClick={() => navigate('/bob')}
+                        />
+                        <ButtonAction
+                            text="← Home"
                             onClick={() => navigate('/')}
                         />
                     </ButtonGroup>

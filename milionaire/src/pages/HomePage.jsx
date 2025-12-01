@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { ButtonAction } from '../components/Button'
+import IntroModal from '../components/IntroModal'
 import {
     AppContainer,
     CardsContainer,
@@ -68,46 +69,11 @@ function HomePage() {
 
     return (
         <AppContainer>
+            <IntroModal />
             <Title>💰 The Millionaires' Problem</Title>
             <SubTitle>Secure Multi-Party Computation with COTI MPC</SubTitle>
 
             <CardsContainer>
-                {/* Info Card */}
-                <Card $maxWidth="600px">
-                    <InfoBox>
-                        <InfoTitle>🔐 What is the Millionaires' Problem?</InfoTitle>
-                        <InfoText>
-                            The Millionaires' Problem, introduced by Andrew Yao in 1982, is a foundational
-                            problem in secure multi-party computation (MPC).
-                        </InfoText>
-                        <InfoText style={{ marginTop: '1rem' }}>
-                            <strong>The Scenario:</strong>
-                        </InfoText>
-                        <List>
-                            <ListItem>Two millionaires, Alice and Bob, want to know who is richer</ListItem>
-                            <ListItem>Neither wants to reveal their actual wealth</ListItem>
-                            <ListItem>They need to compare values without exposing them</ListItem>
-                        </List>
-                        <InfoText style={{ marginTop: '1rem' }}>
-                            <strong>The Solution:</strong>
-                        </InfoText>
-                        <InfoText>
-                            Using COTI's Garbled Circuits (GC) implementation of MPC, we can perform
-                            this comparison on-chain while keeping both wealth values encrypted
-                            throughout the entire process!
-                        </InfoText>
-                        <InfoText style={{ marginTop: '1rem' }}>
-                            <Link
-                                href="https://en.wikipedia.org/wiki/Yao%27s_Millionaires%27_problem"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                📚 Learn more about Yao's Millionaires' Problem
-                            </Link>
-                        </InfoText>
-                    </InfoBox>
-                </Card>
-
                 {/* Alice Card */}
                 <Card>
                     <Emoji>👩‍💼</Emoji>
