@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
-import { ButtonAction } from './Button'
 import { useMillionaireContract } from '../hooks/useMillionaireContract.js'
 import {
     InfoBox,
@@ -66,6 +65,34 @@ const ButtonContainer = styled.div`
   justify-content: center;
 `
 
+const SmallActionButton = styled.button`
+  background-color: #1E29F6;
+  border: none;
+  border-radius: 12px;
+  padding: 0.5rem 1.5rem;
+  font-family: ${({ theme }) => theme.fonts.default};
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(30, 41, 246, 0.8);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    background-color: rgba(30, 41, 246, 0.8);
+  }
+`
+
 const STORAGE_KEY = 'millionaire_intro_dismissed'
 
 function IntroModal() {
@@ -129,11 +156,12 @@ function IntroModal() {
                 </InfoBox>
 
                 <ButtonContainer>
-                    <ButtonAction
-                        text={isResetting ? "Resetting contract..." : "Got it! Let's compare wealth →"}
+                    <SmallActionButton
                         onClick={handleClose}
                         disabled={isResetting}
-                    />
+                    >
+                        {isResetting ? "Resetting contract..." : "Got it! Let's compare wealth →"}
+                    </SmallActionButton>
                 </ButtonContainer>
             </ModalContainer>
         </Overlay>

@@ -87,14 +87,27 @@ export const AppContainer = styled.div`
 
 export const FormGroup = styled.div`
   margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  ${({ theme }) => theme.mediaQueries.small} {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
 `;
 
 export const FormLabel = styled.label`
-  display: block;
   font-weight: 600;
   color: ${(props) => props.theme.colors.text.default};
-  margin-bottom: 0.5rem;
   font-size: ${(props) => props.theme.fontSizes.small};
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  ${({ theme }) => theme.mediaQueries.small} {
+    margin-bottom: 0.5rem;
+  }
 `;
 
 export const FormInput = styled.input`
@@ -134,8 +147,12 @@ export const FormInput = styled.input`
 export const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: ${(props) => props.$justifyContent || 'flex-start'};
+
+  ${({ theme }) => theme.mediaQueries.small} {
+    flex-wrap: wrap;
+  }
 `;
 
 export const StatusMessage = styled.div`
@@ -144,7 +161,7 @@ export const StatusMessage = styled.div`
   border-radius: 12px;
   font-weight: 500;
   text-align: center;
-  font-size: ${(props) => props.theme.fontSizes.small};
+  font-size: 0.85rem;
   background-color: ${(props) => {
     if (props.$variant === 'success') return props.theme.colors.secondary.default10;
     if (props.$variant === 'error') return props.theme.colors.error.default10;
