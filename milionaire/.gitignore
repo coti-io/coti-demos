@@ -55,3 +55,9 @@ jspm_packages/
 
 # Yarn Integrity file
 .yarn-integrity
+
+# COTI sandbox symlink or folder
+coti-sandbox/
+
+# Hardhat deploy symlink or folder
+.hardhat_deploy/
