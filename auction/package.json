@@ -5,19 +5,37 @@
     "scripts": {
         "compile": "hardhat compile",
         "test": "hardhat test",
-        "deploy:coti": "hardhat run scripts/deploy.js --network cotiTestnet"
+        "deploy:coti": "hardhat run scripts/deploy.js --network cotiTestnet",
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
     },
     "dependencies": {
         "@coti-io/coti-contracts": "^1.0.0",
         "@coti-io/coti-ethers": "^1.0.5",
         "ethers": "^6.11.1",
-        "dotenv": "^16.4.5"
+        "dotenv": "^16.4.5",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^7.9.5",
+        "styled-components": "^6.1.19"
     },
     "devDependencies": {
         "@nomicfoundation/hardhat-ethers": "^3.0.5",
         "hardhat": "^2.22.2",
         "chai": "^6.2.1",
-        "hardhat-deploy": "^1.0.4"
+        "hardhat-deploy": "^1.0.4",
+        "@vitejs/plugin-react": "^4.0.0",
+        "assert": "^2.0.0",
+        "buffer": "^6.0.3",
+        "crypto-browserify": "^3.12.0",
+        "https-browserify": "^1.0.0",
+        "os-browserify": "^0.3.0",
+        "process": "^0.11.10",
+        "stream-browserify": "^3.0.0",
+        "stream-http": "^3.2.0",
+        "url": "^0.11.0",
+        "vite": "^4.4.0"
     },
     "type": "module"
 }
