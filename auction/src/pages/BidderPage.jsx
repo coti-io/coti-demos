@@ -19,7 +19,7 @@ import { deployContracts, displayDeploymentInfo } from '../utils/deployContracts
 
 const Title = styled.h2`
     color: white;
-    font-size: 2.5rem;
+    font-size: 3.5rem;
     font-weight: bold;
     margin-bottom: 2rem;
     text-align: center;
@@ -37,6 +37,7 @@ function BidderPage() {
     const [showIntroModal, setShowIntroModal] = useState(true);
     const [showBidModal, setShowBidModal] = useState(false);
     const [tokenAddress, setTokenAddress] = useState('');
+    const [transactions, setTransactions] = useState([]);
 
     const {
         placeBid,
@@ -121,11 +122,16 @@ function BidderPage() {
         try {
             const result = await placeBid(bidAmount);
             const explorerUrl = `https://testnet.cotiscan.io/tx/${result.txHash}`;
-            setStatus(
-                <>
-                    ✅ Bid placed successfully! <a href={explorerUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>View transaction</a>
-                </>
-            );
+
+            // Add transaction to list
+            setTransactions(prev => [{
+                type: 'Bid Placed',
+                amount: bidAmount,
+                txHash: result.txHash,
+                timestamp: new Date().toLocaleString()
+            }, ...prev]);
+
+            setStatus('');
             setStatusVariant('success');
             setBidAmount('');
             setShowBidModal(false);
@@ -153,6 +159,17 @@ function BidderPage() {
 
         try {
             const result = await checkIfHighestBid();
+
+            // Add transaction to list
+            if (result.receipt?.hash) {
+                setTransactions(prev => [{
+                    type: 'Check Highest Bid',
+                    result: result.isHighest ? 'Yes' : 'No',
+                    txHash: result.receipt.hash,
+                    timestamp: new Date().toLocaleString()
+                }, ...prev]);
+            }
+
             if (result.isHighest) {
                 setStatus('🎉 You currently have the highest bid!');
                 setStatusVariant('success');
@@ -200,6 +217,15 @@ function BidderPage() {
         try {
             const result = await withdrawBid();
             if (result.success) {
+                // Add transaction to list
+                if (result.receipt?.hash) {
+                    setTransactions(prev => [{
+                        type: 'Bid Withdrawn',
+                        txHash: result.receipt.hash,
+                        timestamp: new Date().toLocaleString()
+                    }, ...prev]);
+                }
+
                 setStatus('✅ Bid withdrawn successfully! Tokens returned to your wallet.');
                 setStatusVariant('success');
 
@@ -347,14 +373,10 @@ function BidderPage() {
                                         Get Tokens
                                     </SmallButton>
                                 </TokenBalanceRow>
-                                {auctionInfo && (
-                                    <>
-                                        <InfoRow>
-                                            <InfoLabel>Total Bids:</InfoLabel>
-                                            <InfoValue>{auctionInfo.bidCounter}</InfoValue>
-                                        </InfoRow>
-                                    </>
-                                )}
+                                <InfoRow>
+                                    <InfoLabel>Total Bids:</InfoLabel>
+                                    <InfoValue>{transactions.filter(tx => tx.type === 'Bid Placed').length}</InfoValue>
+                                </InfoRow>
 
                                 <SmallButtonGroup style={{ marginTop: '1rem', paddingTop: '1rem' }}>
                                     <SmallButton
@@ -376,6 +398,31 @@ function BidderPage() {
                                         Check
                                     </SmallButton>
                                 </SmallButtonGroup>
+
+                                {transactions.length > 0 && (
+                                    <>
+                                        <TransactionDivider />
+                                        <TransactionTitle>Transactions</TransactionTitle>
+                                        <TransactionList>
+                                            {transactions.slice(0, 5).map((tx, index) => (
+                                                <TransactionItem key={index}>
+                                                    <TransactionType>{tx.type}</TransactionType>
+                                                    {tx.result && (
+                                                        <TransactionResult>Result: {tx.result}</TransactionResult>
+                                                    )}
+                                                    <TransactionLink
+                                                        href={`https://testnet.cotiscan.io/tx/${tx.txHash}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {tx.txHash.substring(0, 10)}...{tx.txHash.substring(tx.txHash.length - 8)}
+                                                    </TransactionLink>
+                                                    <TransactionTime>{tx.timestamp}</TransactionTime>
+                                                </TransactionItem>
+                                            ))}
+                                        </TransactionList>
+                                    </>
+                                )}
                             </InfoSection>
                         )}
 
@@ -433,7 +480,7 @@ function BidderPage() {
                                 fullWidth
                             />
                             <ButtonAction
-                                text="🔄 Redeploy Contract"
+                                text="Redeploy Contract"
                                 onClick={handleRedeploy}
                                 disabled={loading}
                                 fullWidth
@@ -459,9 +506,14 @@ const ButtonGroup = styled.div`
 
 const ActionGroup = styled.div`
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             gap: 1rem;
             margin-top: 1.5rem;
+            flex-wrap: wrap;
+
+            ${({ theme }) => theme.mediaQueries.small} {
+                flex-direction: column;
+            }
             `;
 
 const InfoNote = styled.div`
@@ -555,6 +607,73 @@ const TokenBalanceRow = styled.div`
   gap: 0.5rem;
   padding: 0.75rem 0;
   border-bottom: 1px solid ${props => props.theme.colors.secondary.default20};
+`;
+
+const TransactionDivider = styled.div`
+  border-top: 1px solid ${props => props.theme.colors.secondary.default20};
+  margin: 1rem 0 0.5rem 0;
+`;
+
+const TransactionTitle = styled.div`
+  color: ${props => props.theme.colors.text.default};
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  padding-top: 0.5rem;
+`;
+
+const TransactionList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+`;
+
+const TransactionItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background-color: ${props => props.theme.colors.background.default};
+  border-radius: 8px;
+  border: 1px solid ${props => props.theme.colors.secondary.default20};
+`;
+
+const TransactionType = styled.div`
+  color: ${props => props.theme.colors.text.default};
+  font-size: 0.9rem;
+  font-weight: 600;
+`;
+
+const TransactionAmount = styled.div`
+  color: ${props => props.theme.colors.primary.default};
+  font-size: 0.85rem;
+  font-weight: 500;
+`;
+
+const TransactionResult = styled.div`
+  color: ${props => props.theme.colors.text.muted};
+  font-size: 0.85rem;
+`;
+
+const TransactionLink = styled.a`
+  color: ${props => props.theme.colors.primary.default};
+  font-size: 0.85rem;
+  font-family: 'Courier New', monospace;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.7;
+    text-decoration: underline;
+  }
+`;
+
+const TransactionTime = styled.div`
+  color: ${props => props.theme.colors.text.muted};
+  font-size: 0.75rem;
+  font-style: italic;
 `;
 
 export default BidderPage;

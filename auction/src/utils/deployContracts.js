@@ -43,12 +43,19 @@ export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://test
 
     // Auction duration: 1 hour (3600 seconds)
     const biddingTime = 3600;
+    const isStoppable = true;
 
     console.log('Deploying PrivateAuction contract...');
+    console.log(`  - Beneficiary: ${wallet.address}`);
+    console.log(`  - Token: ${tokenAddress}`);
+    console.log(`  - Bidding Time: ${biddingTime} seconds`);
+    console.log(`  - Stoppable: ${isStoppable}`);
+
     const auctionContract = await AuctionFactory.deploy(
-        tokenAddress,
-        wallet.address,
-        biddingTime,
+        wallet.address,      // beneficiary
+        tokenAddress,        // token contract
+        biddingTime,         // bidding time in seconds
+        isStoppable,         // is stoppable
         {
             gasLimit: 10000000
         }

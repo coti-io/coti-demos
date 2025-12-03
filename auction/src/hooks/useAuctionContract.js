@@ -158,11 +158,15 @@ export function useAuctionContract() {
         }
 
         console.log('Approving tokens for auction contract...');
+        console.log('  - Token contract:', tokenAddress);
+        console.log('  - Spender (auction contract):', auctionAddress);
+        console.log('  - Wallet address:', wallet.address);
 
         const tokenContract = getTokenContract();
 
         // Approve a large amount (100000 tokens) to handle multiple bids
         const approveAmount = 100000;
+        console.log('  - Approval amount:', approveAmount);
 
         // Get the approve function selector
         const approveFunction = tokenContract.interface.getFunction('approve');
@@ -175,21 +179,33 @@ export function useAuctionContract() {
             throw new Error('Could not get approve function selector');
         }
 
+        console.log('  - Function selector:', selector);
+
         // Encrypt the approval amount
+        console.log('  - Encrypting approval amount...');
         const encryptedAmount = await wallet.encryptValue(
             BigInt(approveAmount),
             tokenAddress,
             selector
         );
+        console.log('  - Encrypted amount:', encryptedAmount);
 
         return await retryWithBackoff(async () => {
+            console.log('  - Sending approval transaction...');
             const tx = await tokenContract.approve(auctionAddress, encryptedAmount, {
                 gasLimit: 300000,
             });
 
-            console.log('Approval transaction sent:', tx.hash);
+            console.log('  - Approval tx sent:', tx.hash);
+            console.log('  - Approval tx to:', tx.to);
+            console.log('  - Waiting for confirmation...');
             const receipt = await tx.wait();
-            console.log(`Approved ${approveAmount} tokens successfully in block:`, receipt.blockNumber);
+
+            if (receipt.status === 0) {
+                throw new Error('Approval transaction reverted');
+            }
+
+            console.log(`  ✓ Approved ${approveAmount} tokens in block:`, receipt.blockNumber);
 
             return { receipt, approved: true };
         }, 3, 1000);
@@ -205,44 +221,87 @@ export function useAuctionContract() {
             throw new Error('Invalid bid amount');
         }
 
-        console.log('Placing bid:', bidAmount);
+        console.log('=== BID PLACEMENT DEBUG ===');
+        console.log('Bidder wallet address:', wallet.address);
+        console.log('Auction contract address:', auctionAddress);
+        console.log('Token contract address:', tokenAddress);
+        console.log('Bid amount:', bidAmount);
+        console.log('=========================');
+
+        // Check auction status
+        const auctionInfo = await getAuctionInfo();
+        if (auctionInfo) {
+            console.log('Auction Status:');
+            console.log('  - Is Active:', auctionInfo.isActive);
+            console.log('  - End Time:', new Date(auctionInfo.endTime * 1000).toISOString());
+            console.log('  - Current Time:', new Date().toISOString());
+            console.log('  - Manually Stopped:', auctionInfo.manuallyStopped);
+            console.log('  - Time Remaining:', auctionInfo.timeRemaining, 'seconds');
+
+            if (!auctionInfo.isActive) {
+                if (auctionInfo.manuallyStopped) {
+                    throw new Error('Auction has been manually stopped');
+                }
+                throw new Error(`Auction has ended. It ended at ${new Date(auctionInfo.endTime * 1000).toLocaleString()}`);
+            }
+        }
 
         // Check token balance first
         const balance = await getTokenBalance();
-        console.log('Current balance:', balance.toString());
+        console.log('Current token balance:', balance.toString());
 
         if (balance < BigInt(bidAmount)) {
             throw new Error(`Insufficient balance. You have ${balance} tokens but need ${bidAmount}`);
         }
 
         // Step 1: Approve tokens (one-time large approval)
-        console.log('Approving tokens...');
-        await approveBidAmount(bidAmount);
+        try {
+            console.log('Step 1: Approving tokens for auction contract...');
+            console.log('  - Approving to address:', auctionAddress);
+            await approveBidAmount(bidAmount);
+            console.log('  ✓ Approval successful');
+        } catch (error) {
+            console.error('❌ Approval failed:', error);
+            throw new Error(`Token approval failed: ${error.message}`);
+        }
 
         // Step 2: Encrypt the bid
-        console.log('Encrypting bid amount...');
-        const encryptedBid = await encryptBidAmount(bidAmount);
-        console.log('Encrypted bid:', encryptedBid);
+        try {
+            console.log('Step 2: Encrypting bid amount...');
+            const encryptedBid = await encryptBidAmount(bidAmount);
+            console.log('  ✓ Encryption successful');
+            console.log('  - Encrypted value:', encryptedBid);
 
-        // Step 3: Place the bid
-        const contract = getAuctionContract();
+            // Step 3: Place the bid
+            const contract = getAuctionContract();
 
-        return await retryWithBackoff(async () => {
-            console.log('Sending bid transaction to contract...');
-            const tx = await contract.bid(encryptedBid, {
-                gasLimit: 2000000,
-            });
+            return await retryWithBackoff(async () => {
+                console.log('Step 3: Sending bid transaction to auction contract...');
+                console.log('  - Target contract:', auctionAddress);
+                const tx = await contract.bid(encryptedBid, {
+                    gasLimit: 2000000,
+                });
 
-            console.log('Bid transaction sent:', tx.hash);
-            const receipt = await tx.wait();
-            console.log('Bid placed successfully in block:', receipt.blockNumber);
+                console.log('  ✓ Bid transaction sent:', tx.hash);
+                console.log('  - Waiting for confirmation...');
+                const receipt = await tx.wait();
 
-            return {
-                receipt,
-                amount: bidAmount,
-                txHash: tx.hash
-            };
-        }, 3, 1000);
+                if (receipt.status === 0) {
+                    throw new Error('Bid transaction reverted');
+                }
+
+                console.log('  ✓ Bid placed successfully in block:', receipt.blockNumber);
+
+                return {
+                    receipt,
+                    amount: bidAmount,
+                    txHash: tx.hash
+                };
+            }, 3, 1000);
+        } catch (error) {
+            console.error('❌ Bid placement failed:', error);
+            throw error;
+        }
     };
 
     const checkMyBid = async () => {

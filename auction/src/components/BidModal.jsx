@@ -16,14 +16,16 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContainer = styled.div`
-    background: ${props => props.theme.colors.background.card};
-    border-radius: 16px;
+    background: ${props => props.theme.colors.card.default};
+    border-radius: 24px;
     padding: 2rem;
     max-width: 500px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: ${props => props.theme.shadows.default};
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
 const ModalTitle = styled.h2`
@@ -77,9 +79,15 @@ const ButtonGroup = styled.div`
 export function BidModal({ isOpen, onClose, bidAmount, setBidAmount, onSubmit, loading }) {
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const handleSubmit = () => {
         onSubmit();
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && bidAmount && parseFloat(bidAmount) > 0 && !loading) {
+            e.preventDefault();
+            handleSubmit();
+        }
     };
 
     return (
@@ -87,37 +95,36 @@ export function BidModal({ isOpen, onClose, bidAmount, setBidAmount, onSubmit, l
             <ModalContainer onClick={(e) => e.stopPropagation()}>
                 <ModalTitle>Place Your Bid</ModalTitle>
 
-                <form onSubmit={handleSubmit}>
-                    <FormGroup>
-                        <FormLabel>Bid Amount (Tokens)</FormLabel>
-                        <FormInput
-                            type="number"
-                            placeholder="Enter bid amount"
-                            value={bidAmount}
-                            onChange={(e) => setBidAmount(e.target.value)}
-                            disabled={loading}
-                            min="0"
-                            step="1"
-                            autoFocus
-                            required
-                        />
-                    </FormGroup>
+                <FormGroup>
+                    <FormLabel>Bid Amount (Tokens)</FormLabel>
+                    <FormInput
+                        type="number"
+                        placeholder="Enter bid amount"
+                        value={bidAmount}
+                        onChange={(e) => setBidAmount(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        disabled={loading}
+                        min="0"
+                        step="1"
+                        autoFocus
+                        required
+                    />
+                </FormGroup>
 
-                    <ButtonGroup>
-                        <ButtonAction
-                            text={loading ? 'Placing Bid...' : 'Submit Bid'}
-                            onClick={handleSubmit}
-                            disabled={loading || !bidAmount || parseFloat(bidAmount) <= 0}
-                            fullWidth
-                        />
-                        <ButtonAction
-                            text="Cancel"
-                            onClick={onClose}
-                            disabled={loading}
-                            fullWidth
-                        />
-                    </ButtonGroup>
-                </form>
+                <ButtonGroup>
+                    <ButtonAction
+                        text={loading ? 'Placing Bid...' : 'Submit Bid'}
+                        onClick={handleSubmit}
+                        disabled={loading || !bidAmount || parseFloat(bidAmount) <= 0}
+                        fullWidth
+                    />
+                    <ButtonAction
+                        text="Cancel"
+                        onClick={onClose}
+                        disabled={loading}
+                        fullWidth
+                    />
+                </ButtonGroup>
             </ModalContainer>
         </ModalOverlay>
     );

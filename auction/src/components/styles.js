@@ -28,7 +28,7 @@ export const ContentContainer = styled.div`
 export const ContentTitle = styled.p`
   font-size: ${(props) => props.theme.fontSizes.title};
   font-weight: bold;
-  margin: 0;
+  margin: 0 0 2rem 0;
   color: ${(props) => props.theme.colors.text.default} !important;
   text-align: center;
 `;
@@ -62,12 +62,12 @@ export const Card = styled.div`
 
 export const CardsContainer = styled.div`
   display: flex;
-  gap: 2rem;
+  gap: 4rem;
   flex-wrap: wrap;
   justify-content: ${(props) => props.$justifyContent || 'center'};
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px 20px 40px 20px;
 
   ${({ theme }) => theme.mediaQueries.small} {
     flex-direction: column;

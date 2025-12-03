@@ -33,6 +33,8 @@ const getVariantStyles = (variant) => {
         border: none;
         border-radius: ${props => props.theme.radii.small};
         padding: 15px 40px;
+        font-size: 1.25rem;
+        white-space: nowrap;
 
         &:hover:not(:disabled) {
           background-color: ${COLORS.actionHover};
