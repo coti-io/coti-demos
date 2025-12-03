@@ -315,11 +315,12 @@ function BidderPage() {
         try {
             const result = await mintTokens(1000);
             const explorerUrl = `https://testnet.cotiscan.io/tx/${result.txHash}`;
-            setStatus(
-                <>
-                    ✅ Minted 1000 tokens! <a href={explorerUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>View transaction</a>
-                </>
-            );
+            setTransactions(prev => [{
+                type: 'Mint Tokens',
+                txHash: result.txHash,
+                timestamp: new Date().toLocaleString()
+            }, ...prev]);
+            setStatus('');
             setStatusVariant('success');
 
             // Refresh balance
