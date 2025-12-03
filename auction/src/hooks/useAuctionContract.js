@@ -79,8 +79,9 @@ const TOKEN_ABI = [
 ];
 
 export function useAuctionContract() {
-    const auctionAddress = import.meta.env.VITE_AUCTION_ADDRESS;
-    const tokenAddress = import.meta.env.VITE_TOKEN_ADDRESS;
+    // Check localStorage first, then fall back to environment variables
+    const auctionAddress = localStorage.getItem('AUCTION_ADDRESS') || import.meta.env.VITE_AUCTION_ADDRESS;
+    const tokenAddress = localStorage.getItem('TOKEN_ADDRESS') || import.meta.env.VITE_TOKEN_ADDRESS;
     const rpcUrl = import.meta.env.VITE_APP_NODE_HTTPS_ADDRESS || 'https://testnet.coti.io/rpc';
 
     // Create wallet for the bidder

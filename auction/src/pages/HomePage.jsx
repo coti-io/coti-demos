@@ -57,9 +57,13 @@ function HomePage() {
     const [deployStatus, setDeployStatus] = useState('');
 
     useEffect(() => {
-        // Get contract addresses from environment
-        const auction = import.meta.env.VITE_AUCTION_ADDRESS || '0x975A20aa4547e4120b07bA7ff0576A1cBC619d31';
-        const token = import.meta.env.VITE_TOKEN_ADDRESS || '0xe53e1e154c67653f3b16A0308B875ccfe8A1272e';
+        // Try to get contract addresses from localStorage first, then fall back to environment
+        const storedAuction = localStorage.getItem('AUCTION_ADDRESS');
+        const storedToken = localStorage.getItem('TOKEN_ADDRESS');
+
+        const auction = storedAuction || import.meta.env.VITE_AUCTION_ADDRESS || '0x975A20aa4547e4120b07bA7ff0576A1cBC619d31';
+        const token = storedToken || import.meta.env.VITE_TOKEN_ADDRESS || '0xe53e1e154c67653f3b16A0308B875ccfe8A1272e';
+
         setAuctionAddress(auction);
         setTokenAddress(token);
     }, []);
@@ -85,6 +89,10 @@ function HomePage() {
             const result = await deployContracts(privateKey, aesKey, rpcUrl);
             const info = displayDeploymentInfo(result);
 
+            // Store addresses in localStorage
+            localStorage.setItem('AUCTION_ADDRESS', result.auctionAddress);
+            localStorage.setItem('TOKEN_ADDRESS', result.tokenAddress);
+
             // Update local state with new addresses
             setAuctionAddress(result.auctionAddress);
             setTokenAddress(result.tokenAddress);
@@ -95,14 +103,36 @@ function HomePage() {
                     <div style={{ fontSize: '0.9rem', fontFamily: 'monospace', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px' }}>
                         {info.instructions}
                     </div>
+                    <div style={{ marginTop: '1rem', padding: '0.5rem', background: 'rgba(46, 204, 113, 0.2)', borderRadius: '4px' }}>
+                        ✅ Contract addresses saved to browser localStorage. Page will reload automatically.
+                    </div>
                 </div>
             );
+
+            // Reload page after 3 seconds to use new contracts
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
         } catch (error) {
             console.error('Error during deployment:', error);
             setDeployStatus(`❌ Deployment failed: ${error.message || 'Unknown error'}`);
         } finally {
             setIsDeploying(false);
         }
+    };
+
+    const handleResetToDefault = () => {
+        // Clear localStorage
+        localStorage.removeItem('AUCTION_ADDRESS');
+        localStorage.removeItem('TOKEN_ADDRESS');
+
+        // Show confirmation message
+        setDeployStatus('🔄 Reset to default contracts. Page will reload...');
+
+        // Reload page to use default addresses
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
     };
 
     return (
@@ -175,9 +205,24 @@ function HomePage() {
                         />
                     </ButtonGroup>
 
+                    <ButtonGroup style={{ marginTop: '1rem' }}>
+                        <ButtonAction
+                            text="Reset to Default Contracts"
+                            onClick={handleResetToDefault}
+                            disabled={isDeploying}
+                            fullWidth
+                        />
+                    </ButtonGroup>
+
                     {deployStatus && (
                         <StatusMessage $variant="info" style={{ marginTop: '1rem' }}>
                             {deployStatus}
+                        </StatusMessage>
+                    )}
+
+                    {(localStorage.getItem('AUCTION_ADDRESS') || localStorage.getItem('TOKEN_ADDRESS')) && (
+                        <StatusMessage $variant="success" style={{ marginTop: '1rem' }}>
+                            📍 Using custom deployed contracts from localStorage
                         </StatusMessage>
                     )}
 

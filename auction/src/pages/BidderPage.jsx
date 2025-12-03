@@ -12,18 +12,18 @@ import {
     ContentTitle,
 } from '../components/styles';
 import { ButtonAction, Button } from '../components/Button';
+import { IntroModal } from '../components/IntroModal';
+import { BidModal } from '../components/BidModal';
 import { useAuctionContract } from '../hooks/useAuctionContract';
+import { deployContracts, displayDeploymentInfo } from '../utils/deployContracts';
 
 const Title = styled.h2`
-  color: ${props => props.theme.colors.text.default};
-  font-size: 2.5rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 2rem;
-
-  ${({ theme }) => theme.mediaQueries.small} {
-    font-size: 2rem;
-  }
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-align: center;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 `;
 
 function BidderPage() {
@@ -34,6 +34,9 @@ function BidderPage() {
     const [statusVariant, setStatusVariant] = useState('info');
     const [auctionInfo, setAuctionInfo] = useState(null);
     const [tokenBalance, setTokenBalance] = useState('0');
+    const [showIntroModal, setShowIntroModal] = useState(true);
+    const [showBidModal, setShowBidModal] = useState(false);
+    const [tokenAddress, setTokenAddress] = useState('');
 
     const {
         placeBid,
@@ -50,6 +53,11 @@ function BidderPage() {
 
     // Load auction info and token balance on mount
     useEffect(() => {
+        // Try to get token address from localStorage first, then fall back to environment
+        const storedToken = localStorage.getItem('TOKEN_ADDRESS');
+        const token = storedToken || import.meta.env.VITE_TOKEN_ADDRESS || '0xe53e1e154c67653f3b16A0308B875ccfe8A1272e';
+        setTokenAddress(token);
+
         const loadInfo = async () => {
             try {
                 const info = await getAuctionInfo();
@@ -70,7 +78,7 @@ function BidderPage() {
                         const explorerUrl = `https://testnet.cotiscan.io/tx/${result.txHash}`;
                         setStatus(
                             <>
-                                ✅ Received 1000 test tokens! <a href={explorerUrl} target="_blank" rel="noopener noreferrer" style={{color: 'inherit', textDecoration: 'underline'}}>View transaction</a>
+                                ✅ Received 1000 test tokens! <a href={explorerUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>View transaction</a>
                             </>
                         );
                         setStatusVariant('success');
@@ -95,6 +103,10 @@ function BidderPage() {
         return () => clearInterval(interval);
     }, []);
 
+    const handlePlaceBidClick = () => {
+        setShowBidModal(true);
+    };
+
     const handlePlaceBid = async () => {
         if (!bidAmount || parseFloat(bidAmount) <= 0) {
             setStatus('Please enter a valid bid amount');
@@ -111,11 +123,12 @@ function BidderPage() {
             const explorerUrl = `https://testnet.cotiscan.io/tx/${result.txHash}`;
             setStatus(
                 <>
-                    ✅ Bid placed successfully! <a href={explorerUrl} target="_blank" rel="noopener noreferrer" style={{color: 'inherit', textDecoration: 'underline'}}>View transaction</a>
+                    ✅ Bid placed successfully! <a href={explorerUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>View transaction</a>
                 </>
             );
             setStatusVariant('success');
             setBidAmount('');
+            setShowBidModal(false);
 
             // Refresh auction info
             const info = await getAuctionInfo();
@@ -203,6 +216,71 @@ function BidderPage() {
         }
     };
 
+    const handleRedeploy = async () => {
+        // Confirmation dialog
+        const confirmRedeploy = window.confirm(
+            '⚠️ Redeploy Contract?\n\n' +
+            'This will deploy new contracts and reset all bids.\n\n' +
+            'All bidders will need to place their bids again.\n\n' +
+            'Do you want to continue?'
+        );
+
+        if (!confirmRedeploy) {
+            return;
+        }
+
+        setLoading(true);
+        setStatus('📝 Preparing deployment...');
+        setStatusVariant('info');
+
+        try {
+            // Get deployment credentials from environment
+            const privateKey = import.meta.env.VITE_BIDDER_PK || import.meta.env.PRIVATE_KEY;
+            const aesKey = import.meta.env.VITE_BIDDER_AES_KEY;
+            const rpcUrl = import.meta.env.VITE_APP_NODE_HTTPS_ADDRESS;
+
+            if (!privateKey || !aesKey) {
+                setStatus('❌ Missing deployment credentials. Please configure VITE_BIDDER_PK and VITE_BIDDER_AES_KEY in .env');
+                setStatusVariant('error');
+                setLoading(false);
+                return;
+            }
+
+            setStatus('🚀 Deploying contracts... This may take a few minutes.');
+
+            const result = await deployContracts(privateKey, aesKey, rpcUrl);
+            const info = displayDeploymentInfo(result);
+
+            // Store addresses in localStorage
+            localStorage.setItem('AUCTION_ADDRESS', result.auctionAddress);
+            localStorage.setItem('TOKEN_ADDRESS', result.tokenAddress);
+
+            setStatus(
+                <>
+                    ✅ Contracts deployed successfully! <br />
+                    <small style={{ fontSize: '0.9em' }}>
+                        Auction: <a href={`https://testnet.cotiscan.io/address/${result.auctionAddress}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>{result.auctionAddress.substring(0, 10)}...</a><br />
+                        Token: <a href={`https://testnet.cotiscan.io/address/${result.tokenAddress}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>{result.tokenAddress.substring(0, 10)}...</a><br />
+                        Page will reload in 3 seconds...
+                    </small>
+                </>
+            );
+            setStatusVariant('success');
+
+            // Reload page after 3 seconds to use new contracts
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+
+        } catch (error) {
+            console.error('Error redeploying contract:', error);
+            setStatus(`❌ Deployment failed: ${error.message || 'Unknown error'}`);
+            setStatusVariant('error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleGetTokens = async () => {
         setLoading(true);
         setStatus('Minting test tokens...');
@@ -213,7 +291,7 @@ function BidderPage() {
             const explorerUrl = `https://testnet.cotiscan.io/tx/${result.txHash}`;
             setStatus(
                 <>
-                    ✅ Minted 1000 tokens! <a href={explorerUrl} target="_blank" rel="noopener noreferrer" style={{color: 'inherit', textDecoration: 'underline'}}>View transaction</a>
+                    ✅ Minted 1000 tokens! <a href={explorerUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>View transaction</a>
                 </>
             );
             setStatusVariant('success');
@@ -231,191 +309,252 @@ function BidderPage() {
     };
 
     return (
-        <AppContainer>
-            <Title>🔨 Bidder Portal</Title>
+        <>
+            <IntroModal
+                isOpen={showIntroModal}
+                onClose={() => setShowIntroModal(false)}
+                auctionAddress={auctionAddress}
+                tokenAddress={tokenAddress}
+            />
+            <BidModal
+                isOpen={showBidModal}
+                onClose={() => setShowBidModal(false)}
+                bidAmount={bidAmount}
+                setBidAmount={setBidAmount}
+                onSubmit={handlePlaceBid}
+                loading={loading}
+            />
+            <AppContainer>
+                <Title>Private Auction</Title>
 
-            <CardsContainer>
-                <Card $maxWidth="500px">
-                    <ContentTitle>Place Your Bid</ContentTitle>
+                <CardsContainer>
+                    <Card $maxWidth="500px">
+                        <ContentTitle>Bidders</ContentTitle>
 
-                    {walletAddress && (
-                        <InfoSection>
-                            <InfoRow>
-                                <InfoLabel>Auction Contract:</InfoLabel>
-                                <InfoValue>
-                                    <a
-                                        href={`https://testnet.cotiscan.io/address/${auctionAddress}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{color: 'inherit', textDecoration: 'underline'}}
+                        {walletAddress && (
+                            <InfoSection>
+                                <InfoRow>
+                                    <InfoLabel>Your Wallet:</InfoLabel>
+                                    <InfoValue>{walletAddress}</InfoValue>
+                                </InfoRow>
+                                <TokenBalanceRow>
+                                    <InfoLabel>Token Balance:</InfoLabel>
+                                    <InfoValue>{tokenBalance} MTK</InfoValue>
+                                    <SmallButton
+                                        onClick={handleGetTokens}
+                                        disabled={loading}
                                     >
-                                        {auctionAddress?.substring(0, 10)}...{auctionAddress?.substring(auctionAddress.length - 8)}
-                                    </a>
-                                </InfoValue>
-                            </InfoRow>
-                            <InfoRow>
-                                <InfoLabel>Your Wallet:</InfoLabel>
-                                <InfoValue>{walletAddress.substring(0, 10)}...{walletAddress.substring(walletAddress.length - 8)}</InfoValue>
-                            </InfoRow>
-                            <InfoRow>
-                                <InfoLabel>Token Balance:</InfoLabel>
-                                <InfoValue>{tokenBalance} MTK</InfoValue>
-                            </InfoRow>
-                            {auctionInfo && (
-                                <>
-                                    <InfoRow>
-                                        <InfoLabel>Auction Status:</InfoLabel>
-                                        <InfoValue $active={auctionInfo.isActive}>
-                                            {auctionInfo.isActive ? '🟢 Active' : '🔴 Ended'}
-                                        </InfoValue>
-                                    </InfoRow>
-                                    <InfoRow>
-                                        <InfoLabel>Total Bids:</InfoLabel>
-                                        <InfoValue>{auctionInfo.bidCounter}</InfoValue>
-                                    </InfoRow>
-                                    <InfoRow>
-                                        <InfoLabel>Time Remaining:</InfoLabel>
-                                        <InfoValue>
-                                            {auctionInfo.isActive && auctionInfo.timeRemaining > 0
-                                                ? `${Math.floor(auctionInfo.timeRemaining / 60)} minutes`
-                                                : 'Auction ended'}
-                                        </InfoValue>
-                                    </InfoRow>
-                                </>
-                            )}
-                        </InfoSection>
-                    )}
+                                        Get Tokens
+                                    </SmallButton>
+                                </TokenBalanceRow>
+                                {auctionInfo && (
+                                    <>
+                                        <InfoRow>
+                                            <InfoLabel>Total Bids:</InfoLabel>
+                                            <InfoValue>{auctionInfo.bidCounter}</InfoValue>
+                                        </InfoRow>
+                                    </>
+                                )}
 
-                    <FormGroup>
-                        <FormLabel>Bid Amount (Tokens)</FormLabel>
-                        <FormInput
-                            type="number"
-                            placeholder="Enter bid amount"
-                            value={bidAmount}
-                            onChange={(e) => setBidAmount(e.target.value)}
-                            disabled={loading}
-                            min="0"
-                            step="1"
-                        />
-                    </FormGroup>
+                                <SmallButtonGroup style={{ marginTop: '1rem', paddingTop: '1rem' }}>
+                                    <SmallButton
+                                        onClick={handlePlaceBidClick}
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Processing...' : 'Place'}
+                                    </SmallButton>
+                                    <SmallButton
+                                        onClick={handleWithdraw}
+                                        disabled={loading}
+                                    >
+                                        Withdraw
+                                    </SmallButton>
+                                    <SmallButton
+                                        onClick={handleCheckBid}
+                                        disabled={loading}
+                                    >
+                                        Check
+                                    </SmallButton>
+                                </SmallButtonGroup>
+                            </InfoSection>
+                        )}
 
-                    <ButtonGroup>
-                        <ButtonAction
-                            text={loading ? 'Processing...' : 'Place Bid'}
-                            onClick={handlePlaceBid}
-                            disabled={loading}
-                            fullWidth
-                        />
-                    </ButtonGroup>
+                        {status && (
+                            <StatusMessage $variant={statusVariant}>
+                                {status}
+                            </StatusMessage>
+                        )}
+                    </Card>
 
-                    {status && (
-                        <StatusMessage $variant={statusVariant}>
-                            {status}
-                        </StatusMessage>
-                    )}
-                </Card>
+                    <Card $maxWidth="500px">
+                        <ContentTitle>Auction Actions</ContentTitle>
 
-                <Card $maxWidth="500px">
-                    <ContentTitle>Auction Actions</ContentTitle>
+                        {walletAddress && (
+                            <InfoSection>
+                                <InfoRow>
+                                    <InfoLabel>Auction Contract:</InfoLabel>
+                                    <InfoValue>
+                                        <a
+                                            href={`https://testnet.cotiscan.io/address/${auctionAddress}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ color: 'inherit', textDecoration: 'underline' }}
+                                        >
+                                            {auctionAddress?.substring(0, 10)}...{auctionAddress?.substring(auctionAddress.length - 8)}
+                                        </a>
+                                    </InfoValue>
+                                </InfoRow>
+                                {auctionInfo && (
+                                    <>
+                                        <InfoRow>
+                                            <InfoLabel>Auction Status:</InfoLabel>
+                                            <InfoValue $active={auctionInfo.isActive}>
+                                                {auctionInfo.isActive ? '🟢 Active' : '🔴 Ended'}
+                                            </InfoValue>
+                                        </InfoRow>
+                                        <InfoRow>
+                                            <InfoLabel>Time Remaining:</InfoLabel>
+                                            <InfoValue>
+                                                {auctionInfo.isActive && auctionInfo.timeRemaining > 0
+                                                    ? `${Math.floor(auctionInfo.timeRemaining / 60)} minutes`
+                                                    : 'Auction ended'}
+                                            </InfoValue>
+                                        </InfoRow>
+                                    </>
+                                )}
+                            </InfoSection>
+                        )}
 
-                    <ActionGroup>
-                        <ButtonAction
-                            text="🪙 Get Test Tokens (1000 MTK)"
-                            onClick={handleGetTokens}
-                            disabled={loading}
-                            fullWidth
-                        />
-                        <ButtonAction
-                            text="Check My Bid"
-                            onClick={handleCheckBid}
-                            disabled={loading}
-                            fullWidth
-                        />
-                        <ButtonAction
-                            text="Claim (Winner)"
-                            onClick={handleClaim}
-                            disabled={loading}
-                            fullWidth
-                        />
-                        <ButtonAction
-                            text="Withdraw Bid"
-                            onClick={handleWithdraw}
-                            disabled={loading}
-                            fullWidth
-                        />
-                        <Button
-                            text="← Back to Home"
-                            onClick={() => navigate('/')}
-                            fullWidth
-                        />
-                    </ActionGroup>
-
-                    <InfoNote>
-                        <strong>Private Auction with COTI MPC:</strong> Your bids are encrypted using
-                        Multi-Party Computation, ensuring complete privacy. Other bidders cannot see
-                        your bid amount, maintaining fair auction dynamics.
-                    </InfoNote>
-                </Card>
-            </CardsContainer>
-        </AppContainer>
+                        <ActionGroup>
+                            <ButtonAction
+                                text="Claim (Winner)"
+                                onClick={handleClaim}
+                                disabled={loading}
+                                fullWidth
+                            />
+                            <ButtonAction
+                                text="🔄 Redeploy Contract"
+                                onClick={handleRedeploy}
+                                disabled={loading}
+                                fullWidth
+                            />
+                        </ActionGroup>
+                    </Card>
+                </CardsContainer>
+            </AppContainer>
+        </>
     );
 }
 
 const ButtonGroup = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-`;
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+
+            ${({ theme }) => theme.mediaQueries.small} {
+                flex - direction: column;
+  }
+            `;
 
 const ActionGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1.5rem;
-`;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            `;
 
 const InfoNote = styled.div`
-  margin-top: 2rem;
-  padding: 1rem;
-  background-color: ${props => props.theme.colors.secondary.default10};
-  border-radius: 12px;
-  font-size: 1.2rem;
-  color: ${props => props.theme.colors.text.default};
-  line-height: 1.6;
-`;
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: ${props => props.theme.colors.secondary.default10};
+            border-radius: 12px;
+            font-size: 1.2rem;
+            color: ${props => props.theme.colors.text.default};
+            line-height: 1.6;
+            `;
 
 const InfoSection = styled.div`
-  background-color: ${props => props.theme.colors.secondary.default10};
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-`;
+            background-color: ${props => props.theme.colors.secondary.default10};
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            `;
 
 const InfoRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid ${props => props.theme.colors.secondary.default20};
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid ${props => props.theme.colors.secondary.default20};
 
-  &:last-child {
-    border-bottom: none;
+            &:last-child {
+                border - bottom: none;
+  }
+            `;
+
+const InfoLabel = styled.span`
+            color: ${props => props.theme.colors.text.muted};
+            font-size: 1.2rem;
+            font-weight: 500;
+            `;
+
+const InfoValue = styled.span`
+            color: ${props => props.$active !== undefined
+        ? (props.$active ? props.theme.colors.success : props.theme.colors.error)
+        : props.theme.colors.text.default};
+            font-size: 1.2rem;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            `;
+
+const BalanceRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const SmallButton = styled.button`
+  background-color: #1E29F6;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-family: ${({ theme }) => theme.fonts.default};
+  font-size: 1rem;
+  font-weight: 500;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(30, 41, 246, 0.8);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    background-color: rgba(30, 41, 246, 0.8);
   }
 `;
 
-const InfoLabel = styled.span`
-  color: ${props => props.theme.colors.text.muted};
-  font-size: 1.2rem;
-  font-weight: 500;
+const SmallButtonGroup = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 `;
 
-const InfoValue = styled.span`
-  color: ${props => props.$active !== undefined
-    ? (props.$active ? props.theme.colors.success : props.theme.colors.error)
-    : props.theme.colors.text.default};
-  font-size: 1.2rem;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
+const TokenBalanceRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid ${props => props.theme.colors.secondary.default20};
 `;
 
 export default BidderPage;
