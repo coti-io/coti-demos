@@ -286,11 +286,17 @@ function MultiBidderPage() {
         beneficiary: null
     });
 
+    // Track if we've already warned about missing winner variable
+    const [hasWarnedAboutWinner, setHasWarnedAboutWinner] = useState(false);
+
     // Deployment modal states
     const [showDeploymentModal, setShowDeploymentModal] = useState(false);
     const [deploymentStatus, setDeploymentStatus] = useState('');
     const [deploymentVariant, setDeploymentVariant] = useState('info');
     const [deploymentStep, setDeploymentStep] = useState(0);
+
+    // Auction configuration
+    const [auctionDurationMinutes, setAuctionDurationMinutes] = useState(5); // Default: 5 minutes for testing
 
     // State for each bidder
     const [bidderStates, setBidderStates] = useState({});
@@ -372,7 +378,7 @@ function MultiBidderPage() {
                 setAuctionInfo(info);
 
                 // Fetch winner information if auction has ended
-                if (!info.isActive) {
+                if (info && !info.isActive) {
                     await fetchWinnerInfo();
                 }
             } catch (error) {
@@ -393,7 +399,7 @@ function MultiBidderPage() {
             }
 
             if (!auctionAddress || auctionAddress === '') {
-                console.log('Auction address not set yet');
+                // Silently return if auction address not set
                 return;
             }
 
@@ -412,11 +418,22 @@ function MultiBidderPage() {
             console.log('Tokens transferred:', tokenTransferred);
 
             // Read winner directly from the contract's public winner variable
-            const winnerAddress = await contract.winner();
-            console.log('Winner address from contract:', winnerAddress);
+            let winnerAddress = null;
+            try {
+                winnerAddress = await contract.winner();
+                console.log('Winner address from contract:', winnerAddress);
+            } catch (winnerError) {
+                // Only warn once to avoid console spam
+                if (!hasWarnedAboutWinner) {
+                    console.warn('⚠️ Could not read winner variable from contract:', winnerError.message);
+                    console.warn('This contract was deployed before the winner variable was added.');
+                    console.warn('Please REDEPLOY the contract to enable winner tracking.');
+                    setHasWarnedAboutWinner(true);
+                }
+            }
 
             // Check if winner is the zero address (no winner yet)
-            const hasWinner = winnerAddress !== ethers.ZeroAddress;
+            const hasWinner = winnerAddress && winnerAddress !== ethers.ZeroAddress;
             console.log('Has winner:', hasWinner);
 
             setWinnerInfo({
@@ -928,6 +945,7 @@ function MultiBidderPage() {
         const confirmRedeploy = window.confirm(
             '⚠️ Redeploy Contract?\n\n' +
             'This will deploy new contracts and reset all bids.\n\n' +
+            `Auction Duration: ${auctionDurationMinutes} minutes\n\n` +
             'All bidders will need to place their bids again.\n\n' +
             'Do you want to continue?'
         );
@@ -970,7 +988,7 @@ function MultiBidderPage() {
                     setDeploymentStep(3);
                     setDeploymentStatus(message);
                 }
-            });
+            }, auctionDurationMinutes); // Pass the auction duration
 
             // Step 4: Saving addresses
             setDeploymentStep(4);
@@ -1134,6 +1152,12 @@ function MultiBidderPage() {
                     <Card $maxWidth="500px">
                         <ContentTitle>Auction Actions</ContentTitle>
 
+                        {hasWarnedAboutWinner && (
+                            <StatusMessage $variant="error">
+                                ⚠️ This contract was deployed before winner tracking was added. Please redeploy to enable proper winner display.
+                            </StatusMessage>
+                        )}
+
                         <InfoSection>
                             <InfoRow>
                                 <InfoLabel>Auction Contract:</InfoLabel>
@@ -1220,6 +1244,24 @@ function MultiBidderPage() {
                             )}
                         </InfoSection>
 
+                        <ConfigSection>
+                            <ConfigTitle>Auction Configuration</ConfigTitle>
+                            <ConfigRow>
+                                <ConfigLabel>Auction Duration:</ConfigLabel>
+                                <DurationInputGroup>
+                                    <DurationInput
+                                        type="number"
+                                        min="1"
+                                        max="1440"
+                                        value={auctionDurationMinutes}
+                                        onChange={(e) => setAuctionDurationMinutes(parseInt(e.target.value) || 5)}
+                                    />
+                                    <DurationUnit>minutes</DurationUnit>
+                                </DurationInputGroup>
+                            </ConfigRow>
+                            <ConfigHelp>Recommended: 5-10 minutes for testing, 60+ for production</ConfigHelp>
+                        </ConfigSection>
+
                         <ActionGroup>
                             <ButtonAction
                                 text="Redeploy Contract"
@@ -1254,9 +1296,17 @@ const InfoRow = styled.div`
   align-items: center;
   padding: 0.75rem 0;
   border-bottom: 1px solid ${props => props.theme.colors.secondary.default20};
+  gap: 1rem;
+  min-width: 0;
 
   &:last-child {
     border-bottom: none;
+  }
+
+  ${({ theme }) => theme.mediaQueries.small} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 `;
 
@@ -1273,6 +1323,9 @@ const InfoValue = styled.span`
   font-size: 1.2rem;
   font-weight: 600;
   font-family: 'Courier New', monospace;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  max-width: 100%;
 `;
 
 const ActionGroup = styled.div`
@@ -1285,6 +1338,81 @@ const ActionGroup = styled.div`
   ${({ theme }) => theme.mediaQueries.small} {
     flex-direction: column;
   }
+`;
+
+const ConfigSection = styled.div`
+  background-color: ${props => props.theme.colors.secondary.default10};
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+`;
+
+const ConfigTitle = styled.h3`
+  color: ${props => props.theme.colors.text.default};
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+`;
+
+const ConfigRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+
+  ${({ theme }) => theme.mediaQueries.small} {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
+
+const ConfigLabel = styled.span`
+  color: ${props => props.theme.colors.text.muted};
+  font-size: 1.1rem;
+  font-weight: 500;
+`;
+
+const DurationInputGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const DurationInput = styled.input`
+  background-color: ${props => props.theme.colors.background.default};
+  border: 2px solid ${props => props.theme.colors.secondary.default20};
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: ${props => props.theme.colors.text.default};
+  width: 100px;
+  text-align: center;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: ${props => props.theme.colors.primary.default};
+  }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    opacity: 1;
+  }
+`;
+
+const DurationUnit = styled.span`
+  color: ${props => props.theme.colors.text.muted};
+  font-size: 1rem;
+  font-weight: 500;
+`;
+
+const ConfigHelp = styled.div`
+  color: ${props => props.theme.colors.text.muted};
+  font-size: 0.9rem;
+  font-style: italic;
+  margin-top: 0.5rem;
 `;
 
 export default MultiBidderPage;

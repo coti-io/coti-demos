@@ -54,6 +54,7 @@ export const TOKEN_ABI = [
     "function approve(address spender, tuple(uint256 ciphertext, bytes signature) amount) external returns (bool)",
     "function allowance(address owner, address spender) external view returns (uint256)",
     "function balanceOf(address account) external view returns (uint256)",
+    "function getMyBalance() external returns (uint256)",
     "function transfer(address to, tuple(uint256 ciphertext, bytes signature) amount) external returns (bool)",
     "function mint(address to, tuple(uint256 ciphertext, bytes signature) amount) external"
 ];
@@ -109,15 +110,65 @@ export const getTokenBalance = async (wallet, tokenAddress) => {
 
     try {
         const tokenContract = new ethers.Contract(tokenAddress, TOKEN_ABI, wallet);
-        const encryptedBalance = await tokenContract.balanceOf(wallet.address);
 
-        // Decrypt the balance
-        const decryptedBalance = await wallet.decryptValue(encryptedBalance);
-        console.log('Decrypted balance:', decryptedBalance.toString());
+        console.log('=== GET TOKEN BALANCE ===');
+        console.log('Wallet:', wallet.address);
+        console.log('Token address:', tokenAddress);
 
-        return decryptedBalance;
+        // Send transaction to get encrypted balance
+        const tx = await tokenContract.getMyBalance({
+            gasLimit: 200000
+        });
+
+        console.log('getMyBalance tx sent:', tx.hash);
+        const receipt = await tx.wait();
+
+        if (receipt.status === 0) {
+            console.error('getMyBalance transaction failed');
+            return 0n;
+        }
+
+        console.log('Transaction successful');
+        console.log('Receipt logs:', receipt.logs);
+        console.log('Receipt data:', receipt.data);
+
+        // The encrypted balance (ctUint64) is returned by the function
+        // For COTI, this should be in the transaction return data or logs
+
+        // Try to extract from logs
+        if (receipt.logs && receipt.logs.length > 0) {
+            for (let i = 0; i < receipt.logs.length; i++) {
+                const log = receipt.logs[i];
+                console.log(`Log ${i}:`, {
+                    address: log.address,
+                    data: log.data,
+                    topics: log.topics
+                });
+
+                // Try to decrypt the data
+                if (log.data && log.data !== '0x') {
+                    try {
+                        const encryptedValue = BigInt(log.data);
+                        console.log('Trying to decrypt:', encryptedValue.toString());
+
+                        const decrypted = await wallet.decryptValue(encryptedValue);
+                        console.log('✓ Decrypted balance:', decrypted.toString());
+
+                        return decrypted;
+                    } catch (err) {
+                        console.log('Failed to decrypt log data:', err.message);
+                    }
+                }
+            }
+        }
+
+        console.warn('⚠️ Could not extract balance from transaction');
+        console.warn('This might be a contract or ABI issue');
+
+        // Return 0 as fallback
+        return 0n;
     } catch (error) {
-        console.error('Error fetching token balance:', error);
+        console.error('Error in getTokenBalance:', error);
         return 0n;
     }
 };

@@ -12,4 +12,9 @@ contract MyToken is PrivateERC20 {
         gtUint64 gtAmount = MpcCore.validateCiphertext(amount);
         _mint(to, gtAmount);
     }
+
+    // Get caller's balance in encrypted form that they can decrypt
+    function getMyBalance() public returns (ctUint64) {
+        return balanceOfMe();
+    }
 }

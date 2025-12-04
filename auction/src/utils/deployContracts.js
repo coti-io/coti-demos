@@ -9,9 +9,10 @@ import MyTokenArtifact from '../../artifacts/contracts/MyToken.sol/MyToken.json'
  * @param {string} aesKey - Deployer AES key
  * @param {string} rpcUrl - RPC URL
  * @param {Function} onProgress - Optional callback for progress updates (step, message)
+ * @param {number} biddingTimeMinutes - Auction duration in minutes (default: 60)
  * @returns {Promise<{auctionAddress: string, tokenAddress: string, txHashes: {token: string, auction: string}}>}
  */
-export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://testnet.coti.io/rpc', onProgress = null) {
+export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://testnet.coti.io/rpc', onProgress = null, biddingTimeMinutes = 60) {
     // Create provider and wallet
     if (onProgress) onProgress('preparing', 'Initializing wallet and provider...');
     const provider = new ethers.JsonRpcProvider(rpcUrl);
@@ -47,14 +48,14 @@ export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://test
         wallet
     );
 
-    // Auction duration: 1 hour (3600 seconds)
-    const biddingTime = 3600;
+    // Auction duration: convert minutes to seconds
+    const biddingTime = biddingTimeMinutes * 60;
     const isStoppable = true;
 
     console.log('Deploying PrivateAuction contract...');
     console.log(`  - Beneficiary: ${wallet.address}`);
     console.log(`  - Token: ${tokenAddress}`);
-    console.log(`  - Bidding Time: ${biddingTime} seconds`);
+    console.log(`  - Bidding Time: ${biddingTimeMinutes} minutes (${biddingTime} seconds)`);
     console.log(`  - Stoppable: ${isStoppable}`);
 
     if (onProgress) onProgress('auction', 'Deploying Auction contract...');
