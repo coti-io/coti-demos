@@ -28,6 +28,9 @@ contract PrivateAuction {
     // The winner of the auction (address(0) if not claimed yet)
     address public winner;
 
+    // The address of the current highest bidder
+    address public highestBidder;
+
     // If the token has been transferred to the beneficiary
     bool public tokenTransferred;
 
@@ -60,6 +63,7 @@ contract PrivateAuction {
         endTime = block.timestamp + biddingTime;
         objectClaimed = MpcCore.offBoard(MpcCore.setPublic(false));
         winner = address(0);
+        highestBidder = address(0);
         tokenTransferred = false;
         bidCounter = 0;
         stoppable = isStoppable;
@@ -111,6 +115,7 @@ contract PrivateAuction {
             )
         ) {
             highestBid = currentBid;
+            highestBidder = msg.sender; // Track who has the highest bid
         }
     }
 
@@ -140,14 +145,11 @@ contract PrivateAuction {
     }
 
     function claim() public onlyAfterEnd {
-        gtBool isHighest = MpcCore.ge(
-            MpcCore.onBoard(bids[msg.sender]),
-            MpcCore.onBoard(highestBid)
-        );
-        gtBool canClaim = MpcCore.and(
-            MpcCore.not(MpcCore.onBoard(objectClaimed)),
-            isHighest
-        );
+        // Only the highest bidder can claim
+        require(msg.sender == highestBidder, "Only the highest bidder can claim");
+
+        gtBool canClaim = MpcCore.not(MpcCore.onBoard(objectClaimed));
+
         if (MpcCore.decrypt(canClaim)) {
             objectClaimed = MpcCore.offBoard(MpcCore.setPublic(true));
             winner = msg.sender;

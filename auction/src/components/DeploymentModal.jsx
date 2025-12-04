@@ -139,6 +139,7 @@ export function DeploymentModal({ isOpen, status, variant = 'info', currentStep 
     const steps = [
         'Preparing deployment',
         'Deploying Token contract',
+        'Minting tokens to bidders',
         'Deploying Auction contract',
         'Verifying contracts',
         'Saving addresses'

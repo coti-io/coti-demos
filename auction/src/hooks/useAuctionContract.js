@@ -23,6 +23,7 @@ const AUCTION_ABI = [
     "function tokenTransferred() external view returns (bool)",
     "function manuallyStopped() external view returns (bool)",
     "function winner() external view returns (address)",
+    "function highestBidder() external view returns (address)",
     "event Winner(address who)",
     "event HighestBid(uint256 isHighestBid)"
 ];

@@ -10,9 +10,10 @@ import MyTokenArtifact from '../../artifacts/contracts/MyToken.sol/MyToken.json'
  * @param {string} rpcUrl - RPC URL
  * @param {Function} onProgress - Optional callback for progress updates (step, message)
  * @param {number} biddingTimeMinutes - Auction duration in minutes (default: 60)
+ * @param {Array<string>} bidderAddresses - Optional array of bidder addresses to mint tokens for
  * @returns {Promise<{auctionAddress: string, tokenAddress: string, txHashes: {token: string, auction: string}}>}
  */
-export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://testnet.coti.io/rpc', onProgress = null, biddingTimeMinutes = 60) {
+export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://testnet.coti.io/rpc', onProgress = null, biddingTimeMinutes = 60, bidderAddresses = []) {
     // Create provider and wallet
     if (onProgress) onProgress('preparing', 'Initializing wallet and provider...');
     const provider = new ethers.JsonRpcProvider(rpcUrl);
@@ -40,6 +41,52 @@ export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://test
 
     console.log(`MyToken deployed to: ${tokenAddress}`);
     console.log(`Token deployment tx: ${tokenTxHash}`);
+
+    // Mint initial tokens to bidders
+    if (bidderAddresses && bidderAddresses.length > 0) {
+        console.log(`Minting 1000 MTK to ${bidderAddresses.length} bidders...`);
+        if (onProgress) onProgress('minting', `Minting tokens to ${bidderAddresses.length} bidders...`);
+
+        const TOKEN_ABI = [
+            "function mint(address to, tuple(uint256 ciphertext, bytes signature) amount) external"
+        ];
+
+        const mintAmount = 1000n;
+
+        for (let i = 0; i < bidderAddresses.length; i++) {
+            const bidderAddress = bidderAddresses[i];
+            console.log(`Minting 1000 MTK to bidder ${i + 1}/${bidderAddresses.length}: ${bidderAddress}`);
+            if (onProgress) onProgress('minting', `Minting tokens to bidder ${i + 1}/${bidderAddresses.length}...`);
+
+            try {
+                // Get the mint function selector
+                const tokenContractForMint = new ethers.Contract(tokenAddress, TOKEN_ABI, wallet);
+                const mintFunction = tokenContractForMint.interface.getFunction('mint');
+                const selector = mintFunction.selector;
+
+                // Encrypt the mint amount
+                const encryptedAmount = await wallet.encryptValue(
+                    mintAmount,
+                    tokenAddress,
+                    selector
+                );
+
+                // Send mint transaction
+                const mintTx = await tokenContractForMint.mint(bidderAddress, encryptedAmount, {
+                    gasLimit: 500000,
+                });
+
+                console.log(`Mint tx for ${bidderAddress}: ${mintTx.hash}`);
+                await mintTx.wait();
+                console.log(`Successfully minted 1000 MTK to ${bidderAddress}`);
+            } catch (error) {
+                console.error(`Failed to mint tokens to ${bidderAddress}:`, error);
+                // Continue with other bidders even if one fails
+            }
+        }
+
+        console.log('Token minting complete!');
+    }
 
     // Deploy PrivateAuction contract
     const AuctionFactory = new ethers.ContractFactory(

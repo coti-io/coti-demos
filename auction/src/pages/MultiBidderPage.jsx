@@ -34,6 +34,7 @@ const AUCTION_ABI = [
     "function tokenTransferred() external view returns (bool)",
     "function manuallyStopped() external view returns (bool)",
     "function winner() external view returns (address)",
+    "function highestBidder() external view returns (address)",
     "event Winner(address who)",
     "event HighestBid(uint256 isHighestBid)"
 ];
@@ -973,6 +974,10 @@ function MultiBidderPage() {
                 return;
             }
 
+            // Collect bidder addresses from the useMultipleBidders hook
+            const bidderAddresses = bidders.map(bidder => bidder.address);
+            console.log('Minting initial tokens to bidders:', bidderAddresses);
+
             const result = await deployContracts(privateKey, aesKey, rpcUrl, (step, message) => {
                 // Update progress based on deployment callbacks
                 if (step === 'preparing') {
@@ -981,17 +986,20 @@ function MultiBidderPage() {
                 } else if (step === 'token') {
                     setDeploymentStep(1);
                     setDeploymentStatus(message);
-                } else if (step === 'auction') {
+                } else if (step === 'minting') {
                     setDeploymentStep(2);
                     setDeploymentStatus(message);
-                } else if (step === 'verify') {
+                } else if (step === 'auction') {
                     setDeploymentStep(3);
                     setDeploymentStatus(message);
+                } else if (step === 'verify') {
+                    setDeploymentStep(4);
+                    setDeploymentStatus(message);
                 }
-            }, auctionDurationMinutes); // Pass the auction duration
+            }, auctionDurationMinutes, bidderAddresses); // Pass auction duration and bidder addresses
 
-            // Step 4: Saving addresses
-            setDeploymentStep(4);
+            // Step 5: Saving addresses
+            setDeploymentStep(5);
             setDeploymentStatus('Saving contract addresses...');
 
             // Store addresses in localStorage
@@ -1169,6 +1177,19 @@ function MultiBidderPage() {
                                         style={{ color: 'inherit', textDecoration: 'underline' }}
                                     >
                                         {auctionAddress?.substring(0, 10)}...{auctionAddress?.substring(auctionAddress.length - 8)}
+                                    </a>
+                                </InfoValue>
+                            </InfoRow>
+                            <InfoRow>
+                                <InfoLabel>Token Contract (MTK):</InfoLabel>
+                                <InfoValue>
+                                    <a
+                                        href={`https://testnet.cotiscan.io/address/${tokenAddress}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ color: 'inherit', textDecoration: 'underline' }}
+                                    >
+                                        {tokenAddress?.substring(0, 10)}...{tokenAddress?.substring(tokenAddress.length - 8)}
                                     </a>
                                 </InfoValue>
                             </InfoRow>

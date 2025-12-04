@@ -15,6 +15,7 @@ contract MyToken is PrivateERC20 {
 
     // Get caller's balance in encrypted form that they can decrypt
     function getMyBalance() public returns (ctUint64) {
-        return balanceOfMe();
+        gtUint64 balance = balanceOf(); // Get caller's balance as gtUint64
+        return MpcCore.offBoardToUser(balance, msg.sender); // Encrypt for caller to decrypt
     }
 }
