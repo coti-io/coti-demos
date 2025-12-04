@@ -1,11 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import BidderPage from './pages/BidderPage';
+import MultiBidderPage from './pages/MultiBidderPage';
 
 function App() {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<BidderPage />} />
+                <Route path="/" element={<MultiBidderPage />} />
             </Routes>
         </Router>
     );

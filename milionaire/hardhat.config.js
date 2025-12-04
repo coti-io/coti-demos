@@ -1,4 +1,5 @@
 import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-verify";
 import { config as dotenvConfig } from 'dotenv';
 
 dotenvConfig();
@@ -11,7 +12,8 @@ export default {
             optimizer: {
                 enabled: true,
                 runs: 200
-            }
+            },
+            viaIR: true  // REQUIRED for COTI MPC contracts
         }
     },
     networks: {
@@ -23,6 +25,24 @@ export default {
             gas: 3000000,
             gasPrice: 10000000000 // 10 gwei
         }
+    },
+    etherscan: {
+        apiKey: {
+            cotiTestnet: "abc"
+        },
+        customChains: [
+            {
+                network: "cotiTestnet",
+                chainId: 7082400,
+                urls: {
+                    apiURL: "https://testnet.cotiscan.io/api",
+                    browserURL: "https://testnet.cotiscan.io"
+                }
+            }
+        ]
+    },
+    sourcify: {
+        enabled: false
     },
     paths: {
         sources: "./contracts",

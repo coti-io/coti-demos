@@ -95,20 +95,59 @@ const SmallActionButton = styled.button`
 
 const STORAGE_KEY = 'millionaire_intro_dismissed'
 
-function IntroModal() {
+function IntroModal({ onClose }) {
     const [isOpen, setIsOpen] = useState(true)
     const [isResetting, setIsResetting] = useState(false)
-    const { resetContract } = useMillionaireContract()
+    const [resetStatus, setResetStatus] = useState('')
+    const { resetContract, checkWealthStatus } = useMillionaireContract()
 
     const handleClose = async () => {
         // Reset contract when closing the modal
         setIsResetting(true)
+        setResetStatus('Resetting contract...')
+        
         try {
+            console.log('Initiating contract reset from modal...')
             await resetContract()
-            console.log('Contract reset successfully on modal close')
+            
+            // Wait a moment for blockchain state to update
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
+            // Verify the reset was successful
+            setResetStatus('Verifying reset...')
+            console.log('Verifying contract reset...')
+            let status = await checkWealthStatus()
+            
+            // Retry up to 3 times if verification fails
+            let retries = 0
+            while ((status.aliceSet || status.bobSet) && retries < 3) {
+                console.warn(`Contract reset verification failed (attempt ${retries + 1}) - wealth values still set, retrying...`)
+                setResetStatus(`Retrying reset (${retries + 1}/3)...`)
+                await resetContract()
+                await new Promise(resolve => setTimeout(resolve, 1500))
+                status = await checkWealthStatus()
+                retries++
+            }
+            
+            if (status.aliceSet || status.bobSet) {
+                console.error('Contract reset failed after retries')
+                setResetStatus('Reset may not have completed. Please try the Reset button.')
+            } else {
+                console.log('Contract reset verified successfully')
+                setResetStatus('Reset complete!')
+            }
+            
+            // Notify parent to refresh state
+            if (onClose) {
+                onClose()
+            }
         } catch (error) {
             console.error('Error resetting contract:', error)
-            // Don't block closing the modal if reset fails
+            setResetStatus('Reset failed. Please use the Reset button.')
+            // Still notify parent even on failure
+            if (onClose) {
+                onClose()
+            }
         } finally {
             setIsResetting(false)
             setIsOpen(false)
@@ -118,7 +157,7 @@ function IntroModal() {
     if (!isOpen) return null
 
     return (
-        <Overlay onClick={handleClose}>
+        <Overlay>
             <ModalContainer onClick={(e) => e.stopPropagation()}>
                 <ModalTitle>💰 The Millionaires' Problem</ModalTitle>
                 
@@ -160,7 +199,7 @@ function IntroModal() {
                         onClick={handleClose}
                         disabled={isResetting}
                     >
-                        {isResetting ? "Resetting contract..." : "Got it! Let's compare wealth →"}
+                        {isResetting ? resetStatus : "Got it! Let's compare wealth →"}
                     </SmallActionButton>
                 </ButtonContainer>
             </ModalContainer>

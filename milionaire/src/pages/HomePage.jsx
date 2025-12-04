@@ -160,7 +160,7 @@ const PlayerSection = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 0;
   align-items: stretch;
 
   > * {
@@ -174,24 +174,24 @@ const PlayerSection = styled.div`
 
 const ResultBox = styled.div`
   word-break: break-all;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-family: ${({ theme }) => theme.fonts.default};
-  padding: 1rem;
+  padding: 0.75rem;
   background-color: ${props => props.theme.colors.secondary.default10};
   border-radius: 12px;
   margin-bottom: 1rem;
   border: 1px solid ${props => props.theme.colors.primary.default};
   color: ${props => props.theme.colors.text.default} !important;
-  line-height: 1.6;
+  line-height: 1.4;
   text-align: left;
 `;
 
 const MonospaceText = styled.div`
   font-family: ${({ theme }) => theme.fonts.default};
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   margin-top: 0.5rem;
   color: ${props => props.theme.colors.text.default} !important;
-  line-height: 1.4;
+  line-height: 1.3;
   opacity: 0.85;
 `;
 
@@ -258,32 +258,32 @@ const TitleRow = styled.div`
 
 const HeaderTitle = styled.h1`
   color: ${props => props.theme.colors.text.default} !important;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   text-align: center;
   margin: 0;
 
   ${({ theme }) => theme.mediaQueries.small} {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
   }
 `;
 
 const HeaderSubTitle = styled.h2`
   color: ${props => props.theme.colors.text.default} !important;
-  font-size: 1.2rem;
+  font-size: 0.95rem;
   font-weight: 400;
   text-align: center;
   margin: 0.5rem 0 1rem 0;
   opacity: 0.9;
 
   ${({ theme }) => theme.mediaQueries.small} {
-    font-size: 1rem;
+    font-size: 0.85rem;
   }
 `;
 
 const HeaderContract = styled.p`
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.8rem;
   color: ${props => props.theme.colors.text.default} !important;
   text-align: center;
 `;
@@ -306,6 +306,35 @@ const InfoIcon = styled.button`
   ${({ theme }) => theme.mediaQueries.small} {
     font-size: 1.2rem;
   }
+`;
+
+const BottomStatusBar = styled.div`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background-color: ${props => {
+    if (props.$variant === 'success') return props.theme.colors.secondary.default10;
+    if (props.$variant === 'error') return props.theme.colors.error.default10;
+    return 'rgba(128, 128, 128, 0.2)';
+  }};
+  color: ${props => {
+    if (props.$variant === 'success') return props.theme.colors.primary.default;
+    if (props.$variant === 'error') return props.theme.colors.error.default;
+    return props.theme.colors.text.default;
+  }};
+  border-top: 2px solid ${props => {
+    if (props.$variant === 'success') return props.theme.colors.primary.default;
+    if (props.$variant === 'error') return props.theme.colors.error.default;
+    return 'rgba(128, 128, 128, 0.3)';
+  }};
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
 `;
 
 const ModalOverlay = styled.div`
@@ -360,6 +389,8 @@ function HomePage() {
         getAliceComparisonResult,
         getBobComparisonResult,
         checkWealthStatus,
+        getEncryptedAliceWealth,
+        getEncryptedBobWealth,
         resetContract,
         contractAddress,
         aliceWallet,
@@ -373,6 +404,7 @@ function HomePage() {
     const [aliceStatusVariant, setAliceStatusVariant] = useState('info')
     const [aliceResult, setAliceResult] = useState(null)
     const [aliceSubmitted, setAliceSubmitted] = useState(false)
+    const [aliceBlockchainWealth, setAliceBlockchainWealth] = useState(null)
 
     // Bob state
     const [bobWealth, setBobWealth] = useState('')
@@ -381,11 +413,14 @@ function HomePage() {
     const [bobStatusVariant, setBobStatusVariant] = useState('info')
     const [bobResult, setBobResult] = useState(null)
     const [bobSubmitted, setBobSubmitted] = useState(false)
+    const [bobBlockchainWealth, setBobBlockchainWealth] = useState(null)
 
     // Shared state
     const [connectionStatus, setConnectionStatus] = useState('')
     const [globalLoading, setGlobalLoading] = useState(false)
     const [showInfoModal, setShowInfoModal] = useState(false)
+    const [showComparisonModal, setShowComparisonModal] = useState(false)
+    const [comparisonResult, setComparisonResult] = useState(null)
 
     useEffect(() => {
         checkContractConnection()
@@ -406,12 +441,12 @@ function HomePage() {
 
             // Check if wealth already submitted
             const status = await checkWealthStatus()
-            if (status.aliceSet) {
-                setAliceSubmitted(true)
+            setAliceSubmitted(status.aliceSet)
+            setBobSubmitted(status.bobSet)
+            if (!status.aliceSet) {
                 setAliceStatus('')
             }
-            if (status.bobSet) {
-                setBobSubmitted(true)
+            if (!status.bobSet) {
                 setBobStatus('')
             }
 
@@ -420,6 +455,23 @@ function HomePage() {
             console.error('Error connecting to contract:', error)
             setConnectionStatus('❌ Error connecting to contract: ' + error.message)
         }
+    }
+
+    // Callback when IntroModal closes after resetting contract
+    const handleIntroModalClose = () => {
+        // Reset all local state to match the reset contract
+        setAliceSubmitted(false)
+        setBobSubmitted(false)
+        setAliceWealth('')
+        setBobWealth('')
+        setAliceResult(null)
+        setBobResult(null)
+        setAliceStatus('')
+        setBobStatus('')
+        setAliceBlockchainWealth(null)
+        setBobBlockchainWealth(null)
+        setConnectionStatus('')
+        console.log('HomePage state reset after IntroModal close')
     }
 
     const handleSubmitAliceWealth = async () => {
@@ -438,15 +490,34 @@ function HomePage() {
             const txHash = result.receipt.hash
             const explorerLink = `https://testnet.cotiscan.io/tx/${txHash}`
 
+            // Fetch the encrypted wealth from blockchain
+            let blockchainWealth = 'Fetching...'
+            try {
+                // Wait a moment for blockchain state to update
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                blockchainWealth = await getEncryptedAliceWealth()
+                setAliceBlockchainWealth(blockchainWealth)
+            } catch (fetchError) {
+                console.error('Error fetching Alice blockchain wealth:', fetchError)
+                blockchainWealth = 'Error fetching'
+                setAliceBlockchainWealth(blockchainWealth)
+            }
+
             setAliceStatus(
                 <ResultBox>
-                    <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ marginBottom: '0.75rem' }}>
                         <strong>✅ Wealth Submitted Successfully!</strong>
                     </div>
-                    <div style={{ marginBottom: '1rem' }}>
-                        <strong>Encrypted Ciphertext:</strong>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                        <strong>Wealth Value (Stored on Smart Contract):</strong>
                         <MonospaceText>
-                            {result.encryptedCiphertext ? `${result.encryptedCiphertext} 🔒` : 'N/A'}
+                            {result.encryptedCiphertext || 'Loading...'}  🔒
+                        </MonospaceText>
+                    </div>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                        <strong>Encrypted Wealth Blockchain (Ciphertext):</strong>
+                        <MonospaceText>
+                            {blockchainWealth}
                         </MonospaceText>
                     </div>
                     <div>
@@ -486,15 +557,34 @@ function HomePage() {
             const txHash = result.receipt.hash
             const explorerLink = `https://testnet.cotiscan.io/tx/${txHash}`
 
+            // Fetch the encrypted wealth from blockchain
+            let blockchainWealth = 'Fetching...'
+            try {
+                // Wait a moment for blockchain state to update
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                blockchainWealth = await getEncryptedBobWealth()
+                setBobBlockchainWealth(blockchainWealth)
+            } catch (fetchError) {
+                console.error('Error fetching Bob blockchain wealth:', fetchError)
+                blockchainWealth = 'Error fetching'
+                setBobBlockchainWealth(blockchainWealth)
+            }
+
             setBobStatus(
                 <ResultBox>
-                    <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ marginBottom: '0.75rem' }}>
                         <strong>✅ Wealth Submitted Successfully!</strong>
                     </div>
-                    <div style={{ marginBottom: '1rem' }}>
-                        <strong>Encrypted Ciphertext:</strong>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                        <strong>Wealth Value (Stored on Smart Contract):</strong>
                         <MonospaceText>
-                            {result.encryptedCiphertext ? `${result.encryptedCiphertext} 🔒` : 'N/A'}
+                            {result.encryptedCiphertext || 'Loading...'}  🔒
+                        </MonospaceText>
+                    </div>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                        <strong>Encrypted Wealth Blockchain (Ciphertext):</strong>
+                        <MonospaceText>
+                            {blockchainWealth}
                         </MonospaceText>
                     </div>
                     <div>
@@ -519,42 +609,31 @@ function HomePage() {
     }
 
     const handleCompareAlice = async () => {
-        setAliceLoading(true)
-        setAliceStatus('Performing comparison...')
-        setAliceStatusVariant('info')
+        setGlobalLoading(true)
+        setConnectionStatus('🔄 Performing comparison...')
 
         try {
-            const comparisonResult = await performComparison(aliceWallet, 'Alice')
+            const comparisonTx = await performComparison(aliceWallet, 'Alice')
             const result = await getAliceComparisonResult()
 
-            const txHash = comparisonResult.transaction.hash
+            const txHash = comparisonTx.transaction.hash
             const explorerLink = `https://testnet.cotiscan.io/tx/${txHash}`
 
-            setAliceStatus(
-                <ResultBox>
-                    <div style={{ marginBottom: '1rem' }}>
-                        <strong>🎯 Comparison Result:</strong>
-                        <div style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>
-                            {result.text}
-                        </div>
-                    </div>
-                    <div>
-                        <strong>Transaction:</strong>
-                        <MonospaceText>
-                            <Link href={explorerLink} target="_blank" rel="noopener noreferrer">
-                                {txHash}
-                            </Link>
-                        </MonospaceText>
-                    </div>
-                </ResultBox>
-            )
-            setAliceStatusVariant('success')
+            setComparisonResult({
+                text: result.text,
+                txHash: txHash,
+                explorerLink: explorerLink
+            })
+            setShowComparisonModal(true)
+            setConnectionStatus('')
         } catch (error) {
             console.error('Error performing comparison:', error)
-            setAliceStatus('❌ Error: ' + (error.message || error.toString()))
-            setAliceStatusVariant('error')
+            setConnectionStatus('❌ Error performing comparison: ' + (error.message || error.toString()))
+            setTimeout(() => {
+                setConnectionStatus('')
+            }, 5000)
         } finally {
-            setAliceLoading(false)
+            setGlobalLoading(false)
         }
     }
 
@@ -618,7 +697,18 @@ function HomePage() {
             console.log('Initiating contract reset...')
 
             // The resetContract function already has retry logic with exponential backoff
-            await resetContract()
+            const resetResult = await resetContract()
+            console.log('Reset transaction completed:', resetResult.receipt?.hash)
+
+            // Verify the reset was successful by checking wealth status
+            console.log('Verifying contract reset...')
+            const status = await checkWealthStatus()
+            
+            if (status.aliceSet || status.bobSet) {
+                throw new Error('Contract reset verification failed - wealth values still set')
+            }
+            
+            console.log('Contract reset verified - both wealth values cleared')
 
             // Clear all local state
             setAliceSubmitted(false)
@@ -629,6 +719,8 @@ function HomePage() {
             setBobResult(null)
             setAliceStatus('')
             setBobStatus('')
+            setAliceBlockchainWealth(null)
+            setBobBlockchainWealth(null)
 
             setConnectionStatus('✅ Contract reset successfully! You can now submit new wealth values.')
 
@@ -674,7 +766,7 @@ function HomePage() {
 
     return (
         <AppContainer style={{ justifyContent: 'flex-start', paddingTop: '0' }}>
-            <IntroModal />
+            <IntroModal onClose={handleIntroModalClose} />
 
             {/* Info Modal */}
             {showInfoModal && (
@@ -717,49 +809,70 @@ function HomePage() {
                 </ModalOverlay>
             )}
 
-            {/* Header Card - Centered */}
-            <CardsContainer style={{ marginTop: '0', marginBottom: '2rem', maxWidth: '720px' }}>
-                <Card $maxWidth="100%" style={{ padding: '1rem 0.5rem', backgroundColor: 'transparent', boxShadow: 'none', border: 'none' }}>
-
-                    {/* Status Banner */}
-                    {connectionStatus && (
-                        <StatusMessage
-                            $variant={connectionStatus.includes('✅') ? 'success' : connectionStatus.includes('❌') ? 'error' : 'info'}
-                            style={{ marginBottom: '1rem', textAlign: 'center' }}
-                        >
-                            {connectionStatus}
-                        </StatusMessage>
-                    )}
-
-                    {/* Nested White Card for Title */}
-                    <Card $maxWidth="100%" style={{ padding: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}>
-                        <TitleRow>
-                            <HeaderTitle>💰 The Millionaires' Problem</HeaderTitle>
-                            <InfoIcon onClick={() => setShowInfoModal(true)} title="How It Works">
-                                ℹ️
-                            </InfoIcon>
-                        </TitleRow>
-                        <HeaderSubTitle>Secure Multi-Party Computation with COTI Garbled Circuits</HeaderSubTitle>
-                        <ContractRow style={{ justifyContent: 'center', marginTop: '0.5rem' }}>
-                            <HeaderContract>
-                                <Link
-                                    href={`https://testnet.cotiscan.io/address/${contractAddress || '0x...'}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {contractAddress || 'Not deployed'}
+            {/* Comparison Result Modal */}
+            {showComparisonModal && comparisonResult && (
+                <ModalOverlay onClick={() => setShowComparisonModal(false)}>
+                    <ModalContent onClick={(e) => e.stopPropagation()}>
+                        <CloseButton onClick={() => setShowComparisonModal(false)}>×</CloseButton>
+                        <InfoBox>
+                            <InfoTitle>🎯 Comparison Result</InfoTitle>
+                            <div style={{ fontSize: '2rem', textAlign: 'center', margin: '2rem 0', fontWeight: 'bold' }}>
+                                {comparisonResult.text}
+                            </div>
+                            <InfoText>
+                                <strong>Transaction Hash:</strong>
+                            </InfoText>
+                            <MonospaceText>
+                                <Link href={comparisonResult.explorerLink} target="_blank" rel="noopener noreferrer">
+                                    {comparisonResult.txHash}
                                 </Link>
-                            </HeaderContract>
-                            <SmallButton
-                                onClick={handleReset}
-                                disabled={globalLoading}
-                            >
-                                {globalLoading ? 'Resetting...' : 'Reset Contract'}
-                            </SmallButton>
-                        </ContractRow>
-                    </Card>
+                            </MonospaceText>
+                            <InfoText style={{ marginTop: '1.5rem', fontSize: '0.85rem', opacity: 0.8 }}>
+                                Both parties now know the comparison result without revealing their actual wealth values! 🎉
+                            </InfoText>
+                        </InfoBox>
+                    </ModalContent>
+                </ModalOverlay>
+            )}
 
-                    {/* Player Sections */}
+            {/* Header Card - Centered */}
+            <CardsContainer style={{ marginTop: '0', marginBottom: '2rem', maxWidth: '900px' }}>
+                {/* Title Card */}
+                <Card $maxWidth="100%" style={{ padding: '1.5rem', marginBottom: '0', textAlign: 'center' }}>
+                    <TitleRow>
+                        <HeaderTitle>💰 The Millionaires' Problem</HeaderTitle>
+                        <InfoIcon onClick={() => setShowInfoModal(true)} title="How It Works">
+                            ℹ️
+                        </InfoIcon>
+                    </TitleRow>
+                    <HeaderSubTitle>Secure Multi-Party Computation with COTI Garbled Circuits</HeaderSubTitle>
+                    <HeaderContract>
+                        <Link
+                            href={`https://testnet.cotiscan.io/address/${contractAddress || '0x...'}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {contractAddress || 'Not deployed'}
+                        </Link>
+                    </HeaderContract>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1rem' }}>
+                        <SmallButton
+                            onClick={handleReset}
+                            disabled={globalLoading}
+                        >
+                            {globalLoading ? 'Resetting...' : 'Reset Contract'}
+                        </SmallButton>
+                        <SmallButton
+                            onClick={handleCompareAlice}
+                            disabled={globalLoading || !aliceSubmitted || !bobSubmitted}
+                        >
+                            {globalLoading ? 'Comparing...' : 'Compare Wealth'}
+                        </SmallButton>
+                    </div>
+                </Card>
+
+                {/* Players Card */}
+                <Card $maxWidth="100%" style={{ padding: '0 1rem 1rem 1rem', backgroundColor: 'transparent', boxShadow: 'none', border: 'none' }}>
                     <PlayerSection>
                         {/* Bob Section */}
                         <Card $maxWidth="100%" style={{ padding: '1.5rem' }}>
@@ -771,7 +884,7 @@ function HomePage() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
-                                            {bobWallet.address}
+                                            Bob:{bobWallet.address}
                                         </Link>
                                     ) : (
                                         'Address not configured'
@@ -790,18 +903,12 @@ function HomePage() {
                                 />
                             </FormGroup>
 
-                            <ButtonGroup>
+                            <ButtonGroup style={{ justifyContent: 'center' }}>
                                 <PlayerButton
                                     onClick={handleSubmitBobWealth}
                                     disabled={bobLoading || bobSubmitted}
                                 >
                                     {bobLoading ? 'Submitting...' : 'Submit'}
-                                </PlayerButton>
-                                <PlayerButton
-                                    onClick={handleCompareBob}
-                                    disabled={bobLoading || !aliceSubmitted || !bobSubmitted}
-                                >
-                                    {bobLoading ? 'Comparing...' : 'Compare'}
                                 </PlayerButton>
                             </ButtonGroup>
 
@@ -822,7 +929,7 @@ function HomePage() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
-                                            {aliceWallet.address}
+                                            Alice:{aliceWallet.address}
                                         </Link>
                                     ) : (
                                         'Address not configured'
@@ -841,18 +948,12 @@ function HomePage() {
                                 />
                             </FormGroup>
 
-                            <ButtonGroup>
+                            <ButtonGroup style={{ justifyContent: 'center' }}>
                                 <PlayerButton
                                     onClick={handleSubmitAliceWealth}
                                     disabled={aliceLoading || aliceSubmitted}
                                 >
                                     {aliceLoading ? 'Submitting...' : 'Submit'}
-                                </PlayerButton>
-                                <PlayerButton
-                                    onClick={handleCompareAlice}
-                                    disabled={aliceLoading || !aliceSubmitted || !bobSubmitted}
-                                >
-                                    {aliceLoading ? 'Comparing...' : 'Compare'}
                                 </PlayerButton>
                             </ButtonGroup>
 
@@ -865,6 +966,15 @@ function HomePage() {
                     </PlayerSection>
                 </Card>
             </CardsContainer>
+
+            {/* Bottom Status Bar */}
+            {connectionStatus && (
+                <BottomStatusBar
+                    $variant={connectionStatus.includes('Contract reset successfully') ? 'info' : connectionStatus.includes('✅') ? 'success' : connectionStatus.includes('❌') ? 'error' : 'info'}
+                >
+                    {connectionStatus}
+                </BottomStatusBar>
+            )}
         </AppContainer>
     )
 }

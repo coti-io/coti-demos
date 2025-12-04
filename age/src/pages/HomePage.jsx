@@ -49,10 +49,10 @@ const ContractInfo = styled.div`
 `;
 
 const ContractDetail = styled.p`
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 1rem 0;
   font-size: 1.1rem;
   color: ${props => props.theme.colors.text.default} !important;
-  line-height: 1.6;
+  line-height: 1.8;
 
   &:last-child {
     margin-bottom: 0;
@@ -69,7 +69,7 @@ function HomePage() {
         <Card $maxWidth="900px" $width="90%">
           <PageTitle>Age Guessing Game</PageTitle>
 
-          <InfoBox>
+          <InfoBox style={{ marginTop: '3rem' }}>
             <InfoTitle>Privacy-Preserving Age Verification</InfoTitle>
 
             <ContractDetail>

@@ -201,7 +201,7 @@ function AlicePage() {
             setWealth('')
             setComparisonResult(null)
             setSubmitStatus('✅ Contract reset successfully! You can now submit new wealth values.')
-            setSubmitStatusVariant('success')
+            setSubmitStatusVariant('info')
             setConnectionStatus('✅ Connected to MillionaireComparison contract!')
         } catch (error) {
             console.error('Error resetting contract:', error)

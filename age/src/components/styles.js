@@ -163,24 +163,33 @@ export const StatusMessage = styled.div`
 `;
 
 export const InfoBox = styled.div`
-  padding: 1rem;
+  padding: 1.5rem;
   background-color: ${(props) => props.theme.colors.secondary.default10};
   border-radius: 12px;
   border: 1px solid ${(props) => props.theme.colors.primary.default};
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  font-family: ${(props) => props.theme.fonts.default};
+  line-height: 1.8;
 `;
 
 export const InfoTitle = styled.div`
-  font-size: 1.4rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
   font-weight: 600;
   color: ${(props) => props.theme.colors.text.default} !important;
+  line-height: 1.4;
 `;
 
 export const InfoText = styled.div`
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: ${(props) => props.theme.colors.text.default} !important;
-  opacity: 0.8;
+  opacity: 0.9;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 export const List = styled.ul`

@@ -25,6 +25,9 @@ contract PrivateAuction {
     // Whether the auction object has been claimed.
     ctBool internal objectClaimed;
 
+    // The winner of the auction (address(0) if not claimed yet)
+    address public winner;
+
     // If the token has been transferred to the beneficiary
     bool public tokenTransferred;
 
@@ -56,6 +59,7 @@ contract PrivateAuction {
         tokenContract = _tokenContract;
         endTime = block.timestamp + biddingTime;
         objectClaimed = MpcCore.offBoard(MpcCore.setPublic(false));
+        winner = address(0);
         tokenTransferred = false;
         bidCounter = 0;
         stoppable = isStoppable;
@@ -101,7 +105,7 @@ contract PrivateAuction {
             ctUint64.unwrap(highestBid) == 0 ||
             MpcCore.decrypt(
                 MpcCore.ge(
-                    MpcCore.onBoard(existingBid),
+                    MpcCore.onBoard(currentBid),
                     MpcCore.onBoard(highestBid)
                 )
             )
@@ -146,6 +150,7 @@ contract PrivateAuction {
         );
         if (MpcCore.decrypt(canClaim)) {
             objectClaimed = MpcCore.offBoard(MpcCore.setPublic(true));
+            winner = msg.sender;
             bids[msg.sender] = MpcCore.offBoardToUser(
                 MpcCore.setPublic64(0),
                 msg.sender

@@ -165,7 +165,7 @@ export const StatusMessage = styled.div`
   background-color: ${(props) => {
     if (props.$variant === 'success') return props.theme.colors.secondary.default10;
     if (props.$variant === 'error') return props.theme.colors.error.default10;
-    return 'rgba(255, 255, 255, 0.1)';
+    return 'rgba(128, 128, 128, 0.2)';
   }};
   color: ${(props) => {
     if (props.$variant === 'success') return props.theme.colors.primary.default;
@@ -175,7 +175,7 @@ export const StatusMessage = styled.div`
   border: 1px solid ${(props) => {
     if (props.$variant === 'success') return props.theme.colors.primary.default;
     if (props.$variant === 'error') return props.theme.colors.error.default;
-    return 'rgba(255, 255, 255, 0.2)';
+    return 'rgba(128, 128, 128, 0.3)';
   }};
 `;
 
@@ -190,7 +190,7 @@ export const InfoBox = styled.div`
 `;
 
 export const InfoTitle = styled.div`
-  font-size: 1.3rem;
+  font-size: 1rem;
   margin-bottom: 1rem;
   font-weight: 600;
   color: ${(props) => props.theme.colors.text.default} !important;
@@ -198,10 +198,10 @@ export const InfoTitle = styled.div`
 `;
 
 export const InfoText = styled.div`
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   color: ${(props) => props.theme.colors.text.default} !important;
   opacity: 0.9;
-  line-height: 1.8;
+  line-height: 1.6;
   margin-bottom: 1rem;
   
   &:last-child {
@@ -211,13 +211,15 @@ export const InfoText = styled.div`
 
 export const List = styled.ul`
   margin-left: 1.5rem;
-  line-height: 1.8;
+  line-height: 1.6;
+  font-size: 0.9rem;
   color: ${(props) => props.theme.colors.text.default} !important;
 `;
 
 export const ListItem = styled.li`
   color: ${(props) => props.theme.colors.text.default} !important;
   margin-bottom: 0.5rem;
+  font-size: 0.9rem;
 `;
 
 export const Link = styled.a`

@@ -8,10 +8,12 @@ import MyTokenArtifact from '../../artifacts/contracts/MyToken.sol/MyToken.json'
  * @param {string} privateKey - Deployer private key
  * @param {string} aesKey - Deployer AES key
  * @param {string} rpcUrl - RPC URL
+ * @param {Function} onProgress - Optional callback for progress updates (step, message)
  * @returns {Promise<{auctionAddress: string, tokenAddress: string, txHashes: {token: string, auction: string}}>}
  */
-export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://testnet.coti.io/rpc') {
+export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://testnet.coti.io/rpc', onProgress = null) {
     // Create provider and wallet
+    if (onProgress) onProgress('preparing', 'Initializing wallet and provider...');
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new Wallet(privateKey, provider);
     wallet.setUserOnboardInfo({ aesKey });
@@ -24,9 +26,13 @@ export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://test
     );
 
     console.log('Deploying MyToken contract...');
+    if (onProgress) onProgress('token', 'Deploying Token contract...');
+
     const tokenContract = await TokenFactory.deploy({
         gasLimit: 10000000
     });
+
+    if (onProgress) onProgress('token', 'Waiting for Token deployment confirmation...');
     await tokenContract.waitForDeployment();
     const tokenAddress = await tokenContract.getAddress();
     const tokenTxHash = tokenContract.deploymentTransaction().hash;
@@ -51,6 +57,8 @@ export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://test
     console.log(`  - Bidding Time: ${biddingTime} seconds`);
     console.log(`  - Stoppable: ${isStoppable}`);
 
+    if (onProgress) onProgress('auction', 'Deploying Auction contract...');
+
     const auctionContract = await AuctionFactory.deploy(
         wallet.address,      // beneficiary
         tokenAddress,        // token contract
@@ -60,12 +68,16 @@ export async function deployContracts(privateKey, aesKey, rpcUrl = 'https://test
             gasLimit: 10000000
         }
     );
+
+    if (onProgress) onProgress('auction', 'Waiting for Auction deployment confirmation...');
     await auctionContract.waitForDeployment();
     const auctionAddress = await auctionContract.getAddress();
     const auctionTxHash = auctionContract.deploymentTransaction().hash;
 
     console.log(`PrivateAuction deployed to: ${auctionAddress}`);
     console.log(`Auction deployment tx: ${auctionTxHash}`);
+
+    if (onProgress) onProgress('verify', 'Verifying deployments...');
 
     return {
         tokenAddress,

@@ -69,6 +69,8 @@ const MILLIONAIRE_COMPARISON_ABI = [
     "function getBobResult() external view returns (uint256)",
     "function getAliceAddress() external view returns (address)",
     "function getBobAddress() external view returns (address)",
+    "function getAliceWealth() public view returns (uint256)",
+    "function getBobWealth() public view returns (uint256)",
     "function reset() external"
 ];
 
@@ -345,6 +347,66 @@ export function useMillionaireContract() {
         }
     };
 
+    const getEncryptedAliceWealth = async () => {
+        if (!aliceWallet) {
+            throw new Error('Alice wallet not configured');
+        }
+
+        if (!contractAddress) {
+            throw new Error('Contract address not set');
+        }
+
+        try {
+            const contract = getContract(aliceWallet);
+
+            // Check if Alice's wealth is set
+            const isSet = await contract.isAliceWealthSet();
+            if (!isSet) {
+                return null;
+            }
+
+            // Get the encrypted wealth value from blockchain
+            const encryptedWealth = await contract.getAliceWealth();
+            console.log('Alice encrypted wealth from blockchain:', encryptedWealth);
+
+            // Return the ciphertext as a string
+            return encryptedWealth.toString();
+        } catch (error) {
+            console.error('Error fetching Alice encrypted wealth:', error);
+            throw error;
+        }
+    };
+
+    const getEncryptedBobWealth = async () => {
+        if (!bobWallet) {
+            throw new Error('Bob wallet not configured');
+        }
+
+        if (!contractAddress) {
+            throw new Error('Contract address not set');
+        }
+
+        try {
+            const contract = getContract(bobWallet);
+
+            // Check if Bob's wealth is set
+            const isSet = await contract.isBobWealthSet();
+            if (!isSet) {
+                return null;
+            }
+
+            // Get the encrypted wealth value from blockchain
+            const encryptedWealth = await contract.getBobWealth();
+            console.log('Bob encrypted wealth from blockchain:', encryptedWealth);
+
+            // Return the ciphertext as a string
+            return encryptedWealth.toString();
+        } catch (error) {
+            console.error('Error fetching Bob encrypted wealth:', error);
+            throw error;
+        }
+    };
+
     const resetContract = async () => {
         if (!aliceWallet) {
             throw new Error('Alice wallet not configured');
@@ -368,6 +430,8 @@ export function useMillionaireContract() {
         getAliceComparisonResult,
         getBobComparisonResult,
         checkWealthStatus,
+        getEncryptedAliceWealth,
+        getEncryptedBobWealth,
         resetContract,
         contractAddress,
         aliceWallet,

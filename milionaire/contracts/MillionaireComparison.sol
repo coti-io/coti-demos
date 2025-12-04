@@ -176,6 +176,24 @@ contract MillionaireComparison {
     }
 
     /**
+     * @notice Returns Alice's stored encrypted wealth value
+     * @return The encrypted wealth ciphertext
+     */
+    function getAliceWealth() public view returns (ctUint64) {
+        require(_aliceSet, "Alice's wealth not set yet");
+        return _aliceWealth.ciphertext;
+    }
+
+    /**
+     * @notice Returns Bob's stored encrypted wealth value
+     * @return The encrypted wealth ciphertext
+     */
+    function getBobWealth() public view returns (ctUint64) {
+        require(_bobSet, "Bob's wealth not set yet");
+        return _bobWealth.ciphertext;
+    }
+
+    /**
      * @notice Reset the contract state (for testing purposes)
      * @dev Can only be called by Alice (contract initiator)
      */

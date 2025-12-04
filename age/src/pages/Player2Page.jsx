@@ -27,10 +27,10 @@ const PageTitle = styled.h1`
 `;
 
 const ContractDetail = styled.p`
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 1rem 0;
   font-size: 1.1rem;
   color: ${props => props.theme.colors.text.default} !important;
-  line-height: 1.6;
+  line-height: 1.8;
 
   &:last-child {
     margin-bottom: 0;
@@ -222,7 +222,7 @@ function Player2Page() {
         <Card $maxWidth="600px">
           <PageTitle>Age Guessing Game - Player</PageTitle>
 
-          <InfoBox>
+          <InfoBox style={{ marginTop: '2.5rem' }}>
             <InfoTitle>Guessing implemented by Encrypted Data Computing by COTI MPC</InfoTitle>
             {connectionStatus && (
               <InfoText style={{ marginBottom: '1rem' }}>{connectionStatus}</InfoText>
@@ -248,7 +248,7 @@ function Player2Page() {
             </ContractDetail>
           </InfoBox>
 
-          <FormGroup>
+          <FormGroup style={{ marginTop: '2.5rem' }}>
             <FormLabel>Enter Age to Compare:</FormLabel>
             <FormInput
               type="number"
@@ -260,7 +260,7 @@ function Player2Page() {
             />
           </FormGroup>
 
-          <ButtonGroup>
+          <ButtonGroup style={{ marginTop: '2rem' }}>
             <ButtonAction
               text={loading ? 'Comparing...' : 'OLDER?'}
               onClick={() => handleCompareDate('greater')}
@@ -277,7 +277,7 @@ function Player2Page() {
           </ButtonGroup>
 
           {compareStatus && (
-            <StatusMessage $variant={compareStatusVariant}>
+            <StatusMessage $variant={compareStatusVariant} style={{ marginTop: '2rem' }}>
               {compareStatus}
             </StatusMessage>
           )}
@@ -325,6 +325,7 @@ function Player2Page() {
           )}
 
           <Button
+            style={{ marginTop: '3rem' }}
             text="← Back to Home"
             onClick={() => navigate('/')}
             fullWidth
