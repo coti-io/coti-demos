@@ -626,7 +626,7 @@ function MultiBidderPage() {
                             errorMsg += '✅ Try:\n';
                             errorMsg += '• Check the auction status above\n';
                             errorMsg += '• Try clicking "Withdraw" first, then bid again\n';
-                            errorMsg += '• If issues persist, ask admin to redeploy the contract';
+                            errorMsg += '• If issues persist, ask admin to start a new auction';
                         }
 
                         throw new Error(errorMsg);
@@ -944,7 +944,7 @@ function MultiBidderPage() {
     const handleRedeploy = async () => {
         // Confirmation dialog
         const confirmRedeploy = window.confirm(
-            '⚠️ Redeploy Contract?\n\n' +
+            '⚠️ Start New Auction?\n\n' +
             'This will deploy new contracts and reset all bids.\n\n' +
             `Auction Duration: ${auctionDurationMinutes} minutes\n\n` +
             'All bidders will need to place their bids again.\n\n' +
@@ -1067,12 +1067,15 @@ function MultiBidderPage() {
                         <BiddersContainer>
                             {bidders.map(bidder => {
                                 const isAuctionInactive = !auctionInfo?.isActive;
-                                const auctionStatus = isAuctionInactive ? 'Ended' : '';
+                                const isObjectClaimed = winnerInfo.objectClaimed || winnerInfo.address !== null;
+                                const statusMessage = isObjectClaimed ? 'Object Claimed 🏆' : 'Ended';
                                 const isDisabled = isAuctionInactive || bidderStates[bidder.name]?.loading;
 
                                 return (
                                     <BidderSection
                                         key={bidder.name}
+                                        $disabled={isObjectClaimed}
+                                        $status={statusMessage}
                                     >
                                         <BidderName>{bidder.name}</BidderName>
 
@@ -1083,7 +1086,7 @@ function MultiBidderPage() {
                                             </InfoRow>
                                             <InfoRow>
                                                 <InfoLabel>Token Balance:</InfoLabel>
-                                                <InfoValue>{bidderStates[bidder.name]?.tokenBalance || '0'} MTK</InfoValue>
+                                                <InfoValue>{bidderStates[bidder.name]?.tokenBalance || '0'} TPS02</InfoValue>
                                             </InfoRow>
                                             <InfoRow>
                                                 <InfoLabel>Total Bids:</InfoLabel>
@@ -1118,7 +1121,7 @@ function MultiBidderPage() {
                                             </SmallButton>
                                             <SmallButton
                                                 onClick={() => handleClaim(bidder.name)}
-                                                disabled={!isAuctionInactive || bidderStates[bidder.name]?.loading}
+                                                disabled={!isAuctionInactive || bidderStates[bidder.name]?.loading || isObjectClaimed}
                                             >
                                                 Claim
                                             </SmallButton>
@@ -1162,7 +1165,7 @@ function MultiBidderPage() {
 
                         {hasWarnedAboutWinner && (
                             <StatusMessage $variant="error">
-                                ⚠️ This contract was deployed before winner tracking was added. Please redeploy to enable proper winner display.
+                                ⚠️ This contract was deployed before winner tracking was added. Please start a new auction to enable proper winner display.
                             </StatusMessage>
                         )}
 
@@ -1285,7 +1288,7 @@ function MultiBidderPage() {
 
                         <ActionGroup>
                             <ButtonAction
-                                text="Redeploy Contract"
+                                text="Start New Auction"
                                 onClick={handleRedeploy}
                                 disabled={adminLoading}
                                 fullWidth
