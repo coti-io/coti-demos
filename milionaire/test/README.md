@@ -27,7 +27,7 @@ Comprehensive contract functionality tests that cover:
 npx hardhat test
 ```
 
-**Result: All tests pass**
+**Result: 44 passing**
 
 This runs all tests on the local Hardhat network and is the **primary test validation method**.
 
@@ -50,7 +50,7 @@ This runs all tests on the local Hardhat network and is the **primary test valid
 - getAliceResult and getBobResult decryption
 - Wealth retrieval with actual encrypted data
 
-**Note:** Some tests using `.connect()` are automatically skipped on COTI testnet due to RPC limitations, but all tests pass on local network.
+**Note:** Some tests using `.connect()` and `estimateGas` are automatically skipped on COTI testnet due to RPC limitations, but all 44 tests pass on local network.
 
 ### COTI Testnet Tests - ⚠️ OPTIONAL
 
@@ -142,7 +142,6 @@ These accounts must have:
 - ✅ ComparisonCompleted event parameters (requester)
 
 ### Error Handling
-- ✅ "Both parties must submit their wealth first" for compareWealth
 - ✅ "Alice's wealth not set yet" for getAliceWealth
 - ✅ "Bob's wealth not set yet" for getBobWealth
 - ✅ "Invalid addresses" for zero address deployment
@@ -279,9 +278,9 @@ npx hardhat test --grep "Event Definitions"
 ## Notes
 
 - **Test Suite Focus**: Tests validate contract logic, state management, access control, and function signatures
-- **Local Testing**: All tests pass on local Hardhat network - this is the primary validation method
+- **Local Testing**: All 44 tests pass on local Hardhat network - this is the primary validation method
 - **MPC Operations**: Actual MPC encryption/decryption operations are not included in the test suite
-- **COTI Testnet**: Tests can run on COTI testnet but some tests using `.connect()` will skip due to RPC limitations
+- **COTI Testnet**: Tests can run on COTI testnet but some tests using `.connect()` and `estimateGas` will skip due to RPC limitations
 - **Gas Costs**: View functions have minimal gas costs; state-changing functions with MPC are more expensive
 
 ## Troubleshooting

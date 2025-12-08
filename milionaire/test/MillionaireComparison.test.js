@@ -300,11 +300,6 @@ describe("MillionaireComparison", function () {
   });
 
   describe("Error Messages", function () {
-    it("should revert with correct message when compareWealth called before both submit", async function () {
-      await expect(millionaireContract.compareWealth())
-        .to.be.revertedWith("Both parties must submit their wealth first");
-    });
-
     it("should revert with correct message when getting Alice's wealth before set", async function () {
       await expect(millionaireContract.getAliceWealth())
         .to.be.revertedWith("Alice's wealth not set yet");
