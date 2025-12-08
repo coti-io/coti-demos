@@ -61,17 +61,19 @@ The test suite is designed to run primarily on local Hardhat network. If you wan
    # COTI Testnet RPC URL
    VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
 
-   # Alice Account (first party)
+   # Alice Account (first party) - REQUIRED for testnet tests
    VITE_ALICE_PK=your_alice_private_key_here
    VITE_ALICE_AES_KEY=your_alice_aes_key_here
 
-   # Bob Account (second party)
+   # Bob Account (second party) - REQUIRED for testnet tests
    VITE_BOB_PK=your_bob_private_key_here
    VITE_BOB_AES_KEY=your_bob_aes_key_here
 
-   # Deployer Account (for contract deployment)
+   # Deployer Account (for contract deployment) - OPTIONAL for tests
    DEPLOYER_PRIVATE_KEY=your_deployer_private_key_here
    ```
+
+   **Important**: The test suite requires at least `VITE_ALICE_PK` and `VITE_BOB_PK` to be configured in your `.env` file when running on COTI testnet. These are used to get signers for the Alice and Bob roles in the contract.
 
 2. **Deploy the contract to COTI testnet**:
    ```bash

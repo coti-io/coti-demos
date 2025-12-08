@@ -20,7 +20,11 @@ export default {
         cotiTestnet: {
             url: process.env.VITE_APP_NODE_HTTPS_ADDRESS || "https://testnet.coti.io/rpc",
             chainId: 7082400,
-            accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
+            accounts: [
+                process.env.VITE_ALICE_PK,
+                process.env.VITE_BOB_PK,
+                process.env.DEPLOYER_PRIVATE_KEY
+            ].filter(Boolean), // Filter out undefined values
             timeout: 60000,
             gas: 3000000,
             gasPrice: 10000000000 // 10 gwei
