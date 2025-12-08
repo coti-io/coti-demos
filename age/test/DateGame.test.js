@@ -66,31 +66,10 @@ describe("DateGame", function () {
     });
   });
 
-  describe("Age Storage - Non-MPC Tests", function () {
+  describe("Age Storage", function () {
     it("should revert getAge when no age is set", async function () {
       await expect(dateGameContract.getAge())
         .to.be.revertedWith("No age has been stored yet");
-    });
-
-    it("should revert greaterThan comparison when no age is set", async function () {
-      if (!isCotiNetwork) {
-        this.skip(); // Skip on local network - requires MPC
-      }
-      // This test requires COTI testnet with proper MPC encryption
-    });
-
-    it("should revert lessThan comparison when no age is set", async function () {
-      if (!isCotiNetwork) {
-        this.skip(); // Skip on local network - requires MPC
-      }
-      // This test requires COTI testnet with proper MPC encryption
-    });
-
-    it("should emit AgeStored event when age is set", async function () {
-      if (!isCotiNetwork) {
-        this.skip(); // Skip on local network - requires MPC
-      }
-      // This test requires COTI testnet with proper MPC encryption
     });
   });
 
@@ -118,20 +97,6 @@ describe("DateGame", function () {
   });
 
   describe("Access Control", function () {
-    it("should allow any address to call setAge", async function () {
-      if (!isCotiNetwork) {
-        this.skip(); // Skip on local network - requires MPC
-      }
-      // This test requires COTI testnet with proper MPC encryption
-    });
-
-    it("should allow any address to call comparison functions", async function () {
-      if (!isCotiNetwork) {
-        this.skip(); // Skip on local network - requires MPC
-      }
-      // This test requires COTI testnet with proper MPC encryption
-    });
-
     it("should allow any address to view comparison result", async function () {
       if (isCotiNetwork) {
         this.skip(); // .connect() has issues on COTI testnet
@@ -215,20 +180,6 @@ describe("DateGame", function () {
   });
 
   describe("Error Messages", function () {
-    it("should revert with correct message when age not set for greaterThan", async function () {
-      if (!isCotiNetwork) {
-        this.skip(); // Skip on local network - requires MPC
-      }
-      // This test requires COTI testnet with proper MPC encryption
-    });
-
-    it("should revert with correct message when age not set for lessThan", async function () {
-      if (!isCotiNetwork) {
-        this.skip(); // Skip on local network - requires MPC
-      }
-      // This test requires COTI testnet with proper MPC encryption
-    });
-
     it("should revert with correct message when age not set for getAge", async function () {
       await expect(dateGameContract.getAge())
         .to.be.revertedWith("No age has been stored yet");
@@ -248,13 +199,6 @@ describe("DateGame", function () {
 
       // All should return false initially
       expect(checks.every(check => check === false)).to.be.true;
-    });
-
-    it("should allow different users to attempt comparisons", async function () {
-      if (!isCotiNetwork) {
-        this.skip(); // Skip on local network - requires MPC
-      }
-      // This test requires COTI testnet with proper MPC encryption
     });
   });
 

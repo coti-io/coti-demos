@@ -26,11 +26,11 @@ Comprehensive contract functionality tests that cover:
 npx hardhat test
 ```
 
-**Result: 26 passing, 8 pending (skipped)**
+**Result: 26 passing**
 
-This runs all tests on the local Hardhat network and is the **primary test validation method**. MPC-dependent tests are automatically skipped on local network.
+This runs all tests on the local Hardhat network and is the **primary test validation method**.
 
-**What works on local network:**
+**What is tested:**
 - ✅ State management tests (isAgeSet)
 - ✅ Access control verification
 - ✅ Function signature validation
@@ -40,19 +40,17 @@ This runs all tests on the local Hardhat network and is the **primary test valid
 - ✅ Gas estimation
 - ✅ Multiple user scenarios
 
-**What requires COTI testnet (8 tests skipped):**
+**What would require COTI testnet (not included in test suite):**
 - Actual MPC encryption/decryption operations
 - setAge with real encrypted data
 - greaterThan/lessThan comparisons with encrypted values
 - comparisonResult decryption
 
-### COTI Testnet Tests - ⚠️ MAY FAIL DUE TO NETWORK INSTABILITY
+**Note:** Some tests using `.connect()` are automatically skipped on COTI testnet due to RPC limitations, but all 26 tests pass on local network.
 
-**WARNING: COTI testnet is frequently unstable and tests may fail with "pending block" errors even though the test code is correct. This is a known infrastructure issue also affecting the vote project tests.**
+### COTI Testnet Tests - ⚠️ OPTIONAL
 
-### COTI Testnet Integration Tests
-
-To run tests with actual MPC operations on COTI testnet:
+The test suite is designed to run primarily on local Hardhat network. If you want to run tests on COTI testnet to verify deployment and basic contract functionality:
 
 1. **Set up environment variables** in `.env`:
    ```bash
@@ -231,31 +229,19 @@ npx hardhat test --grep "State Management"
 
 ## Notes
 
-- **MPC Operations**: MPC-dependent tests require the COTI testnet (chainId: 7082400)
-- **Local Testing**: Local tests validate contract logic, state management, and access control
-- **Encryption**: Actual encryption/decryption only works on COTI testnet with proper MPC infrastructure
-- **Test Detection**: Tests are designed to work on both local and testnet environments
+- **Test Suite Focus**: Tests validate contract logic, state management, access control, and function signatures
+- **Local Testing**: All 26 tests pass on local Hardhat network - this is the primary validation method
+- **MPC Operations**: Actual MPC encryption/decryption operations are not included in the test suite
+- **COTI Testnet**: Tests can run on COTI testnet but some tests using `.connect()` will skip due to RPC limitations
 - **Gas Costs**: View functions have minimal gas costs; state-changing functions with MPC are more expensive
 
 ## Troubleshooting
-
-### Tests Fail on Local Network
-
-This is expected for MPC operations. The tests are designed to:
-- Pass state management and structure tests on local network
-- Require COTI testnet for full MPC functionality
 
 ### "No age has been stored yet" Errors
 
 This is the correct behavior when:
 - Trying to call getAge() before setAge()
 - Trying to call greaterThan() or lessThan() before setAge()
-
-### MPC Validation Errors
-
-On local network, MPC validation will fail because:
-- Local Hardhat network doesn't have COTI's MPC precompiles
-- Use COTI testnet for full MPC testing
 
 ### "Pending Block is Not Available" Errors on COTI Testnet
 
