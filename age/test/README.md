@@ -249,6 +249,23 @@ On local network, MPC validation will fail because:
 - Local Hardhat network doesn't have COTI's MPC precompiles
 - Use COTI testnet for full MPC testing
 
+### "Pending Block is Not Available" Errors on COTI Testnet
+
+This is a known COTI testnet network instability issue. The tests include retry logic to handle this:
+
+**Symptoms:**
+- Contract deployment fails with "pending block is not available"
+- Tests fail in the `beforeEach` hook
+- Error occurs during `estimateGas` or `waitForDeployment`
+
+**Solutions:**
+1. The tests automatically retry deployment up to 3 times with 2-second delays
+2. If all retries fail, try running the tests again after a few minutes
+3. Check COTI testnet status and network connectivity
+4. Ensure you have sufficient testnet ETH for gas fees
+
+**Note:** This is a network-level issue, not a problem with the tests or contract code. The vote project tests document similar issues.
+
 ## Test Structure
 
 The test suite follows the pattern used in the voting contract tests:

@@ -5,6 +5,24 @@ const { ethers } = hre;
 // Import hardhat chai matchers
 import "@nomicfoundation/hardhat-chai-matchers";
 
+// Helper function to deploy with retry logic for COTI testnet instability
+async function deployWithRetry(maxRetries = 3, delayMs = 2000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const DateGame = await ethers.getContractFactory("DateGame");
+      const contract = await DateGame.deploy();
+      await contract.waitForDeployment();
+      return contract;
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      console.log(`Deployment attempt ${attempt} failed, retrying in ${delayMs}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
 describe("DateGame", function () {
   let dateGameContract;
   let owner;
@@ -13,12 +31,14 @@ describe("DateGame", function () {
   let player3;
   let isCotiNetwork;
 
+  // Increase timeout for COTI testnet
+  this.timeout(60000);
+
   beforeEach(async function () {
     [owner, player1, player2, player3] = await ethers.getSigners();
 
-    const DateGame = await ethers.getContractFactory("DateGame");
-    dateGameContract = await DateGame.deploy();
-    await dateGameContract.waitForDeployment();
+    // Deploy with retry logic
+    dateGameContract = await deployWithRetry();
 
     // Check if we're on COTI network (chainId: 7082400)
     const network = await ethers.provider.getNetwork();
