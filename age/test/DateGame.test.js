@@ -34,10 +34,11 @@ describe("DateGame", function () {
   // Increase timeout for COTI testnet
   this.timeout(60000);
 
-  beforeEach(async function () {
+  // Deploy ONCE before all tests (not before each!)
+  before(async function () {
     [owner, player1, player2, player3] = await ethers.getSigners();
 
-    // Deploy with retry logic
+    // Deploy with retry logic - only once for all tests
     dateGameContract = await deployWithRetry();
 
     // Check if we're on COTI network (chainId: 7082400)
