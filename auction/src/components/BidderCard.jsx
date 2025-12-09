@@ -183,18 +183,6 @@ export const BidderCard = ({
                         >
                             {loading ? 'Processing...' : 'Place'}
                         </SmallButton>
-                        <SmallButton
-                            onClick={onWithdraw}
-                            disabled={loading}
-                        >
-                            Withdraw
-                        </SmallButton>
-                        <SmallButton
-                            onClick={onCheckBid}
-                            disabled={loading}
-                        >
-                            Check
-                        </SmallButton>
                     </SmallButtonGroup>
 
                     {transactions.length > 0 && (
