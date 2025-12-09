@@ -213,6 +213,9 @@ export default function VotingApp() {
         title: "Vote Cast Successfully!",
         description: `Transaction: ${result.receipt.hash.slice(0, 10)}...${result.receipt.hash.slice(-8)}`,
       });
+
+      // Automatically fetch blockchain data after successful vote
+      await handleFetchBlockchainData(currentVoterId, currentVoterName);
     } catch (error) {
       console.error("Error casting vote:", error);
       toast({
