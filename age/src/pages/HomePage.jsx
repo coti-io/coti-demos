@@ -59,6 +59,21 @@ const ContractDetail = styled.p`
   }
 `;
 
+const VideoContainer = styled.div`
+  margin-top: 2rem;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid ${props => props.theme.colors.primary.default};
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+`;
+
 function HomePage() {
   const navigate = useNavigate()
   const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS || '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'
@@ -123,6 +138,15 @@ function HomePage() {
               onClick={() => navigate('/player')}
             />
           </ButtonGroup>
+
+          <VideoContainer>
+            <iframe
+              src="https://www.youtube.com/embed/lcWQ8e6zQdM"
+              title="Age Guessing Game Demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </VideoContainer>
         </Card>
       </CardsContainer>
     </AppContainer>
