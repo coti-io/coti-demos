@@ -32,72 +32,64 @@ Basic compatibility test file (2 tests) for initial contract validation.
 
 ## Running Tests
 
-### Local Tests (Hardhat Network) - ✅ RECOMMENDED
+### COTI Testnet Tests - ✅ PRIMARY TEST METHOD
+
+**Important**: PrivateAuction contract **requires COTI testnet** for testing because its constructor uses MPC operations (`MpcCore.offBoard`, `MpcCore.setPublic`) that require COTI's MPC precompiles. These are only available on COTI testnet, not local Hardhat network.
 
 ```bash
-npx hardhat test
+npx hardhat test --network cotiTestnet
 ```
 
-**Result:** Comprehensive test suite has extensive coverage
+**Result:** Full test suite runs on COTI testnet
 
-This runs all tests on the local Hardhat network and is the **primary test validation method**.
+This runs all tests on COTI testnet and is the **primary test validation method** for this project.
 
-**What is tested (PrivateAuction):**
-- ✅ Contract initialization (beneficiary, token, owner, bid counter, winner, etc.)
-- ✅ State management tests (bid counter, winner, token transferred)
-- ✅ Access control verification for all functions
-- ✅ Function signature validation (14 functions)
-- ✅ Event definitions (Winner, HighestBid)
-- ✅ Custom error definitions (TooEarly, TooLate)
-- ✅ View function behavior
-- ✅ Edge case scenarios
-- ✅ Contract deployment tests
-- ✅ Gas estimation
-
-**What is tested (MyToken):**
-- ✅ Token initialization (name, symbol)
-- ✅ Function signatures (mint, getMyBalance, name, symbol)
-- ✅ View function behavior
-- ✅ Contract deployment
-- ✅ Gas estimation
-
-**What would require COTI testnet (not included in test suite):**
-- Actual MPC encryption/decryption operations
-- bid() with real encrypted bid amounts
-- getBid() with actual encrypted data
-- doIHaveHighestBid() with encrypted comparison
-- claim() and withdraw() with encrypted balance transfers
-- Token mint() with real encrypted amounts
-- Token getMyBalance() with actual encrypted balances
-
-**Note:** Some tests using `.connect()` and `estimateGas` are automatically skipped on COTI testnet due to RPC limitations, but all tests pass on local network.
-
-### COTI Testnet Tests - ⚠️ OPTIONAL
-
-The test suite is designed to run primarily on local Hardhat network. If you want to run tests on COTI testnet to verify deployment and basic contract functionality:
+**Setup:**
 
 1. **Set up environment variables** in `.env`:
    ```bash
-   # COTI Testnet RPC URL
+   # COTI Testnet RPC URL - REQUIRED
    VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
 
-   # Bidder Accounts - REQUIRED for testnet tests
+   # Bidder Account - REQUIRED for testnet tests
    VITE_BIDDER_PK=your_bidder_private_key_here
    VITE_BIDDER_AES_KEY=your_bidder_aes_key_here
 
-   # Deployer Account (for contract deployment)
+   # Deployer Account (optional, for contract deployment)
    DEPLOYER_PRIVATE_KEY=your_deployer_private_key_here
    ```
 
-2. **Deploy the contracts to COTI testnet**:
-   ```bash
-   npm run deploy:coti
-   ```
+   **Important**: At minimum, `VITE_BIDDER_PK` must be configured for tests to run on COTI testnet.
+
+2. **Ensure you have COTI testnet ETH** for gas fees in the bidder wallet
 
 3. **Run tests on COTI testnet**:
    ```bash
    npx hardhat test --network cotiTestnet
    ```
+
+**What is tested:**
+- ✅ **PrivateAuction** (56 tests): Contract initialization, state management, access control, function signatures, events, custom errors, view functions, edge cases, deployment, gas estimation
+- ✅ **MyToken** (11 tests): Token initialization, function signatures, view functions, deployment, gas estimation
+
+**Test Results on COTI Testnet:**
+- Some tests using `.connect()` and `estimateGas` will skip due to COTI RPC limitations
+- Expected: ~45-55 passing, ~10-20 pending (skipped)
+
+### Local Tests (Hardhat Network) - MyToken Only
+
+```bash
+npx hardhat test
+```
+
+**Result: 11 passing (MyToken only)**
+
+Only MyToken tests run on local Hardhat network because:
+- ✅ MyToken constructor does NOT use MPC operations
+- ❌ PrivateAuction constructor DOES use MPC operations (requires COTI testnet)
+
+**Local test coverage:**
+- ✅ MyToken: name, symbol, mint signature, getMyBalance signature, view functions, deployment, gas estimation
 
 ## Test Accounts
 
@@ -360,11 +352,12 @@ npx hardhat test --grep "Function Signatures"
 ## Notes
 
 - **Test Suite Focus**: Tests validate contract logic, state management, access control, and function signatures
-- **Local Testing**: All tests pass on local Hardhat network - this is the primary validation method
-- **MPC Operations**: Actual MPC encryption/decryption operations are not included in the test suite
-- **COTI Testnet**: Tests can run on COTI testnet but some tests using `.connect()` and `estimateGas` will skip due to RPC limitations
+- **Primary Test Method**: COTI testnet testing is the primary validation method (67 total tests)
+- **PrivateAuction Requirements**: MUST be tested on COTI testnet - constructor uses MPC operations
+- **Local Testing**: Only MyToken tests (11 passing) run on local Hardhat network
+- **COTI Testnet**: Full test suite runs on COTI testnet, some tests using `.connect()` and `estimateGas` skip due to RPC limitations
 - **Gas Costs**: View functions have minimal gas costs; state-changing functions with MPC are more expensive
-- **Two Contracts**: Test suite covers both PrivateAuction and MyToken contracts
+- **Two Contracts**: Test suite covers both PrivateAuction (56 tests) and MyToken (11 tests)
 
 ## Troubleshooting
 
