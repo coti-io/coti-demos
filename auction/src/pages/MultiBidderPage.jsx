@@ -1318,7 +1318,7 @@ const InfoRow = styled.div`
 
 const InfoLabel = styled.span`
   color: ${props => props.theme.colors.text.muted};
-  font-size: 1.2rem;
+  font-size: 0.875rem;
   font-weight: 500;
 `;
 
@@ -1326,7 +1326,7 @@ const InfoValue = styled.span`
   color: ${props => props.$active !== undefined
         ? (props.$active ? props.theme.colors.success : props.theme.colors.error)
         : props.theme.colors.text.default};
-  font-size: 1.2rem;
+  font-size: 0.875rem;
   font-weight: 600;
   font-family: 'Courier New', monospace;
   word-break: break-all;
@@ -1355,7 +1355,7 @@ const ConfigSection = styled.div`
 
 const ConfigTitle = styled.h3`
   color: ${props => props.theme.colors.text.default};
-  font-size: 1.3rem;
+  font-size: 1rem;
   font-weight: 600;
   margin: 0 0 1rem 0;
 `;
@@ -1375,7 +1375,7 @@ const ConfigRow = styled.div`
 
 const ConfigLabel = styled.span`
   color: ${props => props.theme.colors.text.muted};
-  font-size: 1.1rem;
+  font-size: 0.875rem;
   font-weight: 500;
 `;
 
@@ -1389,8 +1389,8 @@ const DurationInput = styled.input`
   background-color: ${props => props.theme.colors.background.default};
   border: 2px solid ${props => props.theme.colors.secondary.default20};
   border-radius: 8px;
-  padding: 0.75rem 1rem;
-  font-size: 1.1rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: ${props => props.theme.colors.text.default};
   width: 100px;
@@ -1410,13 +1410,13 @@ const DurationInput = styled.input`
 
 const DurationUnit = styled.span`
   color: ${props => props.theme.colors.text.muted};
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
 `;
 
 const ConfigHelp = styled.div`
   color: ${props => props.theme.colors.text.muted};
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-style: italic;
   margin-top: 0.5rem;
 `;
