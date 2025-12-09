@@ -23,7 +23,7 @@ const InfoRow = styled.div`
 
 const InfoLabel = styled.span`
   color: ${props => props.theme.colors.text.muted};
-  font-size: 1.2rem;
+  font-size: 0.875rem;
   font-weight: 500;
 `;
 
@@ -31,7 +31,7 @@ const InfoValue = styled.span`
   color: ${props => props.$active !== undefined
         ? (props.$active ? props.theme.colors.success : props.theme.colors.error)
         : props.theme.colors.text.default};
-  font-size: 1.2rem;
+  font-size: 0.875rem;
   font-weight: 600;
   font-family: 'Courier New', monospace;
 `;
@@ -40,9 +40,9 @@ const SmallButton = styled.button`
   background-color: #1E29F6;
   border: none;
   border-radius: 8px;
-  padding: 0.6rem 1.2rem;
+  padding: 0.5rem 1rem;
   font-family: ${({ theme }) => theme.fonts.default};
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #FFFFFF;
   cursor: pointer;
@@ -89,7 +89,7 @@ const TransactionDivider = styled.div`
 
 const TransactionTitle = styled.div`
   color: ${props => props.theme.colors.text.default};
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
   padding-top: 0.5rem;
@@ -115,13 +115,13 @@ const TransactionItem = styled.div`
 
 const TransactionType = styled.div`
   color: ${props => props.theme.colors.text.default};
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
 `;
 
 const TransactionLink = styled.a`
   color: ${props => props.theme.colors.primary.default};
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-family: 'Courier New', monospace;
   text-decoration: none;
   transition: opacity 0.2s ease;
@@ -134,7 +134,7 @@ const TransactionLink = styled.a`
 
 const TransactionTime = styled.div`
   color: ${props => props.theme.colors.text.muted};
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-style: italic;
 `;
 
