@@ -198,11 +198,11 @@ export default function VotingApp() {
       const result = await castVote(currentVoterName, voteValue);
 
       // Update local state
-      setVoters(voters.map(voter => 
-        voter.id === currentVoterId 
-          ? { 
-              ...voter, 
-              hasVoted: true, 
+      setVoters(prevVoters => prevVoters.map(voter =>
+        voter.id === currentVoterId
+          ? {
+              ...voter,
+              hasVoted: true,
               transactionHash: result.receipt.hash,
               encryptedVote: result.encryptedVote
             }
@@ -244,7 +244,7 @@ export default function VotingApp() {
       console.log('=== Blockchain data received ===', blockchainData);
 
       // Update voter state with blockchain data
-      setVoters(voters.map(voter =>
+      setVoters(prevVoters => prevVoters.map(voter =>
         voter.id === voterId
           ? {
               ...voter,
