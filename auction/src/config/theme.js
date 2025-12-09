@@ -12,12 +12,12 @@ const theme = {
         code: 'ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro", "Fira Mono", "Droid Sans Mono", "Courier New", monospace',
     },
     fontSizes: {
-        heading: '2rem',
-        mobileHeading: '1.5rem',
-        title: '1.25rem',
-        large: '1.125rem',
-        text: '1rem',
-        small: '0.875rem',
+        heading: '1.75rem',
+        mobileHeading: '1.25rem',
+        title: '1.125rem',
+        large: '1rem',
+        text: '0.875rem',
+        small: '0.75rem',
     },
     lineHeights: {
         heading: '1.2',
@@ -140,13 +140,13 @@ export const GlobalStyle = createGlobalStyle`
     background: transparent;
     color: ${(props) => props.theme.colors.text.default};
     font-family: ${(props) => props.theme.fonts.default};
-    font-size: 16px;
+    font-size: 14px;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
 
     ${(props) => props.theme.mediaQueries.small} {
-      font-size: 14px;
+      font-size: 12px;
     }
   }
 
