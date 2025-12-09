@@ -78,13 +78,20 @@ export default function SplashScreen({ onClose }: SplashScreenProps) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', paddingTop: '1rem' }}>
             <button
               onClick={onClose}
               className="btn btn-primary"
               style={{ padding: '0.75rem 3rem', fontSize: '1rem' }}
             >
-              OK
+              Start Voting
+            </button>
+            <button
+              onClick={() => window.open('https://www.youtube.com/watch?v=_RKEkR1KUOA', '_blank')}
+              className="btn btn-primary"
+              style={{ padding: '0.75rem 3rem', fontSize: '1rem' }}
+            >
+              View YouTube Demo
             </button>
           </div>
         </div>
