@@ -130,26 +130,6 @@ export default function VoterCard({ name, voterId, hasVoted, transactionHash, en
             <Check style={{ width: '1rem', height: '1rem' }} />
             Voted
           </button>
-          {onFetchBlockchainData && (
-            <button
-              onClick={onFetchBlockchainData}
-              disabled={isFetchingBlockchainData}
-              className="btn btn-secondary"
-              style={{
-                background: isFetchingBlockchainData ? '#6c757d' : '#007bff',
-                color: 'white',
-                padding: '0.5rem 1rem',
-                fontSize: '0.75rem',
-                whiteSpace: 'nowrap',
-                width: 'auto',
-                opacity: isFetchingBlockchainData ? 0.7 : 1,
-                cursor: isFetchingBlockchainData ? 'not-allowed' : 'pointer'
-              }}
-              data-testid={`button-fetch-blockchain-${voterId}`}
-            >
-              {isFetchingBlockchainData ? 'Fetching...' : '📦 Fetch from Chain'}
-            </button>
-          )}
         </div>
       ) : (
         <button
