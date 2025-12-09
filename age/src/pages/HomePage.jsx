@@ -59,20 +59,6 @@ const ContractDetail = styled.p`
   }
 `;
 
-const VideoContainer = styled.div`
-  margin-top: 2rem;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid ${props => props.theme.colors.primary.default};
-
-  iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
-`;
 
 function HomePage() {
   const navigate = useNavigate()
@@ -137,16 +123,11 @@ function HomePage() {
               text="Start as Player →"
               onClick={() => navigate('/player')}
             />
-          </ButtonGroup>
-
-          <VideoContainer>
-            <iframe
-              src="https://www.youtube.com/embed/lcWQ8e6zQdM"
-              title="Age Guessing Game Demo"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
+            <ButtonAction
+              text="View YouTube Demo"
+              onClick={() => window.open('https://www.youtube.com/watch?v=lcWQ8e6zQdM', '_blank')}
             />
-          </VideoContainer>
+          </ButtonGroup>
         </Card>
       </CardsContainer>
     </AppContainer>
