@@ -102,7 +102,6 @@ function Player1Page() {
   const [storeStatus, setStoreStatus] = useState('')
   const [storeStatusVariant, setStoreStatusVariant] = useState('info')
   const [encryptedAge, setEncryptedAge] = useState(null)
-  const [fetchingAge, setFetchingAge] = useState(false)
 
   useEffect(() => {
     checkContractConnection()
@@ -128,7 +127,6 @@ function Player1Page() {
   }
 
   const handleFetchAge = async () => {
-    setFetchingAge(true)
     try {
       const encryptedCiphertext = await getEncryptedAge()
       if (encryptedCiphertext === null) {
@@ -139,8 +137,6 @@ function Player1Page() {
     } catch (error) {
       console.error('Error fetching age:', error)
       setEncryptedAge('Error: ' + error.message)
-    } finally {
-      setFetchingAge(false)
     }
   }
 
@@ -187,6 +183,9 @@ function Player1Page() {
         </ResultBox>
       )
       setStoreStatusVariant('success')
+
+      // Automatically fetch the age after successful storage
+      await handleFetchAge()
 
     } catch (error) {
       console.error('Error storing birth date:', error)
@@ -243,11 +242,6 @@ function Player1Page() {
               text={loading ? 'Storing...' : 'Store Age'}
               onClick={handleStoreDate}
               disabled={loading}
-            />
-            <ButtonAction
-              text={fetchingAge ? 'Fetching...' : 'Fetch Age'}
-              onClick={handleFetchAge}
-              disabled={fetchingAge}
             />
             <ButtonAction
               text="Back"
