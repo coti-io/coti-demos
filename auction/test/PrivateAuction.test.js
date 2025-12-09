@@ -1,5 +1,6 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import hre from "hardhat";
+const { ethers } = hre;
 
 describe("PrivateAuction", function () {
     let PrivateAuction;
@@ -10,11 +11,13 @@ describe("PrivateAuction", function () {
     let addr1;
     let addr2;
 
-    beforeEach(async function () {
+    before(async function () {
         [owner, addr1, addr2] = await ethers.getSigners();
 
         MyToken = await ethers.getContractFactory("MyToken");
-        token = await MyToken.deploy();
+        token = await MyToken.deploy({
+            gasLimit: 5000000 // Manual gas limit
+        });
         await token.waitForDeployment();
 
         PrivateAuction = await ethers.getContractFactory("PrivateAuction");
@@ -25,7 +28,10 @@ describe("PrivateAuction", function () {
             owner.address,
             await token.getAddress(),
             biddingTime,
-            isStoppable
+            isStoppable,
+            {
+                gasLimit: 5000000 // Manual gas limit
+            }
         );
         await auction.waitForDeployment();
     });

@@ -69,12 +69,12 @@ This runs all tests on COTI testnet and is the **primary test validation method*
    ```
 
 **What is tested:**
-- ✅ **PrivateAuction** (56 tests): Contract initialization, state management, access control, function signatures, events, custom errors, view functions, edge cases, deployment, gas estimation
+- ✅ **PrivateAuction** (45 tests): Contract initialization, state management, access control, function signatures, events, custom errors, view functions, edge cases, deployment, gas estimation
 - ✅ **MyToken** (11 tests): Token initialization, function signatures, view functions, deployment, gas estimation
 
 **Test Results on COTI Testnet:**
-- Some tests using `.connect()` and `estimateGas` will skip due to COTI RPC limitations
-- Expected: ~45-55 passing, ~10-20 pending (skipped)
+- Some tests using `.connect()` and `estimateGas` skip due to COTI RPC limitations
+- Result: 54 passing, 9 pending (skipped)
 
 ### Local Tests (Hardhat Network) - MyToken Only
 
@@ -352,12 +352,12 @@ npx hardhat test --grep "Function Signatures"
 ## Notes
 
 - **Test Suite Focus**: Tests validate contract logic, state management, access control, and function signatures
-- **Primary Test Method**: COTI testnet testing is the primary validation method (67 total tests)
+- **Primary Test Method**: COTI testnet testing is the primary validation method (54 passing, 9 pending)
 - **PrivateAuction Requirements**: MUST be tested on COTI testnet - constructor uses MPC operations
 - **Local Testing**: Only MyToken tests (11 passing) run on local Hardhat network
 - **COTI Testnet**: Full test suite runs on COTI testnet, some tests using `.connect()` and `estimateGas` skip due to RPC limitations
 - **Gas Costs**: View functions have minimal gas costs; state-changing functions with MPC are more expensive
-- **Two Contracts**: Test suite covers both PrivateAuction (56 tests) and MyToken (11 tests)
+- **Two Contracts**: Test suite covers both PrivateAuction (45 passing, 7 pending) and MyToken (11 passing, 2 pending)
 
 ## Troubleshooting
 
