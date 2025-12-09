@@ -1184,7 +1184,7 @@ function MultiBidderPage() {
                                 </InfoValue>
                             </InfoRow>
                             <InfoRow>
-                                <InfoLabel>Token Contract (MTK):</InfoLabel>
+                                <InfoLabel>Token Contract (TPS02):</InfoLabel>
                                 <InfoValue>
                                     <a
                                         href={`https://testnet.cotiscan.io/address/${tokenAddress}`}
