@@ -1102,12 +1102,6 @@ function MultiBidderPage() {
                                                 Place
                                             </SmallButton>
                                             <SmallButton
-                                                onClick={() => handleGetTokens(bidder.name)}
-                                                disabled={isAuctionInactive || bidderStates[bidder.name]?.loading}
-                                            >
-                                                Get Tokens
-                                            </SmallButton>
-                                            <SmallButton
                                                 onClick={() => handleClaim(bidder.name)}
                                                 disabled={!isAuctionInactive || bidderStates[bidder.name]?.loading || isObjectClaimed}
                                             >
