@@ -1,2 +1,26 @@
+# System files
+.DS_Store
+*.log
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build artifacts
+dist/
+build/
+cache/
+artifacts/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Project specific
 coti-snap
-auction/node_modules
+coti-sandbox
+hardhat_deploy
