@@ -1,9 +1,18 @@
+[![COTI Website](https://img.shields.io/badge/COTI%20WEBSITE-4CAF50?style=for-the-badge)](https://coti.io)
+[![image](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://telegram.coti.io)
+[![image](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.coti.io)
+[![image](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://twitter.coti.io)
+[![image](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.coti.io)
+
+
+
 # Age Guessing Game - Privacy-Preserving Age Verification
 
 A decentralized application that demonstrates privacy-preserving age verification using COTI's Multi-Party Computation (MPC) technology. The game allows an admin to store their birth date (converted to age) encrypted on-chain, while players try to guess the age through encrypted comparisons without ever seeing the actual value.
 
 ## 🚀 Live Deployment
 
+- **Demo URL**: https://age.demo.coti.io
 - **Contract Address**: `0x831b9d372bB5e740c688112433609754F7e1E06c`
 - **Network**: COTI Testnet
 - **Chain ID**: 7082400
@@ -83,30 +92,30 @@ Before you begin, ensure you have the following installed:
 
 ### Option 2: Deploy Your Own Contract
 
-1. **Compile the contract**
+If you want to deploy your own version of the contract:
 
-   ```bash
-   npm run compile
-   ```
+#### 1. Configure Environment
+Ensure your `.env` file has the `DEPLOYER_PRIVATE_KEY` set.
 
-2. **Deploy to COTI Testnet**
+#### 2. Compile Contract
+```bash
+npm run compile
+```
 
-   ```bash
-   npm run deploy:coti
-   ```
+#### 3. Deploy to COTI Testnet
+This script handles the deployment process to the COTI Testnet.
+```bash
+npm run deploy:coti
+```
 
-3. **Update contract address**
-   Copy the deployed contract address and update it in your `.env` file:
-
-   ```bash
-   VITE_CONTRACT_ADDRESS=your_new_contract_address
-   ```
-
-4. **Start the application**
-
-   ```bash
-   npm run dev
-   ```
+#### 4. Update Application
+After successful deployment, the script will output the new contract address.
+1. Copy the new address.
+2. Update `VITE_CONTRACT_ADDRESS` in your `.env` file.
+3. Restart the application:
+```bash
+npm run dev
+```
 
 ## 📱 How to Use
 
@@ -357,7 +366,7 @@ The Age Guessing Game uses COTI's Multi-Party Computation (MPC) to ensure comple
 
 ⚠️ **Important**: This is a demo application. For production use:
 
-- Store private keys in secure key management systems (e.g., AWS KMS, HashiCorp Vault)
+- Store private keys in secure key management systems 
 - Use environment variables for all sensitive data
 - Never commit `.env` files to version control
 - Implement proper authentication and authorization
@@ -378,7 +387,7 @@ The Age Guessing Game uses COTI's Multi-Party Computation (MPC) to ensure comple
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## � Technology Stack
+##  Technology Stack
 
 ### Smart Contract Layer
 
@@ -387,45 +396,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Hardhat**: ^2.19.0 (development framework)
 - **Hardhat-Ethers**: ^3.0.0 (Ethers.js integration)
 
-### Backend Layer
-
-- **Node.js**: v16+
-- **Express.js**: ^4.21.2 (API server)
-- **COTI-Ethers SDK**: `@coti-io/coti-ethers` ^1.0.5 (MPC encryption/decryption)
-- **Ethers.js**: ^6.0.0 (blockchain interactions)
-- **CORS**: ^2.8.5 (cross-origin support)
-
-### Frontend Layer
+### App Layer
 
 - **React**: ^18.2.0 (UI framework)
-- **React Router DOM**: ^7.9.5 (routing)
 - **Vite**: ^4.4.0 (build tool)
-- **@vitejs/plugin-react**: ^4.0.0
-- **COTI-Ethers SDK**: `@coti-io/coti-ethers` ^1.0.5 (MPC encryption/decryption)
+- **@coti-io/coti-ethers**: ^1.0.5 (MPC encryption/decryption)
 - **Ethers.js**: ^6.0.0 (blockchain interactions)
+- **Solidity**: ^0.8.19 (Smart Contract)
+- **Hardhat**: ^2.19.0 (Development environment)
 
 ### Key Dependencies
 
 - **@coti-io/coti-contracts**: MPC operations (MpcCore, ExtendedOperations)
 - **@coti-io/coti-ethers**: Wallet encryption/decryption utilities
-
-## 🔄 Migration from Server-Side to Client-Side
-
-This app was refactored from a server-side architecture (Express.js backend) to a standalone React app with client-side MPC operations:
-
-### What Changed
-
-- **Removed**: Express.js backend server, API endpoints, `apiService.js`, `cotiUtils.js`
-- **Added**: `useAgeContract` custom React hook for direct contract interactions
-- **Updated**: All MPC operations now happen in the browser
-- **Improved**: Better separation of concerns, reduced latency, no backend dependency
-
-### Benefits
-
-- **Simpler deployment**: Single static site hosting (Vercel, Netlify, etc.)
-- **Lower latency**: Direct blockchain communication without API middleware
-- **Better scalability**: No backend server to maintain
-- **Clearer architecture**: Similar to the example voting app structure
+mple voting app structure
 
 ## 🀽� Links
 
@@ -436,14 +420,3 @@ This app was refactored from a server-side architecture (Express.js backend) to 
 - [React Documentation](https://reactjs.org/docs)
 - [Vite Documentation](https://vitejs.dev/guide/)
 
-## 📞 Support
-
-For support and questions:
-
-- Open an issue on GitHub
-- Check the COTI Discord community
-- Review the documentation links above
-
----
-
-Built with ❤️ using COTI's MPC technology for secure, private computations on blockchain.
