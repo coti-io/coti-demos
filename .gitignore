@@ -16,6 +16,8 @@ artifacts/
 .env
 .env.local
 
+# milionaire/VERIFICATION_GUIDE.md
+milionaire/VERIFICATION_GUIDE.md
 # IDE
 .vscode/
 .idea/

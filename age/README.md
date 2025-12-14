@@ -148,14 +148,14 @@ Before you begin, ensure you have the following installed:
 │  │  HomePage    │  │  Admin Page  │  │  Player Page │       │
 │  │     (/)      │  │   (/admin)   │  │  (/player)   │       │
 │  └──────────────┘  └──────────────┘  └──────────────┘       │
-│                         │                                    │
+│                         │                                   │
 │  ┌──────────────────────▼────────────────────────────────┐  │
 │  │  useAgeContract Hook (Custom React Hook)              │  │
 │  │  • Manages COTI wallets (Admin & Player)              │  │
 │  │  • Handles MPC encryption/decryption client-side      │  │
-│  │  • Birth date → Age conversion                         │  │
-│  │  • Direct smart contract interactions                  │  │
-│  └────────────────────────────────────────────────────────┘  │
+│  │  • Birth date → Age conversion                        │  │
+│  │  • Direct smart contract interactions                 │  │
+│  └───────────────────────────────────────────────────────┘  │
 └────────────────────────┬────────────────────────────────────┘
                          │ COTI-Ethers SDK
                          ▼
@@ -165,11 +165,11 @@ Before you begin, ensure you have the following installed:
 │  │   DateGame Smart Contract (Solidity)                 │   │
 │  │   Address: 0x831b9d372bB5e740c688112433609754F7e1E06c│   │
 │  │                                                      │   │
-│  │   • setAge(itUint64)       - Store encrypted age    │   │
-│  │   • greaterThan(itUint64)  - Compare (stored > input)│  │
-│  │   • lessThan(itUint64)     - Compare (stored < input)│  │
-│  │   • comparisonResult()     - Get encrypted result   │   │
-│  │   • isAgeSet()             - Check if age stored    │   │
+│  │   • setAge(itUint64)       - Store encrypted age     │   │
+│  │   • greaterThan(itUint64)  - Compare (stored > input)│   │
+│  │   • lessThan(itUint64)     - Compare (stored < input)│   │
+│  │   • comparisonResult()     - Get encrypted result    │   │
+│  │   • isAgeSet()             - Check if age stored     │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -195,10 +195,10 @@ age/
 ├── artifacts/                    # Compiled contracts (Hardhat output)
 ├── cache/                        # Hardhat cache
 ├── .env.example                  # Environment variables template
-├── hardhat.config.js            # Hardhat configuration
-├── vite.config.js               # Vite bundler configuration
-├── package.json                 # Dependencies and scripts
-└── README.md                    # This file
+├── hardhat.config.js             # Hardhat configuration
+├── vite.config.js                # Vite bundler configuration
+├── package.json                  # Dependencies and scripts
+└── README.md                     # This file
 ```
 
 ### Key Components
