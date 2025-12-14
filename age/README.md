@@ -385,7 +385,7 @@ The Age Guessing Game uses COTI's Multi-Party Computation (MPC) to ensure comple
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License 
 
 ##  Technology Stack
 
