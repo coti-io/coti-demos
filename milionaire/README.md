@@ -241,13 +241,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 MIT
 
-## 🙏 Acknowledgments
 
-- Andrew Yao for the original Millionaires' Problem concept
-- COTI team for the MPC implementation and infrastructure
-- The blockchain and cryptography community
-
----
 
 ## Technical Deep Dive - MPC Implementation
 
