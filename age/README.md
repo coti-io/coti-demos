@@ -322,9 +322,9 @@ function isAgeSet() external view returns (bool)
    - Check network connectivity
    - Try using a different RPC endpoint if available
 
-### Getting Test ETH
+### Getting Test COTI
 
-To get test ETH for COTI Testnet:
+To get test COTI on Testnet:
 
 1. Visit the [COTI Discord](https://discord.com/invite/Z4r8D6ez49)
 2. Navigate to the testnet faucet channel
