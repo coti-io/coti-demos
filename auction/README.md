@@ -9,13 +9,13 @@
 
 A decentralized application that demonstrates privacy-preserving sealed bid auctions using COTI's Multi-Party Computation (MPC) technology. The auction allows bidders to place encrypted bids on-chain that remain completely confidential until the auction ends, ensuring fair price discovery without revealing sensitive bidding information to competitors.
 
-## Live Deployment
-
+## Live Demo
+- **Demo URL**: https://auction.demo.coti.io
 - **PrivateAuction Contract**: `0x2B1F89FF304279BB008802E4f2Ef1416e09d3743`
 - **MyToken Contract**: `0xa3b32cB50a69C312932f0a7D1d4cb01a35DC0945`
 - **Network**: COTI Testnet
 - **Chain ID**: 7082400
-- **Architecture**: React SPA with client-side MPC encryption and ERC20 token integration
+- **Architecture**: React SPA with client-side MPC encryption and Private ERC20 token integration
 
 ## Features
 

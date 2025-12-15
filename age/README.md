@@ -10,7 +10,7 @@
 
 A decentralized application that demonstrates privacy-preserving age verification using COTI's Multi-Party Computation (MPC) technology. The game allows an admin to store their birth date (converted to age) encrypted on-chain, while players try to guess the age through encrypted comparisons without ever seeing the actual value.
 
-## 🚀 Live Deployment
+## 🚀 Live Demo
 
 - **Demo URL**: https://age.demo.coti.io
 - **Contract Address**: `0x831b9d372bB5e740c688112433609754F7e1E06c`

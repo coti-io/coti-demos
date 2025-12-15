@@ -9,6 +9,10 @@
 
 A decentralized implementation of **Yao's Millionaires' Problem** using COTI's Garbled Circuits (GC) and Multi-Party Computation (MPC) technology.
 
+## 🌐 Live Demo
+
+Experience the app live on the COTI Testnet: [https://millionaire.demo.coti.io](https://millionaire.demo.coti.io)
+
 ## 🎯 Overview
 
 The Millionaires' Problem is a classic cryptographic challenge introduced by Andrew Yao in 1982. It demonstrates secure multi-party computation where two parties (Alice and Bob) can determine who is wealthier without revealing their actual wealth to each other.
@@ -125,19 +129,17 @@ The application will be available at `http://localhost:3001`
 
 1. **Home Page**: 
    - Read about the Millionaires' Problem
-   - Choose to enter as Alice or Bob
-
-2. **Alice's Portal** (`/alice`):
-   - Enter Alice's wealth amount
-   - Click "Submit Wealth" to encrypt and store on-chain
-   - Click "Compare Wealth" to trigger the comparison
-   - View the result (who is richer)
-
-3. **Bob's Portal** (`/bob`):
-   - Enter Bob's wealth amount
-   - Click "Submit Wealth" to encrypt and store on-chain
-   - Click "Compare Wealth" to trigger the comparison
-   - View the result (who is richer)
+   - **Alice's Panel**:
+     - Enter Alice's wealth amount
+     - Click "Submit" to encrypt and store on-chain
+     - Click "Compare" to trigger the comparison
+   - **Bob's Panel**:
+     - Enter Bob's wealth amount
+     - Click "Submit" to encrypt and store on-chain
+     - Click "Compare" to trigger the comparison
+   - **Results**:
+     - Comparison results are displayed directly on the card
+     - Each party can see the result (who is richer) without revealing specific amounts
 
 ### Important Notes
 
@@ -190,9 +192,7 @@ milionaire/
 │   ├── hooks/
 │   │   └── useMillionaireContract.js  # Contract interaction hook
 │   ├── pages/
-│   │   ├── HomePage.jsx         # Landing page
-│   │   ├── AlicePage.jsx        # Alice's interface
-│   │   └── BobPage.jsx          # Bob's interface
+│   │   ├── HomePage.jsx         # Main application page (Alice & Bob panels)
 │   ├── App.jsx                  # Main app component
 │   ├── main.jsx                 # Entry point
 │   └── index.css                # Global styles
