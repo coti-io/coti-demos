@@ -9,9 +9,11 @@
 
 A decentralized implementation of **Yao's Millionaires' Problem** using COTI's Garbled Circuits (GC) and Multi-Party Computation (MPC) technology.
 
+
 ## 🌐 Live Demo
 
 Experience the app live on the COTI Testnet: [https://millionaire.demo.coti.io](https://millionaire.demo.coti.io)
+
 
 ## 🎯 Overview
 
@@ -31,6 +33,7 @@ This implementation uses COTI's privacy-preserving MPC technology deployed on th
 - Perform comparison operations on encrypted data
 - Return encrypted results that only each party can decrypt
 - Ensure no third party (including blockchain validators) can see the actual wealth values
+
 
 ## 🏗️ Architecture
 
@@ -55,6 +58,7 @@ The comparison returns:
 - `1` = Bob is richer
 - `2` = Equal wealth
 
+
 ## 📋 Prerequisites
 
 - Node.js (v16 or higher)
@@ -62,7 +66,8 @@ The comparison returns:
 - COTI testnet account with test tokens
 - Two separate wallets (one for Alice, one for Bob)
 
-## 🚀 Getting Started
+
+## 📦 Installation
 
 ### 1. Clone and Install
 
@@ -123,7 +128,34 @@ npm run dev
 
 The application will be available at `http://localhost:3001`
 
-## 🎮 Usage
+
+## 🚀 Quick Start
+
+### Option 1: Use Existing Deployment
+
+1. **Start the React application**
+
+   ```bash
+   npm run dev
+   ```
+
+   The app will run on `http://localhost:3001`
+
+2. **Open your browser**
+   Navigate to `http://localhost:3001`
+
+3. **Compare wealth**
+   - The app connects to the deployed contract
+   - Enter wealth values for Alice and Bob
+   - Perform encrypted comparison
+   - View results without revealing actual wealth values
+
+### Option 2: Deploy Your Own Contract
+
+See the [Installation](#installation) section for detailed deployment instructions.
+
+
+## 📱 How to Use
 
 ### Step-by-Step Process
 
@@ -148,33 +180,8 @@ The application will be available at `http://localhost:3001`
 - The actual wealth values remain encrypted throughout the entire process
 - Each party can only decrypt their own result
 
-## 🔐 Security Features
 
-### Encryption
-
-- **User-side encryption**: Wealth values are encrypted using each user's AES key before being sent to the contract
-- **On-chain encryption**: Contract stores encrypted values using COTI's `utUint64` type (combined user + network ciphertext)
-- **Result encryption**: Comparison results are encrypted specifically for each party
-
-### MPC Operations
-
-The contract uses COTI's MPC Core library for:
-- `validateCiphertext()` - Validates encrypted inputs
-- `onBoard()` - Loads encrypted values for computation
-- `offBoardCombined()` - Stores encrypted results
-- `gt()` - Greater than comparison on encrypted values
-- `mux()` - Conditional selection on encrypted values
-- `and() / not()` - Logical operations on encrypted values
-
-### Privacy Guarantees
-
-- ✅ Alice cannot see Bob's wealth
-- ✅ Bob cannot see Alice's wealth
-- ✅ Blockchain validators cannot see either wealth value
-- ✅ Contract cannot leak wealth information
-- ✅ Only the comparison result is revealed to both parties
-
-## 📁 Project Structure
+## 🏗 Project Architecture
 
 ```
 milionaire/
@@ -202,7 +209,8 @@ milionaire/
 └── README.md
 ```
 
-## 🛠️ Development
+
+## 🔧 Available Scripts
 
 ### Available Scripts
 
@@ -220,27 +228,97 @@ You can test with different scenarios:
 2. **Bob is richer**: Alice enters 1,000,000, Bob enters 2,000,000
 3. **Equal wealth**: Alice enters 1,500,000, Bob enters 1,500,000
 
-## 🔗 Resources
 
-- [COTI Documentation](https://docs.coti.io/)
-- [COTI Contracts Examples](https://github.com/coti-io/coti-contracts-examples)
-- [Yao's Millionaires' Problem on Wikipedia](https://en.wikipedia.org/wiki/Yao%27s_Millionaires%27_problem)
-- [COTI Testnet Explorer](https://testnet.cotiscan.io/)
+## 🔐 Smart Contract Features
 
-## 📝 Contract Addresses
+### MillionaireComparison Contract
 
-- **COTI Testnet RPC**: `https://testnet.coti.io/rpc`
-- **Chain ID**: `7082400`
-- **Block Explorer**: `https://testnet.cotiscan.io/`
+The contract implements the following functionality:
 
-## 🤝 Contributing
+1. **Initialization**: Contract is deployed with Alice and Bob's addresses
+2. **Wealth Submission**: 
+   - `setAliceWealth(itUint64 wealth)` - Alice submits encrypted wealth
+   - `setBobWealth(itUint64 wealth)` - Bob submits encrypted wealth
+3. **Comparison**: 
+   - `compareWealth()` - Performs encrypted comparison using MPC
+4. **Result Retrieval**:
+   - `getAliceResult()` - Returns encrypted result for Alice to decrypt
+   - `getBobResult()` - Returns encrypted result for Bob to decrypt
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Result Encoding
 
-## 📄 License
+The comparison returns:
+- `0` = Alice is richer
+- `1` = Bob is richer
+- `2` = Equal wealth
 
-MIT
+### MPC Operations
 
+The contract uses COTI's MPC Core library for:
+- `validateCiphertext()` - Validates encrypted inputs
+- `onBoard()` - Loads encrypted values for computation
+- `offBoardCombined()` - Stores encrypted results
+- `gt()` - Greater than comparison on encrypted values
+- `mux()` - Conditional selection on encrypted values
+- `and() / not()` - Logical operations on encrypted values
+
+
+## 🔐 Privacy & Security
+
+### Encryption
+
+- **User-side encryption**: Wealth values are encrypted using each user's AES key before being sent to the contract
+- **On-chain encryption**: Contract stores encrypted values using COTI's `utUint64` type (combined user + network ciphertext)
+- **Result encryption**: Comparison results are encrypted specifically for each party
+
+### MPC Operations
+
+The contract uses COTI's MPC Core library for:
+- `validateCiphertext()` - Validates encrypted inputs
+- `onBoard()` - Loads encrypted values for computation
+- `offBoardCombined()` - Stores encrypted results
+- `gt()` - Greater than comparison on encrypted values
+- `mux()` - Conditional selection on encrypted values
+- `and() / not()` - Logical operations on encrypted values
+
+### Privacy Guarantees
+
+- ✅ Alice cannot see Bob's wealth
+- ✅ Bob cannot see Alice's wealth
+- ✅ Blockchain validators cannot see either wealth value
+- ✅ Contract cannot leak wealth information
+- ✅ Only the comparison result is revealed to both parties
+
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Contract not configured error**
+   - Ensure you've copied `.env.example` to `.env`
+   - Verify contract address is set in `.env`
+   - Check that the contract address is valid
+
+2. **Wallet not configured error**
+   - Verify private keys and AES keys are set for Alice and Bob
+   - Ensure private keys don't include the `0x` prefix
+
+3. **Transaction failures**
+   - Ensure wallets have sufficient COTI for gas fees
+   - Check network configuration (Chain ID: 7082400)
+   - Verify you're connected to COTI Testnet
+
+4. **Build errors**
+   - Delete `node_modules` and run `npm install` again
+   - Ensure Node.js version is 16 or higher
+
+### Getting Test COTI
+
+To get test COTI for Testnet:
+
+1. Visit the [COTI Discord](https://discord.com/invite/Z4r8D6ez49)
+2. Navigate to the testnet faucet channel
+3. Request test tokens for your wallet address
 
 
 ## Technical Deep Dive - MPC Implementation
@@ -248,6 +326,7 @@ MIT
 ### Understanding the Millionaires' Problem Implementation
 
 This section provides a technical deep dive into how the Millionaires' Problem is implemented using COTI's Multi-Party Computation (MPC) technology.
+
 
 ## Core Concepts
 
@@ -275,6 +354,7 @@ COTI uses Yao's Garbled Circuits protocol for secure computation:
 #### Output Types (Return values)
 - `ctUint64` - User-specific ciphertext for decryption
 - `ctUint8` - User-specific ciphertext for decryption
+
 
 ## Smart Contract Architecture
 
@@ -403,6 +483,7 @@ function getAliceResult() public view returns (ctUint8) {
 
 Returns the user-specific ciphertext that only Alice can decrypt.
 
+
 ## Client-Side Operations (React Hook)
 
 ### Encryption
@@ -430,6 +511,7 @@ const clearResult = await wallet.decryptValue(ctResult);
 
 **Input:** `ctUint8` - Encrypted result from contract
 **Output:** `BigInt` - Decrypted result (0, 1, or 2)
+
 
 ## Security Analysis
 
@@ -463,6 +545,7 @@ const clearResult = await wallet.decryptValue(ctResult);
 4. **Smart Contract Security:**
    - Access controls prevent unauthorized access
    - Results are encrypted for specific users only
+
 
 ## MPC Core Functions Reference
 
@@ -503,6 +586,7 @@ const clearResult = await wallet.decryptValue(ctResult);
 - `setPublic32(uint32)` - Create public constant as gtUint32
 - `setPublic64(uint64)` - Create public constant as gtUint64
 
+
 ## Performance Considerations
 
 ### Gas Costs
@@ -518,6 +602,7 @@ const clearResult = await wallet.decryptValue(ctResult);
 - **Submit wealth:** ~5-10 seconds (depends on network)
 - **Perform comparison:** ~10-15 seconds (MPC computation)
 - **Read result:** Instant (view function)
+
 
 ## Limitations and Considerations
 
@@ -535,50 +620,46 @@ const clearResult = await wallet.decryptValue(ctResult);
 3. **Range queries:** "Is wealth above/below threshold?"
 4. **Approximate comparison:** Add noise to protect against edge cases
 
-## Comparison with Traditional Approaches
 
-### Without MPC (Traditional)
+## 🔧 Technology Stack
 
-```
-❌ Alice sends wealth to trusted third party
-❌ Bob sends wealth to trusted third party
-❌ Third party compares and reports result
-❌ Risk: Third party learns both values
-❌ Risk: Third party could be compromised
-```
+### Smart Contract Layer
 
-### With COTI MPC (Our Approach)
+- **Solidity**: ^0.8.19
+- **COTI MPC Library**: `@coti-io/coti-contracts`
+- **Hardhat**: Development framework
+- **Network**: COTI Testnet (Chain ID: 7082400)
 
-```
-✅ Alice encrypts wealth, submits to blockchain
-✅ Bob encrypts wealth, submits to blockchain
-✅ Smart contract compares encrypted values
-✅ Both get encrypted results they can decrypt
-✅ No trusted third party needed!
-✅ Blockchain validators never see plaintext values
-```
+### Frontend Layer
 
-## Conclusion
+- **React**: ^18.2.0
+- **React Router DOM**: ^6.22.0
+- **Styled Components**: ^6.1.8
+- **Vite**: ^5.0.0
+- **COTI-Ethers SDK**: `@coti-io/coti-ethers`
+- **Ethers.js**: ^6.0.0
 
-This implementation demonstrates the power of MPC for privacy-preserving computation. By using COTI's Garbled Circuits implementation:
+### Key Dependencies
 
-1. **Privacy is guaranteed** - Actual wealth values remain hidden
-2. **Computation is verifiable** - On-chain execution everyone can audit
-3. **Trust is minimized** - No central authority needed
-4. **Security is proven** - Based on established cryptographic protocols
+- **@coti-io/coti-contracts**: MPC operations (MpcCore)
+- **@coti-io/coti-ethers**: Wallet encryption/decryption utilities
 
-The Millionaires' Problem, though simple, showcases fundamental techniques applicable to many real-world privacy-preserving applications like:
-- Private auctions
-- Confidential voting
-- Secure matchmaking
-- Private data analytics
-- Confidential DeFi
 
----
+## 🤝 Contributing
 
-**For more information, consult:**
-- COTI MPC Documentation
-- Yao's Original Paper (1982)
-- Secure Multi-Party Computation textbooks
+Contributions are welcome! Please feel free to submit a Pull Request.
 
---
+
+## 🔗 Links
+
+- [COTI Documentation](https://docs.coti.io/)
+- [COTI Contracts Examples](https://github.com/coti-io/coti-contracts-examples)
+- [Yao's Millionaires' Problem on Wikipedia](https://en.wikipedia.org/wiki/Yao%27s_Millionaires%27_problem)
+- [COTI Testnet Explorer](https://testnet.cotiscan.io/)
+
+
+## 📄 License
+
+MIT
+
+
