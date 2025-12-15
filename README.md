@@ -14,33 +14,6 @@ These applications demonstrate how COTI's MPC technology enables confidential sm
 
 ## 📱 Demo Applications
 
-### 🗳️ Encrypted Voting
-**Live Demo:** [https://vote.demo.coti.io](https://vote.demo.coti.io)  
-**Source Code:** [/vote](./vote)
-
-A privacy-preserving voting system where individual votes remain encrypted on-chain. Only aggregated results are revealed after the election closes, ensuring voter privacy while maintaining result accuracy.
-
-**Key Features:**
-- Encrypted vote storage using MPC
-- Private vote tallying without revealing individual choices
-- Voter authorization and access control
-- Real-time election state management
-
----
-
-### 💰 Millionaires' Problem
-**Live Demo:** [https://millionaire.demo.coti.io](https://millionaire.demo.coti.io)  
-**Source Code:** [/milionaire](./milionaire)
-
-Implementation of Yao's classic Millionaires' Problem using COTI's Garbled Circuits. Two parties can determine who is wealthier without revealing their actual wealth values to each other.
-
-**Key Features:**
-- Secure multi-party comparison
-- Encrypted wealth submission
-- Privacy-preserving result computation
-- Zero-knowledge proof of comparison
-
----
 
 ### 🎯 Age Guessing Game
 **Live Demo:** [https://age.demo.coti.io](https://age.demo.coti.io)  
@@ -70,5 +43,30 @@ A sealed-bid auction system where bids remain completely confidential until the 
 
 ---
 
-## 📄 License
-MIT
+### 💰 Millionaires' Problem
+**Live Demo:** [https://millionaire.demo.coti.io](https://millionaire.demo.coti.io)  
+**Source Code:** [/milionaire](./milionaire)
+
+Implementation of Yao's classic Millionaires' Problem using COTI's Garbled Circuits. Two parties can determine who is wealthier without revealing their actual wealth values to each other.
+
+**Key Features:**
+- Secure multi-party comparison
+- Encrypted wealth submission
+- Privacy-preserving result computation
+- Zero-knowledge proof of comparison
+
+---
+
+
+### 🗳️ Encrypted Voting
+**Live Demo:** [https://vote.demo.coti.io](https://vote.demo.coti.io)  
+**Source Code:** [/vote](./vote)
+
+A privacy-preserving voting system where individual votes remain encrypted on-chain. Only aggregated results are revealed after the election closes, ensuring voter privacy while maintaining result accuracy.
+
+**Key Features:**
+- Encrypted vote storage using MPC
+- Private vote tallying without revealing individual choices
+- Voter authorization and access control
+- Real-time election state management
+
