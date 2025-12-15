@@ -9,6 +9,7 @@
 
 A decentralized application that demonstrates privacy-preserving sealed bid auctions using COTI's Multi-Party Computation (MPC) technology. The auction allows bidders to place encrypted bids on-chain that remain completely confidential until the auction ends, ensuring fair price discovery without revealing sensitive bidding information to competitors.
 
+
 ## Live Demo
 - **Demo URL**: https://auction.demo.coti.io
 - **PrivateAuction Contract**: `0x2B1F89FF304279BB008802E4f2Ef1416e09d3743`
@@ -16,6 +17,7 @@ A decentralized application that demonstrates privacy-preserving sealed bid auct
 - **Network**: COTI Testnet
 - **Chain ID**: 7082400
 - **Architecture**: React SPA with client-side MPC encryption and Private ERC20 token integration
+
 
 ## Features
 
@@ -27,6 +29,7 @@ A decentralized application that demonstrates privacy-preserving sealed bid auct
 - **Fair Settlement**: Winners can claim the item, losers can withdraw their tokens
 - **In-App Redeployment**: Deploy new contract instances directly from the UI
 
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -34,6 +37,7 @@ Before you begin, ensure you have the following installed:
 - [Node.js](https://nodejs.org/) (v16 or higher)
 - [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 - [Git](https://git-scm.com/)
+
 
 ## Installation
 
@@ -101,6 +105,7 @@ Before you begin, ensure you have the following installed:
    VITE_ETHAN_ADDRESS=your_ethan_address_here
    ```
 
+
 ## Quick Start
 
 ### Option 1: Use Existing Deployment
@@ -138,6 +143,7 @@ The application comes with pre-compiled artifacts, so you can deploy new contrac
    - The app will deploy new `MyToken` and `PrivateAuction` contracts
    - The page will reload and use your new custom contracts (saved in localStorage)
 
+
 ## How to Use
 
 ### Token Balance
@@ -171,57 +177,6 @@ The application comes with pre-compiled artifacts, so you can deploy new contrac
    - No manual action is required
 
 
-## Smart Contract Development
-
-### Compilation
-
-Compile the smart contracts:
-```bash
-npm run compile
-```
-
-### Testing
-
-**Note:** The tests rely on COTI's `MpcCore` library, which calls precompiled contracts available only on the COTI network. Local testing with `hardhat test` will fail unless you are forking the COTI network or using a compatible simulator.
-
-To run tests against the COTI Testnet (requires configured `.env` with funds):
-```bash
-npx hardhat test --network cotiTestnet
-```
-
-### Deployment
-
-Deploy the contracts to the COTI Testnet:
-```bash
-npm run deploy:coti
-```
-
-This script will:
-1. Deploy a mock `MyToken` contract.
-2. Deploy the `PrivateAuction` contract with the token address.
-
-## Frontend Development
-
-### Running the UI
-
-Start the development server:
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:3003`
-
-### Building for Production
-
-Build the production bundle:
-```bash
-npm run build
-```
-
-Preview the production build:
-```bash
-npm run preview
-```
 
 ## Project Architecture
 
@@ -339,49 +294,6 @@ auction/
 - **Hook**: Custom `useAuction` hook for all contract interactions
 - **Pages**: Home,  Multi-Bidder
 
-## Contract Redeployment (In-App)
-
-The application includes an in-browser contract redeployment feature that uses localStorage to manage custom contract addresses.
-
-### How It Works
-
-1. **Default Contracts**: On first load, the app uses contract addresses from `.env` file
-2. **Redeploy Button**: Click "Redeploy Contracts" on the home page to deploy new instances
-3. **localStorage Storage**: New contract addresses are automatically saved to browser localStorage
-4. **Auto-Reload**: Page reloads to use the newly deployed contracts
-5. **Reset Option**: Click "Reset to Default Contracts" to clear localStorage and return to `.env` addresses
-
-### Requirements for Redeployment
-
-Configure these environment variables in your `.env` file:
-
-```env
-VITE_BIDDER_PK=your_private_key_here
-VITE_BIDDER_AES_KEY=your_aes_key_here
-VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
-```
-
-### Redeployment Process
-
-When you click "Redeploy Contracts", the app:
-
-1. Deploys a new `MyToken` contract
-2. Deploys a new `PrivateAuction` contract with the token address
-3. Stores both addresses in browser localStorage:
-   - `AUCTION_ADDRESS`
-   - `TOKEN_ADDRESS`
-4. Displays transaction links on CotiScan
-5. Automatically reloads the page after 3 seconds
-
-### Contract Address Priority
-
-The application loads contract addresses in this order:
-
-1. **localStorage** (custom deployed contracts)
-2. **Environment variables** (`.env` file)
-3. **Hardcoded defaults** (fallback)
-
-This pattern allows easy testing with custom deployments while maintaining the ability to reset to production contracts.
 
 ## Available Scripts
 
@@ -396,6 +308,7 @@ This pattern allows easy testing with custom deployments while maintaining the a
 - `npm run dev` - Start Vite dev server (default: http://localhost:3003)
 - `npm run build` - Build React app for production
 - `npm run preview` - Preview production build
+
 
 ## Smart Contract Features
 
@@ -459,7 +372,114 @@ function approve(address spender, itUint64 calldata amount) external
 4. **Bid Retrieval** (Frontend): Read `ctUint64` from contract → Decrypt with user's AES key → Display plaintext amount
 5. **Winner Check** (Contract): Compare user's bid with highest bid using encrypted comparison → Return boolean result
 
-## How It Works
+
+## 🎨 UI Features
+
+- **Home Page** (`/`): Main interface for minting tokens, placing bids, managing participation, and contract redeployment
+- **Bidder Page** (`/bidder`): Legacy bidding interface (integrated into Home Page)
+- **Multi-Bidder Page** (`/multi`): Testing interface for simulating multiple bidders
+
+
+## Smart Contract Development
+
+### Compilation
+
+Compile the smart contracts:
+```bash
+npm run compile
+```
+
+### Testing
+
+**Note:** The tests rely on COTI's `MpcCore` library, which calls precompiled contracts available only on the COTI network. Local testing with `hardhat test` will fail unless you are forking the COTI network or using a compatible simulator.
+
+To run tests against the COTI Testnet (requires configured `.env` with funds):
+```bash
+npx hardhat test --network cotiTestnet
+```
+
+### Deployment
+
+Deploy the contracts to the COTI Testnet:
+```bash
+npm run deploy:coti
+```
+
+This script will:
+1. Deploy a mock `MyToken` contract.
+2. Deploy the `PrivateAuction` contract with the token address.
+
+
+## Frontend Development
+
+### Running the UI
+
+Start the development server:
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:3003`
+
+### Building for Production
+
+Build the production bundle:
+```bash
+npm run build
+```
+
+Preview the production build:
+```bash
+npm run preview
+```
+
+
+## Contract Redeployment (In-App)
+
+The application includes an in-browser contract redeployment feature that uses localStorage to manage custom contract addresses.
+
+### How It Works
+
+1. **Default Contracts**: On first load, the app uses contract addresses from `.env` file
+2. **Redeploy Button**: Click "Redeploy Contracts" on the home page to deploy new instances
+3. **localStorage Storage**: New contract addresses are automatically saved to browser localStorage
+4. **Auto-Reload**: Page reloads to use the newly deployed contracts
+5. **Reset Option**: Click "Reset to Default Contracts" to clear localStorage and return to `.env` addresses
+
+### Requirements for Redeployment
+
+Configure these environment variables in your `.env` file:
+
+```env
+VITE_BIDDER_PK=your_private_key_here
+VITE_BIDDER_AES_KEY=your_aes_key_here
+VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
+```
+
+### Redeployment Process
+
+When you click "Redeploy Contracts", the app:
+
+1. Deploys a new `MyToken` contract
+2. Deploys a new `PrivateAuction` contract with the token address
+3. Stores both addresses in browser localStorage:
+   - `AUCTION_ADDRESS`
+   - `TOKEN_ADDRESS`
+4. Displays transaction links on CotiScan
+5. Automatically reloads the page after 3 seconds
+
+### Contract Address Priority
+
+The application loads contract addresses in this order:
+
+1. **localStorage** (custom deployed contracts)
+2. **Environment variables** (`.env` file)
+3. **Hardcoded defaults** (fallback)
+
+This pattern allows easy testing with custom deployments while maintaining the ability to reset to production contracts.
+
+
+## ⚙️ How It Works
 
 1. **Bidders receive tokens** automatically or via faucet (encrypted balance)
 2. **Bidders submit encrypted bids** using the PrivateAuction contract
@@ -469,35 +489,6 @@ function approve(address spender, itUint64 calldata amount) external
 6. **Winner claims the item**, their tokens are transferred to the auction owner
 7. **Losing bidders' tokens** are automatically returned to them
 
-## UI Pages
-
-- **Home Page** (`/`): Main interface for minting tokens, placing bids, managing participation, and contract redeployment
-- **Bidder Page** (`/bidder`): Legacy bidding interface (integrated into Home Page)
-- **Multi-Bidder Page** (`/multi`): Testing interface for simulating multiple bidders
-
-## Technology Stack
-
-### Smart Contract Layer
-
-- **Solidity**: ^0.8.19
-- **COTI MPC Library**: `@coti-io/coti-contracts` ^1.0.0
-- **Hardhat**: ^2.19.0 (development framework)
-- **Hardhat-Ethers**: ^3.0.0 (Ethers.js integration)
-
-### Frontend Layer
-
-- **React**: ^18.2.0 (UI framework)
-- **React Router DOM**: ^6.22.0 (routing)
-- **Styled Components**: ^6.1.8 (CSS-in-JS styling)
-- **Vite**: ^5.0.0 (build tool)
-- **@vitejs/plugin-react**: ^4.2.0
-- **COTI-Ethers SDK**: `@coti-io/coti-ethers` ^1.0.5 (MPC encryption/decryption)
-- **Ethers.js**: ^6.0.0 (blockchain interactions)
-
-### Key Dependencies
-
-- **@coti-io/coti-contracts**: MPC operations (MpcCore, ExtendedOperations)
-- **@coti-io/coti-ethers**: Wallet encryption/decryption utilities
 
 ## Troubleshooting
 
@@ -542,6 +533,7 @@ To get test COTI for Testnet:
 1. Visit the [COTI Discord](https://discord.com/invite/Z4r8D6ez49)
 2. Navigate to the testnet faucet channel
 3. Request test tokens for your wallet address
+
 
 ## Privacy & Security
 
@@ -592,6 +584,32 @@ The Private Auction uses COTI's Multi-Party Computation (MPC) to ensure complete
 - Implement emergency pause mechanisms
 - Add comprehensive event logging for monitoring
 
+
+## 🔧 Technology Stack
+
+### Smart Contract Layer
+
+- **Solidity**: ^0.8.19
+- **COTI MPC Library**: `@coti-io/coti-contracts` ^1.0.0
+- **Hardhat**: ^2.19.0 (development framework)
+- **Hardhat-Ethers**: ^3.0.0 (Ethers.js integration)
+
+### Frontend Layer
+
+- **React**: ^18.2.0 (UI framework)
+- **React Router DOM**: ^6.22.0 (routing)
+- **Styled Components**: ^6.1.8 (CSS-in-JS styling)
+- **Vite**: ^5.0.0 (build tool)
+- **@vitejs/plugin-react**: ^4.2.0
+- **COTI-Ethers SDK**: `@coti-io/coti-ethers` ^1.0.5 (MPC encryption/decryption)
+- **Ethers.js**: ^6.0.0 (blockchain interactions)
+
+### Key Dependencies
+
+- **@coti-io/coti-contracts**: MPC operations (MpcCore, ExtendedOperations)
+- **@coti-io/coti-ethers**: Wallet encryption/decryption utilities
+
+
 ## Contributing
 
 1. Fork the repository
@@ -599,6 +617,7 @@ The Private Auction uses COTI's Multi-Party Computation (MPC) to ensure complete
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
 
 ## Links
 
@@ -611,6 +630,7 @@ The Private Auction uses COTI's Multi-Party Computation (MPC) to ensure complete
 - [Styled Components Documentation](https://styled-components.com/docs)
 
 - Review the documentation links above
+
 
 ## License
 
