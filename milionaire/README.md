@@ -1,3 +1,10 @@
+[![COTI Website](https://img.shields.io/badge/COTI%20WEBSITE-4CAF50?style=for-the-badge)](https://coti.io)
+[![image](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://telegram.coti.io)
+[![image](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.coti.io)
+[![image](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://twitter.coti.io)
+[![image](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.coti.io)
+
+
 # Millionaires' Problem - COTI MPC Implementation
 
 A decentralized implementation of **Yao's Millionaires' Problem** using COTI's Garbled Circuits (GC) and Multi-Party Computation (MPC) technology.
@@ -13,7 +20,7 @@ The Millionaires' Problem is a classic cryptographic challenge introduced by And
 - They want to know: **A > B**, **A < B**, or **A = B**
 - **Constraint:** Neither Alice nor Bob should learn the other's actual wealth value
 
-### Our Solution
+### Solution
 
 This implementation uses COTI's privacy-preserving MPC technology deployed on the COTI testnet to:
 - Encrypt wealth values using each party's private AES key
