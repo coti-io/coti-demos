@@ -916,24 +916,24 @@ VITE_CONTRACT_ADDRESS=0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf
 VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
 
 # Voter Account: Bob
-VITE_BOB_PK=d157bf9f861c63a3d9e9e9e5c72375567015f6dd780ea109942bda749691800f
-VITE_BOB_AES_KEY=3de2c499712a4968b0a584e7d0501a46
+VITE_BOB_PK=your_bob_private_key_here
+VITE_BOB_AES_KEY=your_bob_aes_key_here
 
 # Voter Account: Bea
-VITE_BEA_PK=108804f6feeae81fe35a11423fda4937f47a72e30082bb2fa6883c62a49e5d6e
-VITE_BEA_AES_KEY=5f1c9d2dcbd7808ba7f148c5fbc68a5b
+VITE_BEA_PK=your_bea_private_key_here
+VITE_BEA_AES_KEY=your_bea_aes_key_here
 
 # Voter Account: Charlie
-VITE_CHARLIE_PK=a9fb0479056257c5f748a77f3a5c7292025fef913218a85e5f2a6636fa30973b
-VITE_CHARLIE_AES_KEY=c6422eee51e3f270c389e8128423d511
+VITE_CHARLIE_PK=your_charlie_private_key_here
+VITE_CHARLIE_AES_KEY=your_charlie_aes_key_here
 
 # Voter Account: David
-VITE_DAVID_PK=8c23334784ab8afff4b3888c82c2fc26658ed82312cf8623764335c5af398ecf
-VITE_DAVID_AES_KEY=b1d52ffa8bc41ee11159d885ec87c559
+VITE_DAVID_PK=your_david_private_key_here
+VITE_DAVID_AES_KEY=your_david_aes_key_here
 
 # Voter Account: Ethan
-VITE_ETHAN_PK=0eedd3fa4aa456aac6c5616743534834ed2df4342a73dbb6774ebb1bc0299d4e
-VITE_ETHAN_AES_KEY=e7b84c210a5196668cb47e6b26cedba2
+VITE_ETHAN_PK=your_ethan_private_key_here
+VITE_ETHAN_AES_KEY=your_ethan_aes_key_here
 ```
 
 **Environment Variable Descriptions:**
@@ -1389,24 +1389,24 @@ The application supports up to 5 voter accounts. Configure at least one voter to
 
 ```env
 # Voter Account: Bob
-VITE_BOB_PK=d157bf9f861c63a3d9e9e9e5c72375567015f6dd780ea109942bda749691800f
-VITE_BOB_AES_KEY=3de2c499712a4968b0a584e7d0501a46
+VITE_BOB_PK=your_bob_private_key_here
+VITE_BOB_AES_KEY=your_bob_aes_key_here
 
 # Voter Account: Bea
-VITE_BEA_PK=108804f6feeae81fe35a11423fda4937f47a72e30082bb2fa6883c62a49e5d6e
-VITE_BEA_AES_KEY=5f1c9d2dcbd7808ba7f148c5fbc68a5b
+VITE_BEA_PK=your_bea_private_key_here
+VITE_BEA_AES_KEY=your_bea_aes_key_here
 
 # Voter Account: Charlie
-VITE_CHARLIE_PK=a9fb0479056257c5f748a77f3a5c7292025fef913218a85e5f2a6636fa30973b
-VITE_CHARLIE_AES_KEY=c6422eee51e3f270c389e8128423d511
+VITE_CHARLIE_PK=your_charlie_private_key_here
+VITE_CHARLIE_AES_KEY=your_charlie_aes_key_here
 
 # Voter Account: David
-VITE_DAVID_PK=8c23334784ab8afff4b3888c82c2fc26658ed82312cf8623764335c5af398ecf
-VITE_DAVID_AES_KEY=b1d52ffa8bc41ee11159d885ec87c559
+VITE_DAVID_PK=your_david_private_key_here
+VITE_DAVID_AES_KEY=your_david_aes_key_here
 
 # Voter Account: Ethan
-VITE_ETHAN_PK=0eedd3fa4aa456aac6c5616743534834ed2df4342a73dbb6774ebb1bc0299d4e
-VITE_ETHAN_AES_KEY=e7b84c210a5196668cb47e6b26cedba2
+VITE_ETHAN_PK=your_ethan_private_key_here
+VITE_ETHAN_AES_KEY=your_ethan_aes_key_here
 ```
 
 **Voter Configuration Requirements:**
