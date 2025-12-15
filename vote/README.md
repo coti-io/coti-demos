@@ -280,7 +280,7 @@ if (!voters[msg.sender].hasAuthorizedOwner) {
 
 #### Vote Aggregation
 
-The contract implements a sophisticated vote aggregation algorithm that tallies encrypted votes without ever decrypting individual choices. This process uses COTI's MPC operations to perform computations on encrypted data, ensuring complete privacy preservation.
+The contract implements a vote aggregation algorithm that tallies encrypted votes without ever decrypting individual choices. This process uses COTI's MPC operations to perform computations on encrypted data, ensuring complete privacy preservation.
 
 **Aggregation Algorithm:**
 
