@@ -318,7 +318,7 @@ auction/
 
 #### Token Contract (`MyToken.sol`)
 
-- **Standard**: ERC20 with MPC extensions
+- **Standard**: Private ERC20 token
 - **Minting**: Supports encrypted token minting via `itUint64` input types
 - **Balance Privacy**: Token balances stored as encrypted `utUint64` values
 - **Transfer**: Encrypted token transfers using `ctUint64` ciphertexts
@@ -327,7 +327,7 @@ auction/
 
 - **Framework**: React Hooks
 - **SDK**: `@coti-io/coti-ethers` for MPC encryption/decryption
-- **Key Management**: Client-side wallets with AES keys for encryption
+- **Key Management**: App pre-loaded wallets with AES keys for encryption
 - **Contract Interactions**: Direct calls to PrivateAuction and MyToken contracts
 - **State Management**: Manages auction status, bids, balances, and transactions
 
@@ -337,7 +337,7 @@ auction/
 - **Styling**: Styled Components with custom theme
 - **Build Tool**: Vite
 - **Hook**: Custom `useAuction` hook for all contract interactions
-- **Pages**: Home, Bidder, Multi-Bidder Testing
+- **Pages**: Home,  Multi-Bidder
 
 ## Contract Redeployment (In-App)
 
