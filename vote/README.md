@@ -1901,8 +1901,7 @@ The contract and tests fulfill all specified requirements:
 
 ## License
 
-MIT License - see LICENSE file for details.
-
+MIT License 
 ---
 
 

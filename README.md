@@ -71,5 +71,4 @@ A sealed-bid auction system where bids remain completely confidential until the 
 ---
 
 ## 📄 License
-
 MIT
