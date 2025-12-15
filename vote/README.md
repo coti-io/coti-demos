@@ -6,7 +6,7 @@
 
 
 
-# COTI Encrypted Voting Contract
+# COTI Encrypted Voting 
 
 A privacy-preserving voting system built on the COTI blockchain using Multi-Party Computation (MPC) for encrypted vote storage and tallying.
 
