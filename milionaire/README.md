@@ -581,6 +581,4 @@ The Millionaires' Problem, though simple, showcases fundamental techniques appli
 - Yao's Original Paper (1982)
 - Secure Multi-Party Computation textbooks
 
----
-
-**Built with ❤️ using COTI's Privacy-Preserving Technology**
+--
