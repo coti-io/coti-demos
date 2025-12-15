@@ -10,9 +10,11 @@
 
 A privacy-preserving voting system built on the COTI blockchain using Multi-Party Computation (MPC) for encrypted vote storage and tallying.
 
+
 ## Live Demo
 
 Experience the app live on the COTI Testnet: [https://vote.demo.coti.io](https://vote.demo.coti.io)
+
 
 ## Overview
 
@@ -26,12 +28,14 @@ The COTI Voting Contract enables secure, private voting where individual votes r
 - **📊 Private Tallying**: Vote aggregation without revealing individual choices
 - **✅ Comprehensive Testing**: Full test coverage for all functionality
 
+
 ## Contract Details
 
 - **Contract Address (Testnet)**: `0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf`
 - **Network**: COTI Testnet (Chain ID: 7082400)
 - **Solidity Version**: 0.8.19
 - **License**: MIT
+
 
 ## Voting Question & Options
 
@@ -45,7 +49,98 @@ The COTI Voting Contract enables secure, private voting where individual votes r
 
 ---
 
-## Project Structure
+
+
+---
+
+
+## 🛠 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- [Node.js](https://nodejs.org/) (v16 or higher)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+- [Git](https://git-scm.com/)
+- COTI Testnet account with test tokens for deployment and voting
+
+
+## 📦 Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/cotitech-io/demos.git
+   cd vote
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+
+   Copy the `.env.example` file to `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Update the `.env` file with your configuration. See the [Deployment](#deployment) section for detailed environment variable setup.
+
+
+## 🚀 Quick Start
+
+### Option 1: Use Existing Deployment
+
+1. **Start the application**
+
+   ```bash
+   npm run dev
+   ```
+
+   The app will run on `http://localhost:5173`
+
+2. **Open your browser**
+   Navigate to `http://localhost:5173`
+
+3. **Cast your vote**
+   - The app connects to the deployed contract at `0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf`
+   - Select a voter account from the interface
+   - Choose your favorite food option
+   - Submit your encrypted vote
+
+### Option 2: Deploy Your Own Contract
+
+See the [Deployment](#deployment) section for detailed instructions on deploying your own voting contract.
+
+
+## 📱 How to Use
+
+### Voter Role
+
+1. **Select Voter Account**: Choose from the configured voter accounts (Bob, Bea, Charlie, David, or Ethan)
+2. **View Election Status**: Check if the election is open or closed
+3. **Cast Vote**: Select your preferred option (1-4) and submit
+4. **Verify Vote**: Retrieve and decrypt your own vote to verify it was recorded correctly
+
+### Owner Role
+
+1. **Register Voters**: Add voter addresses to the authorized voter list
+2. **Open Election**: Start the voting period
+3. **Close Election**: End the voting period
+4. **View Results**: See aggregated vote counts after election closes
+
+### Viewing Results
+
+After the election closes:
+- Results show vote counts for each option
+- Individual votes remain private
+- Only aggregated totals are revealed
+
+
+## 🏗 Project Architecture
 
 The project is organized into several key directories, each serving a specific purpose in the voting system architecture:
 
@@ -159,7 +254,23 @@ Deployment and utility scripts for contract management.
 
 ---
 
-## Smart Contract Architecture
+
+## 🔧 Available Scripts
+
+### Smart Contract
+
+- `npm run compile` - Compile smart contracts with Hardhat
+- `npm run deploy:coti` - Deploy contract to COTI Testnet
+- `npm run test` - Run contract tests
+
+### Frontend
+
+- `npm run dev` - Start Vite development server (http://localhost:5173)
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+
+
+## 🔐 Smart Contract Features
 
 ### Core Components
 
@@ -695,7 +806,8 @@ for (uint i = 0; i < 4; i++) {
 
 ---
 
-## Web Application Architecture
+
+## 🎨 Web Application Features
 
 The web application provides a modern, user-friendly interface for interacting with the COTI Voting Contract. Built with React 18 and TypeScript, it demonstrates best practices for blockchain integration and encrypted voting workflows.
 
@@ -943,168 +1055,8 @@ Serves the production build:
 
 ---
 
-## Testing Suite
 
-### Test Coverage
-
-Our comprehensive testing suite includes **50+ tests** across multiple categories:
-
-#### 1. Unit Tests (`test/COTIVotingContract.test.js`)
-- **19 tests** covering core functionality
-- Contract initialization and configuration
-- Voter registration and validation
-- Election state management
-- Access control and permissions
-- Error handling and edge cases
-
-#### 2. Integration Tests (`test/COTIVotingIntegration.test.js`)
-- **11 tests** for end-to-end workflows
-- Complete election lifecycle testing
-- Multi-voter scenario validation
-- Data consistency verification
-- Security and access control testing
-
-#### 3. Per-User Encryption Tests (`test/PerUserEncryption.test.js`)
-- **15+ tests** for MPC encryption features with dual-mode support
-- **Dual-Mode Testing Approach:**
-  - **Local Mode**: Runs non-MPC tests (access control, state validation) on Hardhat network
-  - **Testnet Mode**: Runs full MPC encryption tests when deployed to COTI testnet (chainId: 7082400)
-  - Tests automatically detect network and skip incompatible tests
-
-**Per-User Vote Casting Tests:**
-- Multiple voters casting votes with different addresses
-- Vote encryption verification for specific voters
-- Vote storage with `ctUint8` type for per-user encryption
-- `MpcCore.offBoardToUser()` usage verification
-- Multiple voters with same/different vote options
-- Vote changing with per-user encryption maintained
-- Multiple vote changes with consistent encryption
-
-**Vote Retrieval Access Control Tests:**
-- `getMyVote()` access control enforcement
-- Error handling for unregistered voters
-- Error handling for voters who haven't voted
-- State validation regardless of election state
-- Owner access control (only if registered as voter)
-
-**Authorization and Aggregation Tests:**
-- Vote aggregation from multiple voters using different encryption keys
-- Voter authorization pattern (similar to medical records)
-- Accurate tally verification through `getResults()`
-- Complete end-to-end voting flow (registration → voting → authorization → closing → results)
-- Vote changes with accurate final tallies
-- Mixed voting patterns (some voters not voting)
-- Different voting distributions
-- Results structure validation (IDs, labels, counts)
-
-#### 4. Testnet Tests (`test/testnet.test.js`)
-- **8 tests** against deployed contract
-- Live network connectivity verification
-- Real transaction testing
-- Gas usage analysis
-- Network information validation
-
-#### 5. Comprehensive Testnet Tests (`test/testnet-comprehensive.test.js`)
-- **9 tests** for extensive testnet validation
-- Multi-voter registration workflows
-- Election state transition testing
-- Gas usage measurement
-- Error handling validation
-
-### Test Account Setup
-
-To run per-user encryption tests on COTI testnet, you need to configure test accounts with both private keys and AES encryption keys in your `.env` file:
-
-**Required Environment Variables:**
-
-```env
-# Test Account: Alice (Owner)
-ALICE_PK=your_alice_private_key
-ALICE_AES_KEY=your_alice_aes_key
-
-# Test Account: Bob (Voter 1)
-BOB_PK=your_bob_private_key
-BOB_AES_KEY=your_bob_aes_key
-
-# Test Account: Bea (Voter 2)
-BEA_PK=your_bea_private_key
-BEA_AES_KEY=your_bea_aes_key
-
-# Test Account: Charlie (Voter 3) - Optional
-CHARLIE_PK=your_charlie_private_key
-CHARLIE_AES_KEY=your_charlie_aes_key
-```
-
-**Account Requirements:**
-
-- **Private Keys**: Used for transaction signing and wallet authentication
-- **AES Keys**: Required for MPC encryption/decryption operations with COTI SDK
-- **Testnet Funds**: Each account needs sufficient COTI testnet tokens for gas fees
-- **Minimum Accounts**: Alice, Bob, and Bea are required; Charlie is optional
-
-**How AES Keys Work:**
-
-The AES keys are used by the COTI SDK to encrypt and decrypt values on the client side before sending them to the MPC network. Each voter's AES key is set using:
-
-```javascript
-const wallet = new CotiWallet(privateKey, provider);
-wallet.setUserOnboardInfo({ aesKey: aesKey });
-```
-
-This enables the wallet to:
-- Encrypt vote values before casting: `wallet.encryptValue(voteOption, contractAddress, functionSelector)`
-- Decrypt retrieved votes: `wallet.decryptValue(encryptedVote)`
-- Participate in MPC operations with per-user encryption
-
----
-
-### Running Tests
-
-#### Local Tests
-```bash
-# Run all local tests
-npm test
-
-# Run specific test suites
-npx hardhat test test/COTIVotingContract.test.js
-npx hardhat test test/COTIVotingIntegration.test.js
-```
-
-#### Per-User Encryption Tests
-
-The PerUserEncryption tests support dual-mode operation:
-
-```bash
-# Run on local network (non-MPC tests only)
-npx hardhat test test/PerUserEncryption.test.js
-
-# Run on COTI testnet with full MPC encryption (requires test accounts in .env)
-npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
-
-# Run with environment variables inline
-ALICE_PK=your_key ALICE_AES_KEY=your_aes BOB_PK=your_key BOB_AES_KEY=your_aes BEA_PK=your_key BEA_AES_KEY=your_aes npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
-
-# Run against a specific deployed contract
-CONTRACT_ADDRESS=0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
-```
-
-#### Testnet Tests
-```bash
-# Set contract address and run testnet tests
-CONTRACT_ADDRESS=0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf npx hardhat test test/testnet.test.js --network cotiTestnet
-
-# Run comprehensive testnet tests
-CONTRACT_ADDRESS=0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf npx hardhat test test/testnet-comprehensive.test.js --network cotiTestnet
-```
-
-**Note on Per-User Encryption Tests:**
-- Local mode: All access control and state validation tests pass
-- Testnet mode: Full MPC encryption tests require COTI testnet (chainId: 7082400)
-- Tests automatically skip MPC-dependent tests when not on COTI testnet
-
----
-
-## Deployment
+## 🚀 Deployment
 
 This section provides comprehensive instructions for deploying the smart contract to COTI testnet and configuring the web application to interact with the deployed contract.
 
@@ -1249,7 +1201,7 @@ You can view:
 - Contract state
 - Event logs
 
-#### Deployment Features
+#### 🚀 Deployment Features
 
 The deployment script (`scripts/deploy.js`) includes several production-ready features:
 
@@ -1743,7 +1695,200 @@ Check the build output for:
 - **No Warnings**: Address any TypeScript or build warnings
 
 
-## Gas Usage Analysis
+
+## 🧪 Testing Suite
+
+### Test Coverage
+
+Our comprehensive testing suite includes **50+ tests** across multiple categories:
+
+#### 1. Unit Tests (`test/COTIVotingContract.test.js`)
+- **19 tests** covering core functionality
+- Contract initialization and configuration
+- Voter registration and validation
+- Election state management
+- Access control and permissions
+- Error handling and edge cases
+
+#### 2. Integration Tests (`test/COTIVotingIntegration.test.js`)
+- **11 tests** for end-to-end workflows
+- Complete election lifecycle testing
+- Multi-voter scenario validation
+- Data consistency verification
+- Security and access control testing
+
+#### 3. Per-User Encryption Tests (`test/PerUserEncryption.test.js`)
+- **15+ tests** for MPC encryption features with dual-mode support
+- **Dual-Mode Testing Approach:**
+  - **Local Mode**: Runs non-MPC tests (access control, state validation) on Hardhat network
+  - **Testnet Mode**: Runs full MPC encryption tests when deployed to COTI testnet (chainId: 7082400)
+  - Tests automatically detect network and skip incompatible tests
+
+**Per-User Vote Casting Tests:**
+- Multiple voters casting votes with different addresses
+- Vote encryption verification for specific voters
+- Vote storage with `ctUint8` type for per-user encryption
+- `MpcCore.offBoardToUser()` usage verification
+- Multiple voters with same/different vote options
+- Vote changing with per-user encryption maintained
+- Multiple vote changes with consistent encryption
+
+**Vote Retrieval Access Control Tests:**
+- `getMyVote()` access control enforcement
+- Error handling for unregistered voters
+- Error handling for voters who haven't voted
+- State validation regardless of election state
+- Owner access control (only if registered as voter)
+
+**Authorization and Aggregation Tests:**
+- Vote aggregation from multiple voters using different encryption keys
+- Voter authorization pattern (similar to medical records)
+- Accurate tally verification through `getResults()`
+- Complete end-to-end voting flow (registration → voting → authorization → closing → results)
+- Vote changes with accurate final tallies
+- Mixed voting patterns (some voters not voting)
+- Different voting distributions
+- Results structure validation (IDs, labels, counts)
+
+#### 4. Testnet Tests (`test/testnet.test.js`)
+- **8 tests** against deployed contract
+- Live network connectivity verification
+- Real transaction testing
+- Gas usage analysis
+- Network information validation
+
+#### 5. Comprehensive Testnet Tests (`test/testnet-comprehensive.test.js`)
+- **9 tests** for extensive testnet validation
+- Multi-voter registration workflows
+- Election state transition testing
+- Gas usage measurement
+- Error handling validation
+
+### Test Account Setup
+
+To run per-user encryption tests on COTI testnet, you need to configure test accounts with both private keys and AES encryption keys in your `.env` file:
+
+**Required Environment Variables:**
+
+```env
+# Test Account: Alice (Owner)
+ALICE_PK=your_alice_private_key
+ALICE_AES_KEY=your_alice_aes_key
+
+# Test Account: Bob (Voter 1)
+BOB_PK=your_bob_private_key
+BOB_AES_KEY=your_bob_aes_key
+
+# Test Account: Bea (Voter 2)
+BEA_PK=your_bea_private_key
+BEA_AES_KEY=your_bea_aes_key
+
+# Test Account: Charlie (Voter 3) - Optional
+CHARLIE_PK=your_charlie_private_key
+CHARLIE_AES_KEY=your_charlie_aes_key
+```
+
+**Account Requirements:**
+
+- **Private Keys**: Used for transaction signing and wallet authentication
+- **AES Keys**: Required for MPC encryption/decryption operations with COTI SDK
+- **Testnet Funds**: Each account needs sufficient COTI testnet tokens for gas fees
+- **Minimum Accounts**: Alice, Bob, and Bea are required; Charlie is optional
+
+**How AES Keys Work:**
+
+The AES keys are used by the COTI SDK to encrypt and decrypt values on the client side before sending them to the MPC network. Each voter's AES key is set using:
+
+```javascript
+const wallet = new CotiWallet(privateKey, provider);
+wallet.setUserOnboardInfo({ aesKey: aesKey });
+```
+
+This enables the wallet to:
+- Encrypt vote values before casting: `wallet.encryptValue(voteOption, contractAddress, functionSelector)`
+- Decrypt retrieved votes: `wallet.decryptValue(encryptedVote)`
+- Participate in MPC operations with per-user encryption
+
+---
+
+### Running Tests
+
+#### Local Tests
+```bash
+# Run all local tests
+npm test
+
+# Run specific test suites
+npx hardhat test test/COTIVotingContract.test.js
+npx hardhat test test/COTIVotingIntegration.test.js
+```
+
+#### Per-User Encryption Tests
+
+The PerUserEncryption tests support dual-mode operation:
+
+```bash
+# Run on local network (non-MPC tests only)
+npx hardhat test test/PerUserEncryption.test.js
+
+# Run on COTI testnet with full MPC encryption (requires test accounts in .env)
+npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
+
+# Run with environment variables inline
+ALICE_PK=your_key ALICE_AES_KEY=your_aes BOB_PK=your_key BOB_AES_KEY=your_aes BEA_PK=your_key BEA_AES_KEY=your_aes npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
+
+# Run against a specific deployed contract
+CONTRACT_ADDRESS=0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf npx hardhat test test/PerUserEncryption.test.js --network cotiTestnet
+```
+
+#### Testnet Tests
+```bash
+# Set contract address and run testnet tests
+CONTRACT_ADDRESS=0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf npx hardhat test test/testnet.test.js --network cotiTestnet
+
+# Run comprehensive testnet tests
+CONTRACT_ADDRESS=0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf npx hardhat test test/testnet-comprehensive.test.js --network cotiTestnet
+```
+
+**Note on Per-User Encryption Tests:**
+- Local mode: All access control and state validation tests pass
+- Testnet mode: Full MPC encryption tests require COTI testnet (chainId: 7082400)
+- Tests automatically skip MPC-dependent tests when not on COTI testnet
+
+---
+
+
+## 🔐 Privacy & Security
+
+### How MPC Ensures Privacy
+
+The COTI Voting Contract uses Multi-Party Computation (MPC) to ensure complete privacy:
+
+1. **Client-Side Encryption**: Votes are encrypted in the browser using voter's AES key
+2. **Encrypted Storage**: Votes stored on-chain as encrypted ciphertexts
+3. **Encrypted Computation**: Vote tallying performed on encrypted data
+4. **Selective Decryption**: Only aggregated results are decrypted
+5. **Zero Knowledge**: Individual votes never revealed to anyone
+
+### Security Best Practices
+
+⚠️ **Important**: This is a demonstration application. For production use:
+
+- Store private keys in secure key management systems
+- Use environment variables for all sensitive data
+- Never commit `.env` files to version control
+- Implement proper authentication and authorization
+- Add rate limiting and input validation
+- Use HTTPS for all communications
+- Audit smart contracts before deployment
+- Implement emergency pause mechanisms
+
+
+
+## ⚡ Technical Deep Dive
+
+
+### Gas Usage Analysis
 
 Based on testnet measurements:
 
@@ -1757,86 +1902,29 @@ Based on testnet measurements:
 
 ---
 
-## Security Features
 
-### Access Control
-- **Owner-only functions**: Voter registration and election control
-- **Voter-only functions**: Vote casting and changing
-- **State-based restrictions**: Voting only during open elections
-
-### Input Validation
-- **Address validation**: Prevents zero addresses
-- **Name validation**: Requires non-empty, non-whitespace names
-- **Vote validation**: Ensures votes are within valid range (1-4)
-- **Duplicate prevention**: Prevents duplicate voter registration
-
-### Privacy Protection
-- **Encrypted storage**: All votes stored using MPC encryption
-- **Private aggregation**: Vote tallying without revealing individual votes
-- **Result-only decryption**: Only final results are made public
-
----
-
-## Error Handling & Reliability
-
-### RPC Reliability
-- **Retry mechanisms**: Automatic retry with exponential backoff
-- **Timeout handling**: Proper timeout configuration for network calls
-- **Connection validation**: Network connectivity checks before operations
-
-### Transaction Reliability
-- **Gas optimization**: Appropriate gas limits and pricing
-- **Transaction monitoring**: Wait for confirmation with retry logic
-- **Error recovery**: Graceful handling of failed transactions
-
----
-
-## Development Utilities
-
-### RPC Utils (`scripts/utils/rpc-utils.js`)
-- `retryRpcCall()`: Retry RPC calls with exponential backoff
-- `waitForTransactionWithRetry()`: Wait for transaction confirmation
-- `sendTransactionWithRetry()`: Send transactions with retry logic
-- `checkNetworkConnectivity()`: Validate network connection
-
-### Deployment Scripts
-- `scripts/deploy.js`: Main deployment script with retry logic
-- `scripts/deploy-DateGame.js`: Reference implementation
-
----
-
-## Requirements Compliance
-
-The contract and tests fulfill all specified requirements:
-
-### Core Requirements (1.1, 2.1, 3.1, 4.1)
-- ✅ Voter registration and vote casting
-- ✅ Election state management  
-- ✅ Vote privacy and result accuracy
-- ✅ Comprehensive unit test coverage
-
-### Integration Requirements (1.3, 2.4, 4.2)
-- ✅ Complete voting workflow testing
-- ✅ Multi-voter scenarios with result verification
-- ✅ Access control and security measures
-- ✅ End-to-end integration test coverage
-
----
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
----
 
-## License
+## 📄 License
 
 MIT License 
 ---
 
 
 **Note**: This contract is deployed on COTI Testnet for demonstration purposes. For production use, additional security audits and testing are recommended.
+
+## 🔗 Links
+
+- [COTI Documentation](https://docs.coti.io/)
+- [COTI MPC Documentation](https://docs.coti.io/coti-v2-documentation/build-on-coti/mpc)
+- [COTI Testnet Explorer](https://testnet.cotiscan.io/)
+- [Hardhat Documentation](https://hardhat.org/docs)
+- [React Documentation](https://reactjs.org/docs)
+- [Vite Documentation](https://vitejs.dev/guide/)
