@@ -1,6 +1,18 @@
+[![COTI Website](https://img.shields.io/badge/COTI%20WEBSITE-4CAF50?style=for-the-badge)](https://coti.io)
+[![image](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://telegram.coti.io)
+[![image](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.coti.io)
+[![image](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://twitter.coti.io)
+[![image](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.coti.io)
+
+
+
 # COTI Encrypted Voting Contract
 
 A privacy-preserving voting system built on the COTI blockchain using Multi-Party Computation (MPC) for encrypted vote storage and tallying.
+
+## Live Demo
+
+Experience the app live on the COTI Testnet: [https://vote.demo.coti.io](https://vote.demo.coti.io)
 
 ## Overview
 
@@ -263,20 +275,6 @@ if (!voters[msg.sender].hasAuthorizedOwner) {
 - **Limited Scope**: Authorization only grants access for aggregation purposes, not for revealing individual votes
 - **Transparent Process**: The `OwnerAuthorized` event provides transparency about authorization status
 - **Aggregation Only**: Even with authorization, the owner can only use votes in encrypted MPC operations, never decrypt individual votes
-
-**Comparison with Medical Records Pattern:**
-
-This authorization pattern directly mirrors COTI's `EncryptedMedicalRecords` contract:
-
-| Medical Records | Voting Contract |
-|----------------|-----------------|
-| Patient authorizes doctor | Voter authorizes owner |
-| `authorizeDoctor()` | `authorizeOwnerToReadVote()` |
-| Doctor reads patient record | Owner aggregates voter's vote |
-| `getRecordForDoctor()` | Used in `_aggregateVotes()` |
-| Privacy preserved | Privacy preserved |
-
-Both patterns ensure that sensitive encrypted data can be securely shared with authorized parties while maintaining end-to-end privacy.
 
 ---
 
@@ -1165,15 +1163,6 @@ CONTRACT_ADDRESS=0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf npx hardhat test tes
 CONTRACT_ADDRESS=0xCc30E5c9d49b50316F0f9A4731E39434f082FAbf npx hardhat test test/testnet-comprehensive.test.js --network cotiTestnet
 ```
 
-### Test Results Summary
-
-✅ **50+ tests passing**
-- Unit tests: 19/19 ✅
-- Integration tests: 11/11 ✅
-- Per-user encryption tests: 15+/15+ ✅ (dual-mode: local + testnet)
-- Testnet tests: 8/8 ✅
-- Comprehensive testnet: 7/9 ✅ (2 minor error message format differences)
-
 **Note on Per-User Encryption Tests:**
 - Local mode: All access control and state validation tests pass
 - Testnet mode: Full MPC encryption tests require COTI testnet (chainId: 7082400)
@@ -1819,262 +1808,6 @@ Check the build output for:
 - **No Errors**: Build process completes without errors
 - **No Warnings**: Address any TypeScript or build warnings
 
-#### Production Deployment Options
-
-The built application can be deployed to various hosting platforms. Here are recommended options:
-
-#### Option 1: Vercel (Recommended)
-
-Vercel provides seamless deployment with automatic builds and global CDN.
-
-**Deployment Steps:**
-
-1. **Install Vercel CLI** (optional):
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Deploy via CLI**:
-   ```bash
-   vercel
-   ```
-
-3. **Or Deploy via GitHub**:
-   - Push your code to GitHub
-   - Connect repository to Vercel
-   - Configure build settings:
-     - Build Command: `npm run build`
-     - Output Directory: `dist`
-     - Install Command: `npm install`
-
-4. **Configure Environment Variables**:
-   - In Vercel dashboard, go to Project Settings → Environment Variables
-   - Add all `VITE_*` variables from your `.env` file
-   - **Important**: Never commit `.env` to version control
-
-5. **Deploy**:
-   - Vercel automatically builds and deploys on every push
-   - Access your app at: `https://your-project.vercel.app`
-
-**Vercel Features:**
-- Automatic HTTPS
-- Global CDN
-- Automatic deployments on git push
-- Preview deployments for pull requests
-- Custom domains
-- Edge network for fast loading
-
-#### Option 2: Netlify
-
-Netlify offers similar features to Vercel with drag-and-drop deployment.
-
-**Deployment Steps:**
-
-1. **Build the Application**:
-   ```bash
-   npm run build
-   ```
-
-2. **Deploy via Netlify CLI**:
-   ```bash
-   npm install -g netlify-cli
-   netlify deploy --prod --dir=dist
-   ```
-
-3. **Or Deploy via Drag-and-Drop**:
-   - Visit [Netlify Drop](https://app.netlify.com/drop)
-   - Drag the `dist/` folder to the upload area
-   - Your site is live instantly
-
-4. **Or Deploy via GitHub**:
-   - Connect your GitHub repository
-   - Configure build settings:
-     - Build Command: `npm run build`
-     - Publish Directory: `dist`
-   - Add environment variables in Netlify dashboard
-
-**Netlify Features:**
-- Automatic HTTPS
-- Continuous deployment
-- Form handling
-- Serverless functions
-- Split testing
-- Custom domains
-
-#### Option 3: GitHub Pages
-
-GitHub Pages provides free static hosting for public repositories.
-
-**Deployment Steps:**
-
-1. **Install gh-pages Package**:
-   ```bash
-   npm install --save-dev gh-pages
-   ```
-
-2. **Add Deploy Script to package.json**:
-   ```json
-   {
-     "scripts": {
-       "deploy": "npm run build && gh-pages -d dist"
-     }
-   }
-   ```
-
-3. **Configure Base Path in vite.config.ts**:
-   ```typescript
-   export default defineConfig({
-     base: '/your-repo-name/',
-     // ... other config
-   });
-   ```
-
-4. **Deploy**:
-   ```bash
-   npm run deploy
-   ```
-
-5. **Enable GitHub Pages**:
-   - Go to repository Settings → Pages
-   - Select `gh-pages` branch
-   - Your site will be available at: `https://username.github.io/repo-name/`
-
-**GitHub Pages Limitations:**
-- Only supports static sites (no server-side code)
-- Public repositories only (for free tier)
-- Custom domain requires DNS configuration
-
-#### Option 4: Self-Hosted (VPS/Cloud)
-
-Deploy to your own server using Nginx or Apache.
-
-**Deployment Steps:**
-
-1. **Build the Application**:
-   ```bash
-   npm run build
-   ```
-
-2. **Transfer Files to Server**:
-   ```bash
-   scp -r dist/* user@your-server.com:/var/www/voting-app/
-   ```
-
-3. **Configure Nginx**:
-   ```nginx
-   server {
-       listen 80;
-       server_name your-domain.com;
-       root /var/www/voting-app;
-       index index.html;
-
-       location / {
-           try_files $uri $uri/ /index.html;
-       }
-
-       # Enable gzip compression
-       gzip on;
-       gzip_types text/css application/javascript application/json;
-   }
-   ```
-
-4. **Restart Nginx**:
-   ```bash
-   sudo systemctl restart nginx
-   ```
-
-5. **Configure SSL** (recommended):
-   ```bash
-   sudo certbot --nginx -d your-domain.com
-   ```
-
-**Self-Hosting Advantages:**
-- Full control over infrastructure
-- No vendor lock-in
-- Custom server configuration
-- Can integrate with existing infrastructure
-
-#### Option 5: Docker Container
-
-Containerize the application for consistent deployment across environments.
-
-**Dockerfile Example**:
-
-```dockerfile
-# Build stage
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-# Production stage
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-**Deploy with Docker**:
-
-```bash
-# Build image
-docker build -t coti-voting-app .
-
-# Run container
-docker run -p 80:80 coti-voting-app
-```
-
-#### Post-Deployment Checklist
-
-After deploying to any platform, verify the following:
-
-- [ ] Application loads without errors
-- [ ] Contract address is correctly configured
-- [ ] RPC endpoint is accessible
-- [ ] Voter accounts can connect and sign transactions
-- [ ] Vote casting works correctly
-- [ ] Results display after election closes
-- [ ] All UI components render properly
-- [ ] Mobile responsiveness works
-- [ ] HTTPS is enabled (for production)
-- [ ] Environment variables are properly set
-- [ ] No sensitive data exposed in client-side code
-- [ ] Console shows no errors or warnings
-
-#### Deployment Best Practices
-
-**Security:**
-- Never commit `.env` files to version control
-- Use environment variables for all sensitive data
-- Enable HTTPS for production deployments
-- Regularly update dependencies for security patches
-- Use Content Security Policy (CSP) headers
-
-**Performance:**
-- Enable gzip/brotli compression
-- Use CDN for static assets
-- Implement caching headers
-- Optimize images and assets
-- Monitor bundle size and keep it minimal
-
-**Monitoring:**
-- Set up error tracking (e.g., Sentry)
-- Monitor RPC endpoint availability
-- Track transaction success rates
-- Monitor application performance
-- Set up uptime monitoring
-
-**Maintenance:**
-- Keep dependencies updated
-- Monitor for security vulnerabilities
-- Regularly test on testnet before mainnet
-- Maintain deployment documentation
-- Keep backup of environment configurations
-
----
 
 ## Gas Usage Analysis
 
@@ -2172,13 +1905,5 @@ MIT License - see LICENSE file for details.
 
 ---
 
-## Support
-
-For questions or issues:
-- Review the test files for usage examples
-- Check the contract documentation in the source code
-- Refer to COTI documentation for MPC-specific features
-
----
 
 **Note**: This contract is deployed on COTI Testnet for demonstration purposes. For production use, additional security audits and testing are recommended.
