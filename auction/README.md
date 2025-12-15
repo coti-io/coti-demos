@@ -1,11 +1,18 @@
+[![COTI Website](https://img.shields.io/badge/COTI%20WEBSITE-4CAF50?style=for-the-badge)](https://coti.io)
+[![image](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://telegram.coti.io)
+[![image](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.coti.io)
+[![image](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://twitter.coti.io)
+[![image](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.coti.io)
+
+
 # Private Auction - Privacy-Preserving Sealed Bid Auctions
 
 A decentralized application that demonstrates privacy-preserving sealed bid auctions using COTI's Multi-Party Computation (MPC) technology. The auction allows bidders to place encrypted bids on-chain that remain completely confidential until the auction ends, ensuring fair price discovery without revealing sensitive bidding information to competitors.
 
 ## Live Deployment
 
-- **PrivateAuction Contract**: `0x975A20aa4547e4120b07bA7ff0576A1cBC619d31`
-- **MyToken Contract**: `0xe53e1e154c67653f3b16A0308B875ccfe8A1272e`
+- **PrivateAuction Contract**: `0x2B1F89FF304279BB008802E4f2Ef1416e09d3743`
+- **MyToken Contract**: `0xa3b32cB50a69C312932f0a7D1d4cb01a35DC0945`
 - **Network**: COTI Testnet
 - **Chain ID**: 7082400
 - **Architecture**: React SPA with client-side MPC encryption and ERC20 token integration
@@ -15,7 +22,7 @@ A decentralized application that demonstrates privacy-preserving sealed bid auct
 - **Private Bidding**: Bids are encrypted using MPC and remain confidential on-chain
 - **Sealed Bid Auction**: No bidder can see others' bids during the auction period
 - **Secure Comparisons**: Uses COTI's MPC for privacy-preserving bid comparisons
-- **Token-Based**: Bids are placed using ERC20 tokens (MyToken)
+- **Token-Based**: Bids are placed using Private ERC20 tokens. 
 - **Automatic Winner Tracking**: Highest bid is determined through encrypted comparisons
 - **Fair Settlement**: Winners can claim the item, losers can withdraw their tokens
 - **In-App Redeployment**: Deploy new contract instances directly from the UI
@@ -55,18 +62,43 @@ Before you begin, ensure you have the following installed:
 
    ```bash
    # COTI Testnet RPC URL
+   RPC_URL=https://testnet.coti.io/rpc
+   PRIVATE_KEY=your_private_key_here
+
+   # Frontend environment variables
+   VITE_AUCTION_ADDRESS=0x2B1F89FF304279BB008802E4f2Ef1416e09d3743
+   VITE_TOKEN_ADDRESS=0xa3b32cB50a69C312932f0a7D1d4cb01a35DC0945
    VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
 
-   # Deployed Contract Addresses
-   VITE_AUCTION_ADDRESS=0x975A20aa4547e4120b07bA7ff0576A1cBC619d31
-   VITE_TOKEN_ADDRESS=0xe53e1e154c67653f3b16A0308B875ccfe8A1272e
+   # Alice credentials
+   VITE_ALICE_PK=your_alice_private_key_here
+   VITE_ALICE_AES_KEY=your_alice_aes_key_here
+   VITE_ALICE_ADDRESS=your_alice_address_here
 
-   # Bidder Account (for placing bids)
-   VITE_BIDDER_PK=your_bidder_private_key_here
-   VITE_BIDDER_AES_KEY=your_bidder_aes_key_here
+   # Bob credentials
+   VITE_BOB_PK=your_bob_private_key_here
+   VITE_BOB_AES_KEY=your_bob_aes_key_here
+   VITE_BOB_ADDRESS=your_bob_address_here
 
-   # Deployer Account (for hardhat deployment)
-   DEPLOYER_PRIVATE_KEY=your_deployer_private_key_here
+   # Bea credentials
+   VITE_BEA_PK=your_bea_private_key_here
+   VITE_BEA_AES_KEY=your_bea_aes_key_here
+   VITE_BEA_ADDRESS=your_bea_address_here
+
+   # Charlie credentials
+   VITE_CHARLIE_PK=your_charlie_private_key_here
+   VITE_CHARLIE_AES_KEY=your_charlie_aes_key_here
+   VITE_CHARLIE_ADDRESS=your_charlie_address_here
+
+   # David credentials
+   VITE_DAVID_PK=your_david_private_key_here
+   VITE_DAVID_AES_KEY=your_david_aes_key_here
+   VITE_DAVID_ADDRESS=your_david_address_here
+
+   # Ethan credentials
+   VITE_ETHAN_PK=your_ethan_private_key_here
+   VITE_ETHAN_AES_KEY=your_ethan_aes_key_here
+   VITE_ETHAN_ADDRESS=your_ethan_address_here
    ```
 
 ## Quick Start
@@ -85,50 +117,36 @@ Before you begin, ensure you have the following installed:
    Navigate to `http://localhost:3003`
 
 3. **Participate in the auction**
-   - Choose "Bidder Page" to place bids
-   - Mint test tokens for bidding
+   - The Home Page is the main interface for bidding
+   - Check your token balance (tokens are granted at deployment)
    - Place encrypted bids during the auction
    - The app connects to the deployed contracts on COTI Testnet
 
-### Option 2: Deploy Your Own Contracts
+### Option 2: Deploy Via Web App
 
-1. **Compile the contracts**
+The application comes with pre-compiled artifacts, so you can deploy new contracts directly from the UI without needing to compile code.
 
-   ```bash
-   npm run compile
-   ```
-
-2. **Deploy to COTI Testnet**
-
-   ```bash
-   npm run deploy:coti
-   ```
-
-3. **Update contract addresses**
-   Copy the deployed contract addresses and update them in your `.env` file:
-
-   ```bash
-   VITE_AUCTION_ADDRESS=your_new_auction_address
-   VITE_TOKEN_ADDRESS=your_new_token_address
-   ```
-
-4. **Start the application**
+1. **Start the application**
 
    ```bash
    npm run dev
    ```
 
+2. **Deploy Contracts**
+   - Click the "Redeploy Contracts" button in the "Auction Actions" card
+   - Confirm the deployment
+   - The app will deploy new `MyToken` and `PrivateAuction` contracts
+   - The page will reload and use your new custom contracts (saved in localStorage)
+
 ## How to Use
 
-### Minting Tokens
+### Token Balance
 
-1. Navigate to the **Bidder Page** (`/bidder`)
-2. **Mint Test Tokens**
-   - Enter the amount of tokens you want to mint
-   - Click "Mint Tokens"
-   - Wait for transaction confirmation
-   - Your token balance will update automatically
-
+1. Navigate to the **Home Page** (`/`)
+2. **Check Balance**
+   - Your token balance is automatically updated
+   - Tokens are granted during deployment or pre-funded
+   
 ### Placing a Bid
 
 1. **Check Auction Status**
@@ -141,9 +159,7 @@ Before you begin, ensure you have the following installed:
    - Click "Place Bid"
    - Your bid is encrypted before being sent to the blockchain
    - Wait for transaction confirmation
-4. **Check Bid Status**
-   - Click "Check My Bid" to decrypt and view your bid
-   - See if you're currently the highest bidder
+
 
 ### After Auction Ends
 
@@ -151,8 +167,9 @@ Before you begin, ensure you have the following installed:
    - Click "Claim Item" to claim your winnings
    - Your tokens will be locked with the contract
 2. **Non-Winners**
-   - Click "Withdraw Bid" to get your tokens back
-   - Tokens are returned to your wallet
+   - **Automatic Withdrawal**: Tokens are automatically returned to your wallet
+   - No manual action is required
+
 
 ## Smart Contract Development
 
@@ -213,18 +230,18 @@ npm run preview
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Client (React SPA)                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  HomePage    │  │ BidderPage   │  │ MultiBidder  │       │
-│  │     (/)      │  │  (/bidder)   │  │ (/multi)     │       │
-│  └──────────────┘  └──────────────┘  └──────────────┘       │
-│                         │                                    │
+│  ┌──────────────┐  ┌──────────────┐                         │
+│  │  HomePage    │  │ MultiBidder  │                         │
+│  │     (/)      │  │  (/multi)    │                         │
+│  └──────────────┘  └──────────────┘                         │
+│                         │                                   │
 │  ┌──────────────────────▼────────────────────────────────┐  │
 │  │  useAuction Hook (Custom React Hook)                  │  │
 │  │  • Manages COTI wallets (Bidders)                     │  │
 │  │  • Handles MPC encryption/decryption client-side      │  │
 │  │  • Direct smart contract interactions                 │  │
 │  │  • Token minting, bidding, claiming, withdrawing      │  │
-│  └────────────────────────────────────────────────────────┘  │
+│  └───────────────────────────────────────────────────────┘  │
 └────────────────────────┬────────────────────────────────────┘
                          │ COTI-Ethers SDK
                          ▼
@@ -232,22 +249,22 @@ npm run preview
 │              COTI Testnet (Chain ID: 7082400)               │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │   MyToken (ERC20) Smart Contract                     │   │
-│  │   Address: 0xe53e1e154c67653f3b16A0308B875ccfe8A127...│   │
+│  │   Address: 0xa3b32cB50a69C312932f0a7D1d4cb01a35DC09. │   │
 │  │                                                      │   │
-│  │   • mint(address, itUint64)  - Mint encrypted tokens│   │
-│  │   • balanceOf(address)       - Get encrypted balance│   │
-│  │   • transfer(address, ctUint64) - Transfer tokens   │   │
+│  │   • mint(address, itUint64)  - Mint encrypted tokens │   │
+│  │   • balanceOf(address)       - Get encrypted balance │   │
+│  │   • transfer(address, ctUint64) - Transfer tokens    │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │   PrivateAuction Smart Contract                      │   │
-│  │   Address: 0x975A20aa4547e4120b07bA7ff0576A1cBC619...│   │
+│  │   Address: 0x2B1F89FF304279BB008802E4f2Ef1416e09d37..│   │
 │  │                                                      │   │
-│  │   • placeBid(itUint64)       - Place encrypted bid  │   │
-│  │   • getBid(address)          - Get encrypted bid    │   │
-│  │   • endAuction()             - End auction period   │   │
-│  │   • claimItem()              - Winner claims item   │   │
-│  │   • withdraw()               - Losers withdraw bids │   │
-│  │   • getHighestBid()          - Get encrypted max bid│   │
+│  │   • placeBid(itUint64)       - Place encrypted bid   │   │
+│  │   • getBid(address)          - Get encrypted bid     │   │
+│  │   • endAuction()             - End auction period    │   │
+│  │   • claimItem()              - Winner claims item    │   │
+│  │   • withdraw()               - Losers withdraw bids  │   │
+│  │   • getHighestBid()          - Get encrypted max bid │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -275,7 +292,6 @@ auction/
 │   │   └── useAuction.js       # Custom hook for auction interactions
 │   ├── pages/
 │   │   ├── HomePage.jsx        # Landing page with auction info
-│   │   ├── BidderPage.jsx      # Bidding interface
 │   │   └── MultiBidderPage.jsx # Multi-bidder testing interface
 │   ├── assets/                 # Static assets
 │   ├── App.jsx                 # Main app component with routing
@@ -445,18 +461,18 @@ function approve(address spender, itUint64 calldata amount) external
 
 ## How It Works
 
-1. **Bidders mint tokens** using the MyToken contract (encrypted minting)
+1. **Bidders receive tokens** automatically or via faucet (encrypted balance)
 2. **Bidders submit encrypted bids** using the PrivateAuction contract
 3. **Bids are stored on-chain** in encrypted form (`utUint64`)
 4. **Highest bid is tracked automatically** using MPC operations without revealing values
 5. **Auction ends** after the specified duration
 6. **Winner claims the item**, their tokens are transferred to the auction owner
-7. **Losing bidders withdraw** their tokens, which are returned to them
+7. **Losing bidders' tokens** are automatically returned to them
 
 ## UI Pages
 
-- **Home Page** (`/`): Introduction, auction rules, and contract redeployment
-- **Bidder Page** (`/bidder`): Interface for minting tokens, placing bids, and managing participation
+- **Home Page** (`/`): Main interface for minting tokens, placing bids, managing participation, and contract redeployment
+- **Bidder Page** (`/bidder`): Legacy bidding interface (integrated into Home Page)
 - **Multi-Bidder Page** (`/multi`): Testing interface for simulating multiple bidders
 
 ## Technology Stack
@@ -498,7 +514,7 @@ function approve(address spender, itUint64 calldata amount) external
 
 3. **Transaction failures**
    - Ensure the wallet has sufficient ETH for gas fees
-   - Check that you have minted tokens before placing bids
+   - Check that you have sufficient token balance before placing bids
    - Verify you've approved the auction contract to spend your tokens
    - Check that the contract addresses are correct
    - Verify network configuration (Chain ID: 7082400)
@@ -519,9 +535,9 @@ function approve(address spender, itUint64 calldata amount) external
    - Check network connectivity
    - Try using a different RPC endpoint if available
 
-### Getting Test ETH
+### Getting Test COTI
 
-To get test ETH for COTI Testnet:
+To get test COTI for Testnet:
 
 1. Visit the [COTI Discord](https://discord.com/invite/Z4r8D6ez49)
 2. Navigate to the testnet faucet channel
@@ -564,7 +580,7 @@ The Private Auction uses COTI's Multi-Party Computation (MPC) to ensure complete
 
 ⚠️ **Important**: This is a demo application. For production use:
 
-- Store private keys in secure key management systems (e.g., AWS KMS, HashiCorp Vault)
+- Store private keys in secure key management systems 
 - Use environment variables for all sensitive data
 - Never commit `.env` files to version control
 - Implement proper authentication and authorization
@@ -575,18 +591,6 @@ The Private Auction uses COTI's Multi-Party Computation (MPC) to ensure complete
 - Audit smart contracts before production deployment
 - Implement emergency pause mechanisms
 - Add comprehensive event logging for monitoring
-
-## Development Status
-
-✅ Smart contracts deployed and verified
-✅ UI structure and styling complete
-✅ In-app contract redeployment with localStorage
-✅ Contract integration complete (bid placement, checking, claiming, withdrawal)
-✅ MPC encryption for bids and token balances
-✅ Real-time auction status updates
-✅ Auction timer display
-✅ Token minting for testing
-✅ Multi-bidder testing interface
 
 ## Contributing
 
@@ -606,18 +610,9 @@ The Private Auction uses COTI's Multi-Party Computation (MPC) to ensure complete
 - [Vite Documentation](https://vitejs.dev/guide/)
 - [Styled Components Documentation](https://styled-components.com/docs)
 
-## Support
-
-For support and questions:
-
-- Open an issue on GitHub
-- Check the COTI Discord community
 - Review the documentation links above
 
 ## License
 
 MIT
 
----
-
-Built with COTI's MPC technology for private, secure sealed-bid auctions on blockchain.
