@@ -866,7 +866,7 @@ function HomePage() {
                             onClick={handleCompareAlice}
                             disabled={globalLoading || !aliceSubmitted || !bobSubmitted}
                         >
-                            {globalLoading ? 'Comparing...' : 'Compare Wealth'}
+                            {globalLoading ? 'Comparing...' : 'Alice richer than Bob?'}
                         </SmallButton>
                     </div>
                 </Card>
