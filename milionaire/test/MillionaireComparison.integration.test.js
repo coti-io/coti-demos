@@ -151,9 +151,9 @@ describe("MillionaireComparison Integration Tests", function () {
         };
     }
 
-    describe("Boolean Comparison Logic", function () {
+    describe("Boolean Comparison Logic (Alice > Bob)", function () {
 
-        it("should return Alice=true, Bob=false when Alice is richer", async function () {
+        it("should return true for both when Alice is richer", async function () {
             await resetContractState();
 
             // Alice has 1000, Bob has 500 → Alice is richer
@@ -165,13 +165,13 @@ describe("MillionaireComparison Integration Tests", function () {
 
             const results = await performComparisonAndGetResults();
 
-            console.log(`\n🎯 Results: Alice is richer? ${results.aliceIsRicher}, Bob is richer? ${results.bobIsRicher}`);
+            console.log(`\n🎯 Results: Alice says Alice>Bob? ${results.aliceIsRicher}, Bob says Alice>Bob? ${results.bobIsRicher}`);
 
             expect(results.aliceIsRicher).to.be.true;
-            expect(results.bobIsRicher).to.be.false;
+            expect(results.bobIsRicher).to.be.true;
         });
 
-        it("should return Alice=false, Bob=true when Bob is richer", async function () {
+        it("should return false for both when Bob is richer", async function () {
             await resetContractState();
 
             // Alice has 300, Bob has 800 → Bob is richer
@@ -183,16 +183,16 @@ describe("MillionaireComparison Integration Tests", function () {
 
             const results = await performComparisonAndGetResults();
 
-            console.log(`\n🎯 Results: Alice is richer? ${results.aliceIsRicher}, Bob is richer? ${results.bobIsRicher}`);
+            console.log(`\n🎯 Results: Alice says Alice>Bob? ${results.aliceIsRicher}, Bob says Alice>Bob? ${results.bobIsRicher}`);
 
             expect(results.aliceIsRicher).to.be.false;
-            expect(results.bobIsRicher).to.be.true;
+            expect(results.bobIsRicher).to.be.false;
         });
 
-        it("should return Alice=false, Bob=false when both have equal wealth (tie)", async function () {
+        it("should return false for both when wealth is equal (tie)", async function () {
             await resetContractState();
 
-            // Alice has 500, Bob has 500 → Tie
+            // Alice has 500, Bob has 500 → Tie (Alice is NOT richer)
             const aliceWealth = 500;
             const bobWealth = 500;
 
@@ -201,9 +201,9 @@ describe("MillionaireComparison Integration Tests", function () {
 
             const results = await performComparisonAndGetResults();
 
-            console.log(`\n🎯 Results: Alice is richer? ${results.aliceIsRicher}, Bob is richer? ${results.bobIsRicher}`);
+            console.log(`\n🎯 Results: Alice says Alice>Bob? ${results.aliceIsRicher}, Bob says Alice>Bob? ${results.bobIsRicher}`);
 
-            // In a tie, neither is "richer" so both get false
+            // In a tie, Alice is not strictly richer, so result is false
             expect(results.aliceIsRicher).to.be.false;
             expect(results.bobIsRicher).to.be.false;
         });
@@ -220,10 +220,10 @@ describe("MillionaireComparison Integration Tests", function () {
 
             const results = await performComparisonAndGetResults();
 
-            console.log(`\n🎯 Results: Alice is richer? ${results.aliceIsRicher}, Bob is richer? ${results.bobIsRicher}`);
+            console.log(`\n🎯 Results: Alice says Alice>Bob? ${results.aliceIsRicher}, Bob says Alice>Bob? ${results.bobIsRicher}`);
 
             expect(results.aliceIsRicher).to.be.true;
-            expect(results.bobIsRicher).to.be.false;
+            expect(results.bobIsRicher).to.be.true;
         });
 
         it("should handle large wealth values", async function () {
@@ -238,17 +238,17 @@ describe("MillionaireComparison Integration Tests", function () {
 
             const results = await performComparisonAndGetResults();
 
-            console.log(`\n🎯 Results: Alice is richer? ${results.aliceIsRicher}, Bob is richer? ${results.bobIsRicher}`);
+            console.log(`\n🎯 Results: Alice says Alice>Bob? ${results.aliceIsRicher}, Bob says Alice>Bob? ${results.bobIsRicher}`);
 
             expect(results.aliceIsRicher).to.be.true;
-            expect(results.bobIsRicher).to.be.false;
+            expect(results.bobIsRicher).to.be.true;
         });
 
 
         it("should handle zero wealth values (Bob wins)", async function () {
             await resetContractState();
 
-            // Alice has 0, Bob has 1 → Bob is richer
+            // Alice has 0, Bob has 1 → Bob is richer (Alice is NOT richer)
             const aliceWealth = 0;
             const bobWealth = 1;
 
@@ -257,16 +257,16 @@ describe("MillionaireComparison Integration Tests", function () {
 
             const results = await performComparisonAndGetResults();
 
-            console.log(`\n🎯 Results: Alice is richer? ${results.aliceIsRicher}, Bob is richer? ${results.bobIsRicher}`);
+            console.log(`\n🎯 Results: Alice says Alice>Bob? ${results.aliceIsRicher}, Bob says Alice>Bob? ${results.bobIsRicher}`);
 
             expect(results.aliceIsRicher).to.be.false;
-            expect(results.bobIsRicher).to.be.true;
+            expect(results.bobIsRicher).to.be.false;
         });
 
         it("should handle both having zero wealth (tie)", async function () {
             await resetContractState();
 
-            // Both have 0 → Tie
+            // Both have 0 → Tie (Alice is NOT richer)
             const aliceWealth = 0;
             const bobWealth = 0;
 
@@ -275,9 +275,8 @@ describe("MillionaireComparison Integration Tests", function () {
 
             const results = await performComparisonAndGetResults();
 
-            console.log(`\n🎯 Results: Alice is richer? ${results.aliceIsRicher}, Bob is richer? ${results.bobIsRicher}`);
+            console.log(`\n🎯 Results: Alice says Alice>Bob? ${results.aliceIsRicher}, Bob says Alice>Bob? ${results.bobIsRicher}`);
 
-            // Both have 0, so neither is richer
             expect(results.aliceIsRicher).to.be.false;
             expect(results.bobIsRicher).to.be.false;
         });

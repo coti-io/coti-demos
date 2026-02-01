@@ -256,16 +256,16 @@ export function useMillionaireContract() {
         const ctResult = await contract.getAliceResult();
         console.log('Got encrypted result for Alice:', ctResult.toString());
 
-        // Decrypt the result (boolean: true = you're richer, false = you're not)
+        // Decrypt the result (boolean: true = Alice is richer, false = Alice is NOT richer)
         const clearResult = await aliceWallet.decryptValue(ctResult);
         console.log('Decrypted result for Alice:', clearResult);
 
-        // Boolean result: true (1n) = Alice is richer, false (0n) = Alice is not richer
-        const isRicher = clearResult === 1n || clearResult === BigInt(1);
+        // Boolean result: true (1n) = Alice is richer
+        const aliceIsRicher = clearResult === 1n || clearResult === BigInt(1);
 
         return {
             raw: clearResult,
-            isRicher: isRicher
+            isRicher: aliceIsRicher // This actually means "Alice won"
         };
     };
 
@@ -280,62 +280,57 @@ export function useMillionaireContract() {
         const ctResult = await contract.getBobResult();
         console.log('Got encrypted result for Bob:', ctResult.toString());
 
-        // Decrypt the result (boolean: true = you're richer, false = you're not)
+        // Decrypt the result (boolean: true = Alice is richer, false = Alice is NOT richer)
         const clearResult = await bobWallet.decryptValue(ctResult);
         console.log('Decrypted result for Bob:', clearResult);
 
-        // Boolean result: true (1n) = Bob is richer, false (0n) = Bob is not richer
-        const isRicher = clearResult === 1n || clearResult === BigInt(1);
+        // Boolean result: true (1n) = Alice is richer
+        // NOTE: The boolean answers "Is Alice Richer?". So if it's true, Alice won. 
+        // If it's false, Bob might have won or it's a tie.
+        const aliceIsRicher = clearResult === 1n || clearResult === BigInt(1);
 
         return {
             raw: clearResult,
-            isRicher: isRicher
+            isRicher: aliceIsRicher // This actually means "Alice won"
         };
     };
 
     /**
-     * Get the full comparison result by checking both Alice and Bob's decrypted results.
-     * This determines the actual winner or if it's a tie.
+     * Get the comparison result. Now checking either party's result gives the same info.
+     * We decrypt both just for completeness/verification, but logically they are identical.
      * 
-     * @returns {Object} { winner: 'alice' | 'bob' | 'tie', text: string, aliceIsRicher: boolean, bobIsRicher: boolean }
+     * @returns {Object} { winner: 'alice' | 'bob_or_tie', text: string, aliceIsRicher: boolean }
      */
     const getFullComparisonResult = async () => {
         if (!aliceWallet || !bobWallet) {
             throw new Error('Both wallets must be configured to get full result');
         }
 
-        // Get both results
+        // Get both results (they should be identical now)
         const aliceResult = await getAliceComparisonResult();
         const bobResult = await getBobComparisonResult();
 
-        console.log('Alice isRicher:', aliceResult.isRicher);
-        console.log('Bob isRicher:', bobResult.isRicher);
+        console.log('Alice says Alice is richer:', aliceResult.isRicher);
+        console.log('Bob says Alice is richer:', bobResult.isRicher);
 
-        // Determine winner based on both results
+        // Determine winner based on the "Alice > Bob" check
         let winner;
         let text;
+        const aliceIsStrictlyRicher = aliceResult.isRicher && bobResult.isRicher;
 
-        if (aliceResult.isRicher && !bobResult.isRicher) {
+        if (aliceIsStrictlyRicher) {
             winner = 'alice';
             text = 'Alice is richer! 🎉';
-        } else if (bobResult.isRicher && !aliceResult.isRicher) {
-            winner = 'bob';
-            text = 'Bob is richer! 🎉';
-        } else if (!aliceResult.isRicher && !bobResult.isRicher) {
-            winner = 'tie';
-            text = 'It\'s a tie! 🤝 Both have equal wealth.';
         } else {
-            // Edge case: both true shouldn't happen with correct MPC logic
-            winner = 'unknown';
-            text = 'Unexpected result';
-            console.error('Unexpected: both parties report being richer');
+            // If false, it means Alice <= Bob
+            winner = 'not_alice';
+            text = 'Alice is not richer';
         }
 
         return {
             winner,
             text,
-            aliceIsRicher: aliceResult.isRicher,
-            bobIsRicher: bobResult.isRicher
+            aliceIsRicher: aliceIsStrictlyRicher
         };
     };
 

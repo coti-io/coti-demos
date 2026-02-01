@@ -102,21 +102,21 @@ contract MillionaireComparison {
      * @dev Result: true = you're richer, false = you're not (or tie)
      */
     function compareWealth() external {
+        // Validation
         require(_aliceSet && _bobSet, "Both parties must submit their wealth first");
-        require(msg.sender == _alice || msg.sender == _bob, "Only Alice or Bob can trigger comparison");
-        
-        // Load the stored encrypted wealth values
-        gtUint64 aliceWealth = MpcCore.onBoard(_aliceWealth.ciphertext);
-        gtUint64 bobWealth = MpcCore.onBoard(_bobWealth.ciphertext);
-        
-        // Simple comparison: each party learns if they're strictly richer
-        // If both get false, it's a tie
-        gtBool aliceWins = MpcCore.gt(aliceWealth, bobWealth);
-        gtBool bobWins = MpcCore.gt(bobWealth, aliceWealth);
-        
-        // Store encrypted boolean results for each party
-        _aliceResult = MpcCore.offBoardCombined(aliceWins, _alice);
-        _bobResult = MpcCore.offBoardCombined(bobWins, _bob);
+
+        // Load encrypted wealth
+        gtUint64 aliceWealth = MpcCore.onBoard(_aliceWealth.userCiphertext);
+        gtUint64 bobWealth = MpcCore.onBoard(_bobWealth.userCiphertext);
+
+        // Perform comparison: ONLY check if Alice is richer
+        // true  = Alice > Bob
+        // false = Alice <= Bob
+        gtBool aliceRicher = MpcCore.gt(aliceWealth, bobWealth);
+
+        // Store the SAME boolean result for both parties
+        _aliceResult = MpcCore.offBoardCombined(aliceRicher, _alice);
+        _bobResult = MpcCore.offBoardCombined(aliceRicher, _bob);
         
         emit ComparisonCompleted(msg.sender);
     }
