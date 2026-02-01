@@ -1,286 +1,50 @@
-# DateGame Test Suite Documentation
+# DateGame Test Results
 
-## Overview
+This document records the results of the `DateGame` contract deployment and functional testing on the COTI Testnet.
 
-This directory contains tests for the DateGame smart contract, which demonstrates privacy-preserving age verification using COTI's Multi-Party Computation (MPC) technology. The tests include both local unit tests and COTI testnet integration tests.
+## Deployment Details
 
-## Test Files
+- **Network**: COTI Testnet
+- **Deployment Timestamp**: 2026-01-14
+- **Contract Address**: `0x4188E0CB7215558133BC17137C427a88A9215B53`
+- **Deployer**: `0xe45FC1a7D84e73C8c71EdF2814E7467F7C86a8A2`
 
-### `DateGame.test.js`
-Comprehensive contract functionality tests that cover:
-- **Contract Initialization**: Verify initial state and deployment
-- **Age Storage**: Test age setting functionality and state management
-- **Comparison Operations**: Test greater than and less than comparisons
-- **Access Control**: Verify function accessibility and permissions
-- **State Management**: Test age set status tracking
-- **Event Definitions**: Validate event structures and parameters
-- **Error Handling**: Test proper error messages and reverts
-- **Edge Cases**: Handle multiple users, rapid calls, and edge scenarios
-- **Gas Estimation**: Verify reasonable gas costs for operations
+## Test Suite: `test/DateGame.functional.test.js`
 
-## Running Tests
+The functional tests verify the core privacy-preserving mechanics of the `DateGame` contract using `@coti-io/coti-ethers`.
 
-### Local Tests (Hardhat Network) - ✅ RECOMMENDED
+### Tested Scenarios
+1.  **Setting Age**: Encrypted `setAge` call.
+2.  **Guessing (Greater Than)**: Encrypted `greaterThan` query.
+3.  **Guessing (Less Than)**: Encrypted `lessThan` query.
+4.  **Verification**: Decrypting `comparisonResult` to verify logic correctness (True/False).
 
+### Execution Results
+
+**Command**:
 ```bash
-npx hardhat test
+npx hardhat test test/DateGame.functional.test.js --network cotiTestnet
 ```
 
-**Result: 26 passing**
+**Output**:
+```text
+  DateGame Functional Tests (COTI Testnet)
+Testing with account: 0xe45FC1a7D84e73C8c71EdF2814E7467F7C86a8A2
+Using existing contract at: 0x4188E0CB7215558133BC17137C427a88A9215B53
+    ✔ should set age successfully (6329ms)
+    ✔ should allow owner to guess age (greaterThan check)
+    ✔ should allow owner to guess age (lessThan check)
+    ✔ should return false for incorrect guess (greaterThan)
 
-This runs all tests on the local Hardhat network and is the **primary test validation method**.
-
-**What is tested:**
-- ✅ State management tests (isAgeSet)
-- ✅ Access control verification
-- ✅ Function signature validation
-- ✅ Event definition checks
-- ✅ Error message validation
-- ✅ Contract deployment tests
-- ✅ Gas estimation
-- ✅ Multiple user scenarios
-
-**What would require COTI testnet (not included in test suite):**
-- Actual MPC encryption/decryption operations
-- setAge with real encrypted data
-- greaterThan/lessThan comparisons with encrypted values
-- comparisonResult decryption
-
-**Note:** Some tests using `.connect()` are automatically skipped on COTI testnet due to RPC limitations, but all 26 tests pass on local network.
-
-### COTI Testnet Tests - ⚠️ OPTIONAL
-
-The test suite is designed to run primarily on local Hardhat network. If you want to run tests on COTI testnet to verify deployment and basic contract functionality:
-
-1. **Set up environment variables** in `.env`:
-   ```bash
-   # COTI Testnet RPC URL
-   VITE_APP_NODE_HTTPS_ADDRESS=https://testnet.coti.io/rpc
-
-   # Admin Account (stores the age)
-   VITE_ADMIN_PK=your_admin_private_key_here
-   VITE_ADMIN_AES_KEY=your_admin_aes_key_here
-
-   # Player Account (guesses the age)
-   VITE_PLAYER_PK=your_player_private_key_here
-   VITE_PLAYER_AES_KEY=your_player_aes_key_here
-
-   # Deployer Account (for contract deployment)
-   DEPLOYER_PRIVATE_KEY=your_deployer_private_key_here
-   ```
-
-2. **Deploy the contract to COTI testnet**:
-   ```bash
-   npm run deploy:coti
-   ```
-
-3. **Run tests on COTI testnet**:
-   ```bash
-   npx hardhat test --network cotiTestnet
-   ```
-
-## Test Accounts
-
-When running on COTI testnet, tests can use accounts from environment variables:
-- **Admin** (VITE_ADMIN_PK): Stores the encrypted age
-- **Player** (VITE_PLAYER_PK): Makes comparison queries
-
-These accounts must have:
-- Sufficient COTI testnet tokens for gas fees
-- Properly configured AES keys for MPC operations
-
-## Test Coverage
-
-### Contract Initialization
-- ✅ Initial state verification (age not set)
-- ✅ Owner assignment on deployment
-- ✅ Contract deployment to valid address
-
-### Age Storage
-- ✅ isAgeSet() returns false initially
-- ✅ getAge() reverts when no age is set
-- ✅ AgeStored event emission
-- ✅ State transition when age is set
-
-### Comparison Operations
-- ✅ greaterThan() reverts without age set
-- ✅ lessThan() reverts without age set
-- ✅ Proper error handling for missing age
-- ✅ Access to comparisonResult()
-
-### State Management
-- ✅ Age set state tracking
-- ✅ State consistency across multiple callers
-- ✅ State persistence after operations
-
-### Access Control
-- ✅ setAge() callable by any address
-- ✅ Comparison functions accessible to all
-- ✅ View functions accessible to all
-- ✅ No owner-only restrictions (MPC handles privacy)
-
-### Function Signatures
-- ✅ Correct setAge signature
-- ✅ Correct greaterThan signature
-- ✅ Correct lessThan signature
-- ✅ Correct comparisonResult signature
-- ✅ Correct getAge signature
-- ✅ Correct isAgeSet signature
-
-### Event Definitions
-- ✅ AgeStored event structure
-- ✅ Event parameter validation
-- ✅ Event indexing verification
-
-### Error Handling
-- ✅ "No age has been stored yet" for comparisons
-- ✅ "No age has been stored yet" for getAge
-- ✅ MPC validation errors on local network
-- ✅ Proper revert behavior
-
-### Multiple Users
-- ✅ Multiple players checking status
-- ✅ Different users attempting comparisons
-- ✅ Consistent results across users
-
-### Edge Cases
-- ✅ Rapid successive calls
-- ✅ Multiple calls from same user
-- ✅ Concurrent state checks
-- ✅ Multiple contract deployments
-
-### Gas Estimation
-- ✅ Reasonable gas costs for view functions
-- ✅ Gas estimation for all public functions
-
-## DateGame Contract Functions
-
-### State-Changing Functions
-
-```solidity
-// Store an encrypted age (only needs to be called once)
-function setAge(itUint64 calldata age) external
-
-// Compare stored age > incoming value
-function greaterThan(itUint64 calldata value) external
-
-// Compare stored age < incoming value
-function lessThan(itUint64 calldata value) external
+  4 passing (2m)
 ```
 
-### View Functions
+## How to Run
+To reproduce these results:
 
-```solidity
-// Check if an age has been stored
-function isAgeSet() external view returns (bool)
-
-// Get the encrypted age (only works if age is set)
-function getAge() public view returns (ctUint64)
-
-// Get the encrypted comparison result
-function comparisonResult() public view returns (ctUint8)
-```
-
-### Events
-
-```solidity
-// Emitted when age is successfully stored
-event AgeStored(address indexed user)
-```
-
-## MPC Flow in DateGame
-
-The DateGame contract uses COTI's MPC for privacy-preserving operations:
-
-1. **Age Storage**:
-   - Admin encrypts age client-side → `itUint64`
-   - Contract validates and stores as `utUint64` (encrypted)
-   - Age stored with owner's address for consistent encryption
-
-2. **Comparison**:
-   - Player encrypts guess client-side → `itUint64`
-   - Contract loads stored age as `gtUint64`
-   - Validates player's guess as `gtUint64`
-   - Performs MPC comparison (gt or lt)
-   - Returns result as encrypted `ctUint8`
-
-3. **Result Retrieval**:
-   - Player retrieves encrypted `ctUint8` result
-   - Decrypts client-side with their AES key
-   - Gets YES (1) or NO (0) answer
-
-## Running Specific Test Suites
-
-Run specific test suites using grep:
-
-```bash
-# Test only initialization
-npx hardhat test --grep "Contract Initialization"
-
-# Test only access control
-npx hardhat test --grep "Access Control"
-
-# Test only error handling
-npx hardhat test --grep "Error Handling"
-
-# Test only state management
-npx hardhat test --grep "State Management"
-```
-
-## Notes
-
-- **Test Suite Focus**: Tests validate contract logic, state management, access control, and function signatures
-- **Local Testing**: All 26 tests pass on local Hardhat network - this is the primary validation method
-- **MPC Operations**: Actual MPC encryption/decryption operations are not included in the test suite
-- **COTI Testnet**: Tests can run on COTI testnet but some tests using `.connect()` will skip due to RPC limitations
-- **Gas Costs**: View functions have minimal gas costs; state-changing functions with MPC are more expensive
-
-## Troubleshooting
-
-### "No age has been stored yet" Errors
-
-This is the correct behavior when:
-- Trying to call getAge() before setAge()
-- Trying to call greaterThan() or lessThan() before setAge()
-
-### "Pending Block is Not Available" Errors on COTI Testnet
-
-This is a known COTI testnet network instability issue. The tests include retry logic to handle this:
-
-**Symptoms:**
-- Contract deployment fails with "pending block is not available"
-- Tests fail in the `beforeEach` hook
-- Error occurs during `estimateGas` or `waitForDeployment`
-
-**Solutions:**
-1. The tests automatically retry deployment up to 3 times with 2-second delays
-2. If all retries fail, try running the tests again after a few minutes
-3. Check COTI testnet status and network connectivity
-4. Ensure you have sufficient testnet ETH for gas fees
-
-**Note:** This is a network-level issue, not a problem with the tests or contract code. The vote project tests document similar issues.
-
-## Test Structure
-
-The test suite follows the pattern used in the voting contract tests:
-- Organized by functional areas
-- Clear test descriptions
-- Comprehensive coverage of edge cases
-- Both positive and negative test cases
-- Gas estimation checks
-- Multiple user scenarios
-
-## Contributing
-
-When adding new tests:
-1. Follow the existing test structure
-2. Add descriptive test names
-3. Include both positive and negative cases
-4. Consider edge cases and error conditions
-5. Update this README with new test coverage
-
-## References
-
-- [COTI MPC Documentation](https://docs.coti.io/coti-v2-documentation/build-on-coti/mpc)
-- [Hardhat Testing Guide](https://hardhat.org/hardhat-runner/docs/guides/test-contracts)
-- [Chai Assertions](https://www.chaijs.com/api/bdd/)
+1.  Ensure `.env` has `VITE_ADMIN_PK` and `VITE_ADMIN_AES_KEY` set.
+2.  Run the tests:
+    ```bash
+    npx hardhat test test/DateGame.functional.test.js --network cotiTestnet
+    ```
+    *Optionally set `EXISTING_CONTRACT_ADDRESS` to skip deployment.*

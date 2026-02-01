@@ -18,9 +18,9 @@ contract MillionaireComparison {
     bool private _aliceSet;
     bool private _bobSet;
     
-    // Store comparison results for each party
-    utUint8 private _aliceResult;  // Result encrypted for Alice
-    utUint8 private _bobResult;    // Result encrypted for Bob
+    // Store comparison results for each party (true = you're richer)
+    utBool private _aliceResult;  // Result encrypted for Alice
+    utBool private _bobResult;    // Result encrypted for Bob
     
     // Store addresses for consistent encryption
     address private _alice;
@@ -99,7 +99,7 @@ contract MillionaireComparison {
     /**
      * @notice Perform the comparison and store encrypted results for both parties
      * @dev Can be called by either Alice or Bob once both have submitted their wealth
-     * @dev Result encoding: 0 = Alice is richer, 1 = Bob is richer, 2 = Equal
+     * @dev Result: true = you're richer, false = you're not (or tie)
      */
     function compareWealth() external {
         require(_aliceSet && _bobSet, "Both parties must submit their wealth first");
@@ -109,54 +109,32 @@ contract MillionaireComparison {
         gtUint64 aliceWealth = MpcCore.onBoard(_aliceWealth.ciphertext);
         gtUint64 bobWealth = MpcCore.onBoard(_bobWealth.ciphertext);
         
-        // Perform comparisons
-        gtBool aliceGreater = MpcCore.gt(aliceWealth, bobWealth);  // Alice > Bob
-        gtBool bobGreater = MpcCore.gt(bobWealth, aliceWealth);     // Bob > Alice
+        // Simple comparison: each party learns if they're strictly richer
+        // If both get false, it's a tie
+        gtBool aliceWins = MpcCore.gt(aliceWealth, bobWealth);
+        gtBool bobWins = MpcCore.gt(bobWealth, aliceWealth);
         
-        // Create result values: 0 = Alice richer, 1 = Bob richer, 2 = Equal
-        gtUint8 zero = MpcCore.setPublic8(0);
-        gtUint8 one = MpcCore.setPublic8(1);
-        gtUint8 two = MpcCore.setPublic8(2);
-        
-        // Determine result:
-        // If Alice > Bob: result = 0
-        // If Bob > Alice: result = 1
-        // Otherwise (equal): result = 2
-        
-        // First check if Alice is greater
-        gtUint8 tempResult = MpcCore.mux(aliceGreater, one, zero);  // If Alice > Bob, set 0, else 1
-        
-        // Then check if Bob is greater
-        gtUint8 finalResult = MpcCore.mux(bobGreater, tempResult, one);  // If Bob > Alice, set 1, else keep tempResult
-        
-        // If neither is greater, they are equal
-        gtBool neitherGreater = MpcCore.and(
-            MpcCore.not(aliceGreater),
-            MpcCore.not(bobGreater)
-        );
-        finalResult = MpcCore.mux(neitherGreater, finalResult, two);  // If equal, set 2, else keep result
-        
-        // Store encrypted results for each party
-        _aliceResult = MpcCore.offBoardCombined(finalResult, _alice);
-        _bobResult = MpcCore.offBoardCombined(finalResult, _bob);
+        // Store encrypted boolean results for each party
+        _aliceResult = MpcCore.offBoardCombined(aliceWins, _alice);
+        _bobResult = MpcCore.offBoardCombined(bobWins, _bob);
         
         emit ComparisonCompleted(msg.sender);
     }
 
     /**
      * @notice Returns the encrypted comparison result for Alice
-     * @return The encrypted result as ctUint8 (0 = Alice richer, 1 = Bob richer, 2 = Equal)
+     * @return The encrypted result as ctBool (true = Alice is richer, false = not richer or tie)
      */
-    function getAliceResult() public view returns (ctUint8) {
+    function getAliceResult() public view returns (ctBool) {
         require(msg.sender == _alice, "Only Alice can view her result");
         return _aliceResult.userCiphertext;
     }
 
     /**
      * @notice Returns the encrypted comparison result for Bob
-     * @return The encrypted result as ctUint8 (0 = Alice richer, 1 = Bob richer, 2 = Equal)
+     * @return The encrypted result as ctBool (true = Bob is richer, false = not richer or tie)
      */
-    function getBobResult() public view returns (ctUint8) {
+    function getBobResult() public view returns (ctBool) {
         require(msg.sender == _bob, "Only Bob can view his result");
         return _bobResult.userCiphertext;
     }

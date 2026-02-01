@@ -65,8 +65,8 @@ const MILLIONAIRE_COMPARISON_ABI = [
     "function isAliceWealthSet() external view returns (bool)",
     "function isBobWealthSet() external view returns (bool)",
     "function areBothWealthsSet() external view returns (bool)",
-    "function getAliceResult() external view returns (uint256)",
-    "function getBobResult() external view returns (uint256)",
+    "function getAliceResult() external view returns (uint256)",  // ctBool is uint256 on-chain
+    "function getBobResult() external view returns (uint256)",    // ctBool is uint256 on-chain
     "function getAliceAddress() external view returns (address)",
     "function getBobAddress() external view returns (address)",
     "function getAliceWealth() public view returns (uint256)",
@@ -256,25 +256,16 @@ export function useMillionaireContract() {
         const ctResult = await contract.getAliceResult();
         console.log('Got encrypted result for Alice:', ctResult.toString());
 
-        // Decrypt the result
+        // Decrypt the result (boolean: true = you're richer, false = you're not)
         const clearResult = await aliceWallet.decryptValue(ctResult);
         console.log('Decrypted result for Alice:', clearResult);
 
-        // Result encoding: 0 = Alice richer, 1 = Bob richer, 2 = Equal
-        let resultText;
-        if (clearResult === 0n || clearResult === BigInt(0)) {
-            resultText = 'Alice is richer';
-        } else if (clearResult === 1n || clearResult === BigInt(1)) {
-            resultText = 'Bob is richer';
-        } else if (clearResult === 2n || clearResult === BigInt(2)) {
-            resultText = 'Equal wealth';
-        } else {
-            resultText = 'Unknown result';
-        }
+        // Boolean result: true (1n) = Alice is richer, false (0n) = Alice is not richer
+        const isRicher = clearResult === 1n || clearResult === BigInt(1);
 
         return {
             raw: clearResult,
-            text: resultText
+            isRicher: isRicher
         };
     };
 
@@ -289,25 +280,62 @@ export function useMillionaireContract() {
         const ctResult = await contract.getBobResult();
         console.log('Got encrypted result for Bob:', ctResult.toString());
 
-        // Decrypt the result
+        // Decrypt the result (boolean: true = you're richer, false = you're not)
         const clearResult = await bobWallet.decryptValue(ctResult);
         console.log('Decrypted result for Bob:', clearResult);
 
-        // Result encoding: 0 = Alice richer, 1 = Bob richer, 2 = Equal
-        let resultText;
-        if (clearResult === 0n || clearResult === BigInt(0)) {
-            resultText = 'Alice is richer';
-        } else if (clearResult === 1n || clearResult === BigInt(1)) {
-            resultText = 'Bob is richer';
-        } else if (clearResult === 2n || clearResult === BigInt(2)) {
-            resultText = 'Equal wealth';
-        } else {
-            resultText = 'Unknown result';
-        }
+        // Boolean result: true (1n) = Bob is richer, false (0n) = Bob is not richer
+        const isRicher = clearResult === 1n || clearResult === BigInt(1);
 
         return {
             raw: clearResult,
-            text: resultText
+            isRicher: isRicher
+        };
+    };
+
+    /**
+     * Get the full comparison result by checking both Alice and Bob's decrypted results.
+     * This determines the actual winner or if it's a tie.
+     * 
+     * @returns {Object} { winner: 'alice' | 'bob' | 'tie', text: string, aliceIsRicher: boolean, bobIsRicher: boolean }
+     */
+    const getFullComparisonResult = async () => {
+        if (!aliceWallet || !bobWallet) {
+            throw new Error('Both wallets must be configured to get full result');
+        }
+
+        // Get both results
+        const aliceResult = await getAliceComparisonResult();
+        const bobResult = await getBobComparisonResult();
+
+        console.log('Alice isRicher:', aliceResult.isRicher);
+        console.log('Bob isRicher:', bobResult.isRicher);
+
+        // Determine winner based on both results
+        let winner;
+        let text;
+
+        if (aliceResult.isRicher && !bobResult.isRicher) {
+            winner = 'alice';
+            text = 'Alice is richer! 🎉';
+        } else if (bobResult.isRicher && !aliceResult.isRicher) {
+            winner = 'bob';
+            text = 'Bob is richer! 🎉';
+        } else if (!aliceResult.isRicher && !bobResult.isRicher) {
+            winner = 'tie';
+            text = 'It\'s a tie! 🤝 Both have equal wealth.';
+        } else {
+            // Edge case: both true shouldn't happen with correct MPC logic
+            winner = 'unknown';
+            text = 'Unexpected result';
+            console.error('Unexpected: both parties report being richer');
+        }
+
+        return {
+            winner,
+            text,
+            aliceIsRicher: aliceResult.isRicher,
+            bobIsRicher: bobResult.isRicher
         };
     };
 
@@ -429,6 +457,7 @@ export function useMillionaireContract() {
         performComparison,
         getAliceComparisonResult,
         getBobComparisonResult,
+        getFullComparisonResult,
         checkWealthStatus,
         getEncryptedAliceWealth,
         getEncryptedBobWealth,
