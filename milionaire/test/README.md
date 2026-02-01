@@ -236,22 +236,24 @@ The MillionaireComparison contract implements Yao's Millionaires' Problem using 
    - Contract validates and stores as `utUint64` (encrypted)
    - Each wealth stored with respective owner's address for consistent encryption
 
-2. **Comparison**:
+2. **Comparison** (Simplified Boolean Logic):
    - Either Alice or Bob calls `compareWealth()`
    - Contract loads both wealth values as `gtUint64`
-   - Performs MPC comparisons (gt operations)
-   - Determines result: 0 = Alice richer, 1 = Bob richer, 2 = Equal
-   - Result encrypted separately for each party as `utUint8`
+   - Performs just 2 MPC comparisons:
+     - `aliceWins = MpcCore.gt(aliceWealth, bobWealth)`
+     - `bobWins = MpcCore.gt(bobWealth, aliceWealth)`
+   - Each result stored as `utBool` for the respective party
 
 3. **Result Retrieval**:
-   - Alice retrieves her encrypted `ctUint8` result via `getAliceResult()`
-   - Bob retrieves his encrypted `ctUint8` result via `getBobResult()`
+   - Alice retrieves her encrypted `ctBool` result via `getAliceResult()`
+   - Bob retrieves his encrypted `ctBool` result via `getBobResult()`
    - Each decrypts client-side with their AES key
-   - Gets result: 0 (Alice richer), 1 (Bob richer), or 2 (Equal)
+   - Gets boolean: `true` = you're richer, `false` = you're not (or tie)
+   - **If both get `false`, it's a tie**
 
 4. **Privacy Guarantee**:
    - Neither party learns the other's actual wealth value
-   - Both parties learn only the comparison result
+   - Both parties learn only if they are the richer one
    - All operations happen on encrypted data
 
 ## Running Specific Test Suites

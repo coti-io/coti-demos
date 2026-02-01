@@ -315,20 +315,20 @@ const BottomStatusBar = styled.div`
   right: 0;
   padding: 1rem;
   background-color: ${props => {
-    if (props.$variant === 'success') return props.theme.colors.secondary.default10;
-    if (props.$variant === 'error') return props.theme.colors.error.default10;
-    return 'rgba(128, 128, 128, 0.2)';
-  }};
+        if (props.$variant === 'success') return props.theme.colors.secondary.default10;
+        if (props.$variant === 'error') return props.theme.colors.error.default10;
+        return 'rgba(128, 128, 128, 0.2)';
+    }};
   color: ${props => {
-    if (props.$variant === 'success') return props.theme.colors.primary.default;
-    if (props.$variant === 'error') return props.theme.colors.error.default;
-    return props.theme.colors.text.default;
-  }};
+        if (props.$variant === 'success') return props.theme.colors.primary.default;
+        if (props.$variant === 'error') return props.theme.colors.error.default;
+        return props.theme.colors.text.default;
+    }};
   border-top: 2px solid ${props => {
-    if (props.$variant === 'success') return props.theme.colors.primary.default;
-    if (props.$variant === 'error') return props.theme.colors.error.default;
-    return 'rgba(128, 128, 128, 0.3)';
-  }};
+        if (props.$variant === 'success') return props.theme.colors.primary.default;
+        if (props.$variant === 'error') return props.theme.colors.error.default;
+        return 'rgba(128, 128, 128, 0.3)';
+    }};
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
   z-index: 999;
   text-align: center;
@@ -386,8 +386,7 @@ function HomePage() {
         submitAliceWealth,
         submitBobWealth,
         performComparison,
-        getAliceComparisonResult,
-        getBobComparisonResult,
+        getFullComparisonResult,
         checkWealthStatus,
         getEncryptedAliceWealth,
         getEncryptedBobWealth,
@@ -614,13 +613,14 @@ function HomePage() {
 
         try {
             const comparisonTx = await performComparison(aliceWallet, 'Alice')
-            const result = await getAliceComparisonResult()
+            const result = await getFullComparisonResult()
 
             const txHash = comparisonTx.transaction.hash
             const explorerLink = `https://testnet.cotiscan.io/tx/${txHash}`
 
             setComparisonResult({
                 text: result.text,
+                winner: result.winner,
                 txHash: txHash,
                 explorerLink: explorerLink
             })
@@ -643,10 +643,10 @@ function HomePage() {
         setBobStatusVariant('info')
 
         try {
-            const comparisonResult = await performComparison(bobWallet, 'Bob')
-            const result = await getBobComparisonResult()
+            const comparisonTx = await performComparison(bobWallet, 'Bob')
+            const result = await getFullComparisonResult()
 
-            const txHash = comparisonResult.transaction.hash
+            const txHash = comparisonTx.transaction.hash
             const explorerLink = `https://testnet.cotiscan.io/tx/${txHash}`
 
             setBobStatus(
@@ -703,11 +703,11 @@ function HomePage() {
             // Verify the reset was successful by checking wealth status
             console.log('Verifying contract reset...')
             const status = await checkWealthStatus()
-            
+
             if (status.aliceSet || status.bobSet) {
                 throw new Error('Contract reset verification failed - wealth values still set')
             }
-            
+
             console.log('Contract reset verified - both wealth values cleared')
 
             // Clear all local state
@@ -866,7 +866,7 @@ function HomePage() {
                             onClick={handleCompareAlice}
                             disabled={globalLoading || !aliceSubmitted || !bobSubmitted}
                         >
-                            {globalLoading ? 'Comparing...' : 'Compare Wealth'}
+                            {globalLoading ? 'Comparing...' : 'Alice richer than Bob?'}
                         </SmallButton>
                     </div>
                 </Card>
