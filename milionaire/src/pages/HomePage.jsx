@@ -73,7 +73,7 @@ const PlayerAddress = styled.div`
   font-style: normal;
   color: ${props => props.theme.colors.text.default} !important;
   word-break: break-all;
-  text-align: center;
+  text-align: left;
   width: 100%;
 
   a {
@@ -475,7 +475,7 @@ function HomePage() {
 
     const handleSubmitAliceWealth = async () => {
         if (!aliceWealth) {
-            setAliceStatus('Please enter your wealth amount')
+            setAliceStatus("Please enter Alice's wealth amount")
             setAliceStatusVariant('error')
             return
         }
@@ -542,7 +542,7 @@ function HomePage() {
 
     const handleSubmitBobWealth = async () => {
         if (!bobWealth) {
-            setBobStatus('Please enter your wealth amount')
+            setBobStatus("Please enter Bob's wealth amount")
             setBobStatusVariant('error')
             return
         }
@@ -884,7 +884,9 @@ function HomePage() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
-                                            Bob:{bobWallet.address}
+                                            Bob:
+                                            <br />
+                                            {bobWallet.address}
                                         </Link>
                                     ) : (
                                         'Address not configured'
@@ -895,7 +897,7 @@ function HomePage() {
                             <FormGroup>
                                 <PlayerFormInput
                                     type={bobSubmitted ? "text" : "number"}
-                                    placeholder=""
+                                    placeholder="Amount"
                                     min="0"
                                     value={bobSubmitted ? "••••••••" : bobWealth}
                                     onChange={(e) => setBobWealth(e.target.value)}
@@ -929,7 +931,9 @@ function HomePage() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
-                                            Alice:{aliceWallet.address}
+                                            Alice:
+                                            <br />
+                                            {aliceWallet.address}
                                         </Link>
                                     ) : (
                                         'Address not configured'
@@ -940,7 +944,7 @@ function HomePage() {
                             <FormGroup>
                                 <PlayerFormInput
                                     type={aliceSubmitted ? "text" : "number"}
-                                    placeholder=""
+                                    placeholder="Amount"
                                     min="0"
                                     value={aliceSubmitted ? "••••••••" : aliceWealth}
                                     onChange={(e) => setAliceWealth(e.target.value)}
