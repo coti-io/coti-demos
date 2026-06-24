@@ -430,7 +430,7 @@ function HomePage() {
 
         try {
             if (!contractAddress) {
-                setConnectionStatus('❌ Contract address not configured. Please set VITE_CONTRACT_ADDRESS in .env')
+                setConnectionStatus('❌ Contract address not configured. Add chain 7082400 to src/lib/contractAddresses.js')
                 return
             }
             if (!aliceWallet || !bobWallet) {
@@ -613,6 +613,9 @@ function HomePage() {
 
         try {
             const comparisonTx = await performComparison(aliceWallet, 'Alice')
+
+            // Wait for comparision resuls
+
             const result = await getFullComparisonResult()
 
             const txHash = comparisonTx.transaction.hash
