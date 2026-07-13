@@ -975,6 +975,7 @@ export function MillionaireHomePage({ useContractHook, network }) {
 
             {podTracker && podChainRpcUrl && (
                 <PodRequestTracker
+                    networkId={network}
                     appChainId={podAppChainId}
                     appInboxAddress={podTracker.inboxAddress}
                     appRpcUrl={podChainRpcUrl}

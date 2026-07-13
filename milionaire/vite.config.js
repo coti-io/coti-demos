@@ -28,7 +28,6 @@ export default defineConfig({
             ethers: nm('ethers'),
             '@coti-io/coti-ethers': nm('@coti-io/coti-ethers'),
             '@coti-io/coti-contracts': nm('@coti-io/coti-contracts'),
-            '@coti/pod-sdk': nm('@coti/pod-sdk'),
             process: 'process/browser',
             buffer: 'buffer',
             crypto: 'crypto-browserify',
