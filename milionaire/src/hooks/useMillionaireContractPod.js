@@ -1,12 +1,17 @@
 import { useState, useLayoutEffect } from 'react';
 import { ethers } from 'ethers';
+import { DataType } from '@coti-io/pod-sdk';
 import { readEnv } from '../lib/envRead.js';
 import { MILLIONAIRE_COMPARISON_ABI } from '../lib/pod/abi.js';
 import { retryWithBackoff, pollUntilReady } from '../lib/pod/async.js';
-import { encryptUint64Wealth, parseUint64Wealth } from '../lib/pod/encryption.js';
 import { formatCiphertext } from '../lib/pod/format.js';
-import { parseComparisonRequestedFromReceipt } from '../lib/pod/inbox.js';
-import { estimateCompareWealthFee } from '../lib/pod/fees.ts';
+import {
+    COMPARE_WEALTH_FEE_CONFIG,
+    createPodContract,
+    encryptItUint64Wealth,
+    parseUint64Wealth,
+    resolvePodGasPrice,
+} from '../lib/pod/sdk.js';
 import { createPlayerWallet, requirePlayerWallet } from '../lib/pod/wallets.js';
 import {
     getPodNetwork,
@@ -57,7 +62,12 @@ export function makeUseMillionaireContractPod(networkId) {
             }
 
             const wealthValue = parseUint64Wealth(wealth);
-            const encrypted = await encryptUint64Wealth(wealthValue, role, contractAddress, wallet.address);
+            const encrypted = await encryptItUint64Wealth(
+                wealthValue,
+                cfg.setFn,
+                contractAddress,
+                wallet.address
+            );
             const contract = contractFor(wallet);
 
             return retryWithBackoff(async () => {
@@ -67,7 +77,7 @@ export function makeUseMillionaireContractPod(networkId) {
                     receipt,
                     wealthValue: wealthValue.toString(),
                     wealthInput: String(wealth).trim(),
-                    encryptedCiphertext: formatCiphertext(encrypted.ciphertext),
+                    encryptedCiphertext: formatCiphertext(encrypted),
                 };
             });
         };
@@ -82,20 +92,25 @@ export function makeUseMillionaireContractPod(networkId) {
             return retryWithBackoff(async () => {
                 const provider = wallet.provider;
                 if (!provider) throw new Error('Wallet has no provider');
-                const podInbox = await contract.inbox();
-                const fee = await estimateCompareWealthFee(provider, podInbox);
-                const tx = await contract.compareWealth(fee.callbackFeeWei, {
-                    gasLimit: 1_500_000,
-                    value: fee.totalFeeWei,
-                });
+
+                const pod = createPodContract(contractAddress, MILLIONAIRE_COMPARISON_ABI, wallet, networkId);
+                const gasPrice = await resolvePodGasPrice(provider);
+                const feeCfg = { ...COMPARE_WEALTH_FEE_CONFIG, gasPrice };
+                const compareArgs = [{ type: DataType.Uint256, value: '0', isCallBackFee: true }];
+
+                const tx = await pod.callMethod('compareWealth', compareArgs, feeCfg);
                 const receipt = await tx.wait();
+
+                const podInboxAddress = await contract.inbox();
                 let podTrackRequestId;
                 try {
-                    podTrackRequestId = parseComparisonRequestedFromReceipt(receipt, contractAddress).requestIdBob;
+                    const requestIds = await pod.extractRequestIds(receipt.hash);
+                    podTrackRequestId = requestIds[requestIds.length - 1];
                 } catch (e) {
-                    console.warn('Could not parse ComparisonRequested:', e);
+                    console.warn('Could not extract PoD request id from receipt:', e);
                 }
-                return { transaction: tx, receipt, podInboxAddress: podInbox, podTrackRequestId };
+
+                return { transaction: tx, receipt, podInboxAddress, podTrackRequestId };
             });
         };
 

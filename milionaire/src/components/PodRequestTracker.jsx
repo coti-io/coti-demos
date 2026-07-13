@@ -1,15 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled, { css, keyframes } from 'styled-components';
+import { isRequestTrackingComplete } from '@coti-io/pod-sdk';
 import {
     COTI_TESTNET_CHAIN_ID,
     SEPOLIA_CHAIN_ID,
 } from '../lib/pod/defaults.js';
 import { AVALANCHE_FUJI_CHAIN_ID } from '../lib/pod/network.js';
-import {
-    createMillionairePodRequest,
-    findExecutionErrorInTree,
-    isPodTrackComplete,
-} from '../lib/pod/requestTrack.js';
+import { createPodRequest, findExecutionErrorInTree } from '../lib/pod/sdk.js';
 
 const shimmer = keyframes`
   0% { background-position: 0% 50%; }
@@ -415,7 +412,7 @@ const STEPS_META = [
 ];
 
 /**
- * @param {import('../lib/pod/requestTrack.js').RequestTrackingResponse | null} track
+ * @param {import('@coti-io/pod-sdk').RequestTrackingResponse | null} track
  * @param {boolean} hasExecErr
  * @returns {{ states: ('pending'|'active'|'done'|'error')[], progress: number }}
  */
@@ -447,14 +444,14 @@ function stepStatesFromTrack(track, hasExecErr) {
 
     states[2] = 'done';
 
-    if (!track.executed) {
+    if (!track.executedOnTarget) {
         states[3] = 'active';
         return { states, progress: 0.58 };
     }
 
     states[3] = 'done';
 
-    if (isPodTrackComplete(track)) {
+    if (isRequestTrackingComplete(track, 'complete')) {
         states[4] = 'done';
         return { states, progress: 1 };
     }
@@ -464,8 +461,8 @@ function stepStatesFromTrack(track, hasExecErr) {
 }
 
 /**
- * Full-screen overlay: polls {@link https://github.com/cotitech-io/coti-pod-sdk/blob/main/src/pod-request.ts PodRequest.trackRequest}
- * (app chain + COTI inboxes) until the request tree completes or reports an execution error.
+ * Full-screen overlay: polls `PodRequest.trackRequest` (app chain + COTI inboxes)
+ * until the request tree completes or reports an execution error.
  */
 export function PodRequestTracker({
     appChainId = SEPOLIA_CHAIN_ID,
@@ -475,6 +472,7 @@ export function PodRequestTracker({
     inboxExplorerUrl,
     podRequestExplorerUrl,
     onSettled,
+    networkId = 'sepolia',
 }) {
     const trackChainId =
         appChainId === SEPOLIA_CHAIN_ID || appChainId === AVALANCHE_FUJI_CHAIN_ID
@@ -484,15 +482,7 @@ export function PodRequestTracker({
     const [pollError, setPollError] = useState(null);
     const settledRef = useRef(false);
 
-    const pod = useMemo(
-        () =>
-            createMillionairePodRequest({
-                appChainId: trackChainId,
-                appInboxAddress,
-                appRpcUrl,
-            }),
-        [trackChainId, appInboxAddress, appRpcUrl]
-    );
+    const pod = useMemo(() => createPodRequest(networkId), [networkId]);
 
     const inboxLink = useMemo(
         () => (inboxExplorerUrl && appInboxAddress ? inboxExplorerUrl(appInboxAddress) : null),
@@ -521,7 +511,7 @@ export function PodRequestTracker({
                 setPollError(null);
 
                 const failed = Boolean(findExecutionErrorInTree(t));
-                const done = isPodTrackComplete(t);
+                const done = isRequestTrackingComplete(t, 'complete');
                 if (!settledRef.current && (done || failed)) {
                     settledRef.current = true;
                     onSettled?.({
@@ -555,7 +545,7 @@ export function PodRequestTracker({
     const execution = track ? findExecutionErrorInTree(track) : null;
     const hasExecErr = Boolean(execution);
     const { states, progress } = stepStatesFromTrack(track, hasExecErr);
-    const complete = track && isPodTrackComplete(track);
+    const complete = track && isRequestTrackingComplete(track, 'complete');
     const busy = !hasExecErr && !complete;
 
     return (
