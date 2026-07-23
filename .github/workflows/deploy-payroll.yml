@@ -44,7 +44,8 @@ jobs:
       - name: Build
         env:
           # Public, baked into the bundle at build time (GitHub Actions "Variables").
-          # Required for the WalletConnect connector; injected wallets work without it.
+          # Optional: enables the WalletConnect connector; injected wallets (MetaMask
+          # etc.) work without it. Resolves to empty until the variable is configured.
           VITE_WALLETCONNECT_PROJECT_ID: ${{ vars.VITE_WALLETCONNECT_PROJECT_ID }}
         run: npm run build
 
@@ -58,20 +59,31 @@ jobs:
       - name: Sync to S3
         # Prerendering emits one HTML file per route under dist/client. Long-cache the
         # fingerprinted assets; never cache the HTML entrypoints so a new deploy is
-        # picked up immediately.
+        # picked up immediately. The bucket name is trimmed because a stray trailing
+        # newline in the variable value broke the s3:// URL in a previous run.
+        env:
+          BUCKET_NAME: ${{ vars.BUCKET_NAME }}
         run: |
-          aws s3 sync dist/client/ "s3://${{ vars.PAYROLL_S3_BUCKET }}" \
+          BUCKET="$(printf '%s' "$BUCKET_NAME" | tr -d '[:space:]')"
+          aws s3 sync dist/client/ "s3://$BUCKET" \
             --delete \
             --cache-control "public, max-age=31536000, immutable" \
             --exclude "*.html"
-          aws s3 sync dist/client/ "s3://${{ vars.PAYROLL_S3_BUCKET }}" \
+          aws s3 sync dist/client/ "s3://$BUCKET" \
             --cache-control "no-cache, no-store, must-revalidate" \
             --exclude "*" \
             --include "*.html"
 
       - name: Invalidate CloudFront
-        if: ${{ vars.PAYROLL_CLOUDFRONT_DISTRIBUTION_ID != '' }}
+        # The distribution id is stored as an environment secret (AWS_DISTRIBUTION_ID).
+        # Passed via env and checked in bash so the step skips gracefully if unset.
+        env:
+          DISTRIBUTION_ID: ${{ secrets.AWS_DISTRIBUTION_ID }}
         run: |
+          if [ -z "$DISTRIBUTION_ID" ]; then
+            echo "AWS_DISTRIBUTION_ID not set; skipping CloudFront invalidation."
+            exit 0
+          fi
           aws cloudfront create-invalidation \
-            --distribution-id "${{ vars.PAYROLL_CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --distribution-id "$DISTRIBUTION_ID" \
             --paths "/*"
