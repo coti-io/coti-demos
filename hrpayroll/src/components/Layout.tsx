@@ -4,6 +4,7 @@ import { Users, Building2, Lock, Unlock, ChevronRight } from 'lucide-react'
 import { useAccount } from 'wagmi'
 import { usePrivateUnlock } from '@coti-io/coti-wallet-plugin'
 import { CustomConnectButton } from './CustomConnectButton'
+import { SplashScreen } from './SplashScreen'
 import { cn } from '../lib/utils'
 
 type NavItem = { to: string; label: string; icon: typeof Users; end?: boolean }
@@ -119,6 +120,7 @@ function Breadcrumb() {
 export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full bg-[#0B0D17] text-white/70">
+      <SplashScreen />
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
