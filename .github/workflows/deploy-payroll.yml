@@ -77,13 +77,16 @@ jobs:
       - name: Invalidate CloudFront
         # The distribution id is stored as an environment secret (AWS_DISTRIBUTION_ID).
         # Passed via env and checked in bash so the step skips gracefully if unset.
+        # Trimmed like BUCKET_NAME above: a stray newline in the secret value makes
+        # CloudFront report NoSuchDistribution for an otherwise valid id.
         env:
           DISTRIBUTION_ID: ${{ secrets.AWS_DISTRIBUTION_ID }}
         run: |
-          if [ -z "$DISTRIBUTION_ID" ]; then
+          DIST_ID="$(printf '%s' "$DISTRIBUTION_ID" | tr -d '[:space:]')"
+          if [ -z "$DIST_ID" ]; then
             echo "AWS_DISTRIBUTION_ID not set; skipping CloudFront invalidation."
             exit 0
           fi
           aws cloudfront create-invalidation \
-            --distribution-id "$DISTRIBUTION_ID" \
+            --distribution-id "$DIST_ID" \
             --paths "/*"
