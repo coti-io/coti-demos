@@ -6,7 +6,7 @@
 
 # COTI Privacy-Preserving Demo Applications
 
-A collection of demonstration applications showcasing COTI's Multi-Party Computation (MPC) technology for privacy-preserving blockchain applications. Each demo illustrates different use cases of encrypted computation, from secure voting to private auctions.
+A collection of demonstration applications showcasing COTI's Multi-Party Computation (MPC) technology for privacy-preserving blockchain applications. Each demo illustrates different use cases of encrypted computation, from secure voting and private auctions to confidential on-chain payroll.
 
 ## 🎯 Overview
 
@@ -69,4 +69,18 @@ A privacy-preserving voting system where individual votes remain encrypted on-ch
 - Private vote tallying without revealing individual choices
 - Voter authorization and access control
 - Real-time election state management
+
+---
+
+### 💼 Private HR Payroll
+**Live Demo:** [https://payroll.demo.coti.io](https://payroll.demo.coti.io)  
+**Source Code:** [/hrpayroll](./hrpayroll)
+
+A private on-chain payroll demo on Avalanche Fuji with COTI privacy. Organizations create and fund payroll runs with encrypted salary amounts; employees claim payouts without exposing individual compensation on-chain.
+
+**Key Features:**
+- Encrypted payroll amounts via COTI PoD
+- Organization flows for creating, funding, and managing payroll runs
+- Employee claim packages with private access unlock
+- Cross-chain settlement between Avalanche Fuji and COTI testnet
 
