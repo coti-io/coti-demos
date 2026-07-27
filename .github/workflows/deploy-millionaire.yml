@@ -1,0 +1,101 @@
+name: Deploy Millionaire
+
+# Builds the milionaire Vite app (static SPA) and publishes it to S3 (optionally
+# invalidating CloudFront). Runs only when the milionaire app or this workflow
+# changes, so the other demos in the monorepo don't trigger a deploy.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'milionaire/**'
+      - '.github/workflows/deploy-millionaire.yml'
+  workflow_dispatch:
+
+# One deploy at a time; cancel an in-progress run when a newer commit lands.
+concurrency:
+  group: deploy-millionaire
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: milionaire
+
+jobs:
+  build-and-deploy:
+    name: Build & deploy to S3
+    runs-on: ubuntu-latest
+    environment: millionaire-production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: milionaire/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          # Demo player keys / passphrase (stored as environment Variables today).
+          # Required for Alice/Bob wallet flows; ENC_K decrypts v2: encrypted PKs.
+          ENC_K: ${{ vars.ENC_K }}
+          VITE_ALICE_PK: ${{ vars.VITE_ALICE_PK }}
+          VITE_ALICE_AES_KEY: ${{ vars.VITE_ALICE_AES_KEY }}
+          VITE_BOB_PK: ${{ vars.VITE_BOB_PK }}
+          VITE_BOB_AES_KEY: ${{ vars.VITE_BOB_AES_KEY }}
+          VITE_CONTRACT_ADDRESS_COTI_TESTNET: ${{ vars.VITE_CONTRACT_ADDRESS_COTI_TESTNET }}
+          VITE_CONTRACT_ADDRESS_SEPOLIA: ${{ vars.VITE_CONTRACT_ADDRESS_SEPOLIA }}
+          VITE_CONTRACT_ADDRESS_AVALANCHE_FUJI: ${{ vars.VITE_CONTRACT_ADDRESS_AVALANCHE_FUJI }}
+          VITE_APP_NODE_HTTPS_ADDRESS: ${{ vars.VITE_APP_NODE_HTTPS_ADDRESS }}
+          COTI_TESTNET_RPC_URL: ${{ vars.COTI_TESTNET_RPC_URL }}
+          SEPOLIA_RPC_URL: ${{ vars.SEPOLIA_RPC_URL }}
+          AVALANCHE_FUJI_RPC_URL: ${{ vars.AVALANCHE_FUJI_RPC_URL }}
+          VITE_POD_REQUEST_EXPLORER_URL: ${{ vars.VITE_POD_REQUEST_EXPLORER_URL }}
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Sync to S3
+        # Vite emits the SPA under dist/. Long-cache the fingerprinted assets;
+        # never cache the HTML entrypoint so a new deploy is picked up immediately.
+        # Bucket var is MILLIONAIRE_S3_BUCKET (not BUCKET_NAME like payroll).
+        # Trimmed because a stray trailing newline breaks the s3:// URL.
+        env:
+          BUCKET_NAME: ${{ vars.MILLIONAIRE_S3_BUCKET }}
+        run: |
+          BUCKET="$(printf '%s' "$BUCKET_NAME" | tr -d '[:space:]')"
+          aws s3 sync dist/ "s3://$BUCKET" \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "*.html"
+          aws s3 sync dist/ "s3://$BUCKET" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --exclude "*" \
+            --include "*.html"
+
+      - name: Invalidate CloudFront
+        # Distribution id is an environment Variable (MILLIONAIRE_CLOUDFRONT_DISTRIBUTION_ID),
+        # unlike payroll which stores AWS_DISTRIBUTION_ID as a secret.
+        env:
+          DISTRIBUTION_ID: ${{ vars.MILLIONAIRE_CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          DIST_ID="$(printf '%s' "$DISTRIBUTION_ID" | tr -d '[:space:]')"
+          if [ -z "$DIST_ID" ]; then
+            echo "MILLIONAIRE_CLOUDFRONT_DISTRIBUTION_ID not set; skipping CloudFront invalidation."
+            exit 0
+          fi
+          aws cloudfront create-invalidation \
+            --distribution-id "$DIST_ID" \
+            --paths "/*"
