@@ -1,4 +1,4 @@
-/** MillionaireComparisonPod — pod-mpc-lib `itUint64` / `ctUint64`. */
+/** MillionaireComparisonPod — coti-contracts `itUint64` / `ctUint64`. */
 export const MILLIONAIRE_COMPARISON_ABI = [
     'function setAliceWealth(tuple(uint256 ciphertext, bytes signature) wealth) external',
     'function setBobWealth(tuple(uint256 ciphertext, bytes signature) wealth) external',

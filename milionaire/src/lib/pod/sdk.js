@@ -8,17 +8,14 @@
  */
 
 import { ethers } from 'ethers';
+import { PodContract, PodRequest, CotiPodCrypto, DataType } from '@coti-io/pod-sdk';
+import { readEnv } from '../envRead.js';
 import {
-    PodContract,
-    PodRequest,
-    CotiPodCrypto,
-    DataType,
+    AVALANCHE_FUJI_DEFAULT_INBOX_ADDRESS,
+    COTI_TESTNET_CHAIN_ID,
     COTI_TESTNET_DEFAULT_INBOX_ADDRESS,
     SEPOLIA_DEFAULT_INBOX_ADDRESS,
-    FUJI_DEFAULT_INBOX_ADDRESS,
-} from '@coti-io/pod-sdk';
-import { readEnv } from '../envRead.js';
-import { COTI_TESTNET_CHAIN_ID } from './defaults.js';
+} from './defaults.js';
 import { getPodNetwork, resolvePodRpcUrl } from './network.js';
 
 const INBOX_MIN_GAS_PRICE_WEI = 2_000_000_000n;
@@ -63,7 +60,7 @@ export function buildPodSdkConfig(networkId) {
 
     const appInbox =
         readEnv('POD_INBOX_ADDRESS') ||
-        (networkId === 'sepolia' ? SEPOLIA_DEFAULT_INBOX_ADDRESS : FUJI_DEFAULT_INBOX_ADDRESS);
+        (networkId === 'sepolia' ? SEPOLIA_DEFAULT_INBOX_ADDRESS : AVALANCHE_FUJI_DEFAULT_INBOX_ADDRESS);
     const cotiInbox = readEnv('VITE_POD_COTI_INBOX_ADDRESS') || COTI_TESTNET_DEFAULT_INBOX_ADDRESS;
 
     return {
