@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAccount } from 'wagmi'
 import { usePrivacyBridgeUnlock, usePrivateTokenBalance } from '@coti-io/coti-wallet-plugin'
 import { avaxContracts, AVAX_CHAIN_ID } from '../../config/contracts'
+import { explorerAddressUrl } from '../../lib/explorer'
 
 export function PTokenBalance() {
   const { address } = useAccount()
@@ -33,7 +34,7 @@ export function PTokenBalance() {
   return (
     <p style={{ marginBottom: '1rem' }}>
       <a
-        href={`https://testnet.snowtrace.io/address/${avaxContracts.pToken.address}`}
+        href={explorerAddressUrl(AVAX_CHAIN_ID, avaxContracts.pToken.address)}
         target="_blank"
         rel="noopener noreferrer"
       >
