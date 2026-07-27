@@ -1,9 +1,10 @@
 import { Button } from '../ui/button'
 import { Modal } from '../ui/modal'
-import type { CreateCampaignResult } from '../../hooks/useCreateCampaign'
+import type { CreateCampaignResult, DeployStage } from '../../hooks/useCreateCampaign'
 import { toClaimPackage } from '../../lib/claimPackage'
 import { PTOKEN_DECIMALS } from '../../lib/format'
 import { ClaimPackagesTable } from './ClaimPackagesTable'
+import { StageTxLink } from './DeployProgressModal'
 import { FundCampaignForm } from './FundCampaignForm'
 
 /** Post-deploy modal: facade details, fund step, and claim-package export. */
@@ -11,14 +12,18 @@ export function CampaignDeployedSummary({
   result,
   campaignName,
   canFund,
+  stages = [],
   onClose,
 }: {
   result: CreateCampaignResult
   campaignName: string
   /** Private access unlocked — funding builds an encrypted ack IT. */
   canFund: boolean
+  /** Deploy stages, so the explorer links survive the progress modal closing. */
+  stages?: DeployStage[]
   onClose: () => void
 }) {
+  const txStages = stages.filter((s) => s.txHash)
   const totalAmount = result.tree.packages.reduce((sum, pkg) => sum + pkg.amount, 0n)
 
   return (
@@ -31,6 +36,22 @@ export function CampaignDeployedSummary({
         <dt className="text-muted-foreground">Merkle root</dt>
         <dd className="break-all font-mono">{result.tree.root}</dd>
       </dl>
+
+      {txStages.length > 0 && (
+        <details className="mt-4 rounded-lg border border-border p-3 text-sm">
+          <summary className="cursor-pointer text-muted-foreground">
+            Deployment transactions ({txStages.length})
+          </summary>
+          <ul className="mt-2 space-y-1" style={{ listStyle: 'none', margin: '0.5rem 0 0', padding: 0 }}>
+            {txStages.map((stage) => (
+              <li key={stage.id}>
+                <div>{stage.label.replace(/…$/, '')}</div>
+                <StageTxLink stage={stage} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       <h3 className="mb-2 mt-6 font-semibold">3. Fund payroll</h3>
       <FundCampaignForm

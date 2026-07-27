@@ -9,7 +9,11 @@ import { CampaignOwnerCheck } from '../components/payroll/CampaignOwnerCheck'
 import { CreatePayroll } from '../components/payroll/CreatePayroll'
 import { DeployProgressModal } from '../components/payroll/DeployProgressModal'
 import { ListPayroll } from '../components/payroll/ListPayroll'
-import { useCreateCampaign, type CreateCampaignResult } from '../hooks/useCreateCampaign'
+import {
+  useCreateCampaign,
+  type CreateCampaignResult,
+  type DeployStage,
+} from '../hooks/useCreateCampaign'
 
 const ORG_TABS = [
   { to: '/organization', end: true, label: 'Overview', icon: LayoutDashboard },
@@ -56,8 +60,27 @@ export function OrganizationCreate() {
   const [result, setResult] = useState<CreateCampaignResult | null>(null)
   const [deployedName, setDeployedName] = useState('')
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false)
-  const [deployStages, setDeployStages] = useState<string[]>([])
-  const createCampaign = useCreateCampaign((s) => setDeployStages((prev) => [...prev, s]))
+  const [showSummary, setShowSummary] = useState(false)
+  const [deployStages, setDeployStages] = useState<DeployStage[]>([])
+  // Stages are re-emitted with the same id once their tx hash is known — replace in
+  // place so the explorer link lands on the existing row instead of duplicating it.
+  const createCampaign = useCreateCampaign((stage) =>
+    setDeployStages((prev) => {
+      const i = prev.findIndex((s) => s.id === stage.id)
+      if (i === -1) return [...prev, stage]
+      return prev.map((s, index) => (index === i ? stage : s))
+    }),
+  )
+
+  // The deploy finishing no longer swaps modals on its own — it only turns the progress
+  // modal's button into "Next", so the per-stage explorer links stay on screen until the
+  // user is done with them. Dismissing it any other way (× / backdrop) still advances
+  // once the deploy succeeded: the create form is hidden by then, so plain closing would
+  // leave the page empty with no way back to the funding step.
+  const leaveDeployModal = () => {
+    setIsDeployModalOpen(false)
+    if (result) setShowSummary(true)
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -81,6 +104,7 @@ export function OrganizationCreate() {
             // the user unlock from the sidebar and click Deploy again.
             void requireUnlock(() => {
               setDeployStages([])
+              setShowSummary(false)
               setIsDeployModalOpen(true)
               setDeployedName(campaignName)
               createCampaign.mutate({ roster, campaignName }, { onSuccess: (data) => setResult(data) })
@@ -90,19 +114,25 @@ export function OrganizationCreate() {
       </div>
 
       <DeployProgressModal
-        open={isDeployModalOpen && !result}
-        onClose={() => setIsDeployModalOpen(false)}
+        open={isDeployModalOpen}
+        onClose={leaveDeployModal}
         stages={deployStages}
         isPending={createCampaign.isPending}
+        isComplete={!!result}
         error={createCampaign.error}
       />
 
-      {result && (
+      {result && showSummary && (
         <CampaignDeployedSummary
           result={result}
           campaignName={deployedName}
           canFund={true}
-          onClose={() => setResult(null)}
+          stages={deployStages}
+          onClose={() => {
+            setResult(null)
+            setShowSummary(false)
+            setDeployStages([])
+          }}
         />
       )}
     </div>

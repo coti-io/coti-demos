@@ -31,6 +31,23 @@ export type CreateCampaignResult = {
   tree: PayrollMerkleTree
 }
 
+/**
+ * One line of the deploy progress UI. Stages are emitted twice when they send a
+ * transaction: once on entry (no hash yet) and again as soon as the wallet returns the
+ * hash, so the explorer link appears while the tx is still pending. Consumers key on
+ * `id` and replace the matching row instead of appending.
+ */
+export type DeployStage = {
+  id: string
+  label: string
+  /** Only set on stages that sent a transaction, and only once the wallet returned it. */
+  txHash?: Hex
+  /** Contract this stage calls, shown in full so it can be checked against the deployment. */
+  contractAddress?: Hex
+  /** Chain this stage's contract and tx live on — Fuji and COTI have different explorers. */
+  chainId?: number
+}
+
 const LOG_PREFIX = '[useCreateCampaign]'
 
 function log(...args: unknown[]) {
@@ -47,7 +64,7 @@ async function logSwitchChain(
   log('switchChainAsync resolved', { chainId, elapsedMs: Date.now() - start })
 }
 
-export function useCreateCampaign(onStage?: (stage: string) => void) {
+export function useCreateCampaign(onStage?: (stage: DeployStage) => void) {
   const { address } = useAccount()
   const { sessionAesKey } = usePrivacyBridgeUnlock()
   const { signMessageAsync } = useSignMessage()
@@ -58,9 +75,9 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
 
   return useMutation({
     mutationFn: async (params: CreateCampaignParams): Promise<CreateCampaignResult> => {
-      const stage = (s: string) => {
-        log('stage:', s)
-        onStage?.(s)
+      const stage = (id: string, label: string, extra?: Omit<DeployStage, 'id' | 'label'>) => {
+        log('stage:', label, extra?.txHash ?? '')
+        onStage?.({ id, label, ...extra })
       }
 
       log('starting', { campaignName: params.campaignName, rosterSize: params.roster.length })
@@ -73,7 +90,7 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
       // The Fuji-side factory is permissionless, but the COTI-side registerRun/registerLeaf
       // below are still onlyOwner on PrivatePayrollCoti — gate up front on that owner so we
       // don't create an on-chain campaign whose roster we then can't register.
-      stage('Checking campaign owner…')
+      stage('owner', 'Checking campaign owner…')
       const cotiOwner = await cotiClient.readContract({
         ...cotiTestnetContracts.privatePayrollCoti,
         functionName: 'owner',
@@ -82,7 +99,7 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
         throw new Error(`Only the PrivatePayrollCoti owner (${cotiOwner}) can create campaigns.`)
       }
 
-      stage('Building merkle tree…')
+      stage('merkle', 'Building merkle tree…')
       const tree = buildPayrollMerkleTree(params.roster, sessionAesKey)
 
       const now = Math.floor(Date.now() / 1000)
@@ -93,7 +110,12 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
       // One tx replaces the old facade-deploy + vault.createRun + facade.wirePayroll
       // sequence — the factory does all three. No fees are stored anywhere; fund/claim/
       // clawback pass live inbox/pToken quotes (podFees.ts) as wei on each send (iter10).
-      stage('Creating campaign via factory…')
+      const createLabel = 'Creating payroll via PayrollCampaignFactory…'
+      const createStageContract = {
+        contractAddress: avaxContracts.payrollCampaignFactory.address as Hex,
+        chainId: AVAX_CHAIN_ID,
+      }
+      stage('create', createLabel, createStageContract)
       const createHash = await writeContractAsync({
         ...avaxContracts.payrollCampaignFactory,
         functionName: 'createCampaign',
@@ -109,6 +131,8 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
         chainId: AVAX_CHAIN_ID,
       })
       log('createCampaign tx submitted', { createHash })
+      // Re-emit carries the contract again — the consumer replaces the whole row by id.
+      stage('create', createLabel, { ...createStageContract, txHash: createHash })
       const createReceipt = await fujiClient.waitForTransactionReceipt({ hash: createHash })
       log('createCampaign tx mined', { status: createReceipt.status })
       if (createReceipt.status !== 'success') throw new Error(`createCampaign reverted (tx ${createHash}).`)
@@ -129,10 +153,11 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
       // Re-asserted before every wallet write below, not just once up front — some wallets
       // silently drift back to the previously-active chain between prompts (e.g. after a
       // signMessageAsync round trip), and switchChainAsync is a no-op if already on target.
-      stage('Switching to COTI testnet…')
+      stage('switch-coti', 'Switching to COTI testnet…')
       await logSwitchChain(switchChainAsync, COTI_TESTNET_CHAIN_ID)
 
-      stage('Registering run on COTI…')
+      const registerRunLabel = 'Registering run on COTI…'
+      stage('register-run', registerRunLabel)
       await logSwitchChain(switchChainAsync, COTI_TESTNET_CHAIN_ID)
       const registerRunHash = await writeContractAsync({
         ...cotiTestnetContracts.privatePayrollCoti,
@@ -141,12 +166,16 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
         chainId: COTI_TESTNET_CHAIN_ID,
       })
       log('registerRun tx submitted', { registerRunHash })
+      stage('register-run', registerRunLabel, { txHash: registerRunHash, chainId: COTI_TESTNET_CHAIN_ID })
       const registerRunReceipt = await cotiClient.waitForTransactionReceipt({ hash: registerRunHash })
       log('registerRun tx mined', { status: registerRunReceipt.status })
       if (registerRunReceipt.status !== 'success') throw new Error(`registerRun reverted (tx ${registerRunHash}).`)
 
       for (const pkg of tree.packages) {
-        stage(`Registering leaf ${pkg.index + 1}/${tree.packages.length} on COTI…`)
+        // "Payroll entry", not "leaf" — the merkle vocabulary means nothing to an employer
+        // running payroll. One leaf is exactly one roster row (docs/createCampaignTransactions.md).
+        const cotiLeafLabel = `Registering payroll entry ${pkg.index + 1}/${tree.packages.length} on COTI…`
+        stage(`coti-leaf-${pkg.index}`, cotiLeafLabel)
         const itAmount = await buildRegisterLeafIt({
           amount: pkg.amount,
           aesKey: sessionAesKey,
@@ -162,6 +191,10 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
           gas: COTI_REGISTER_LEAF_GAS,
         })
         log('registerLeaf (COTI) tx submitted', { index: pkg.index, registerLeafHash })
+        stage(`coti-leaf-${pkg.index}`, cotiLeafLabel, {
+          txHash: registerLeafHash,
+          chainId: COTI_TESTNET_CHAIN_ID,
+        })
         const registerLeafReceipt = await cotiClient.waitForTransactionReceipt({ hash: registerLeafHash })
         log('registerLeaf (COTI) tx mined', { index: pkg.index, status: registerLeafReceipt.status })
         if (registerLeafReceipt.status !== 'success') {
@@ -169,11 +202,12 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
         }
       }
 
-      stage('Switching back to Avalanche Fuji…')
+      stage('switch-fuji', 'Switching back to Avalanche Fuji…')
       await logSwitchChain(switchChainAsync, AVAX_CHAIN_ID)
 
       for (const pkg of tree.packages) {
-        stage(`Registering leaf ${pkg.index + 1}/${tree.packages.length} on facade…`)
+        const facadeLeafLabel = `Registering payroll entry ${pkg.index + 1}/${tree.packages.length} on facade…`
+        stage(`facade-leaf-${pkg.index}`, facadeLeafLabel)
         await logSwitchChain(switchChainAsync, AVAX_CHAIN_ID)
         const registerFacadeHash = await writeContractAsync({
           address: facadeAddress,
@@ -183,6 +217,10 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
           chainId: AVAX_CHAIN_ID,
         })
         log('registerLeaf (facade) tx submitted', { index: pkg.index, registerFacadeHash })
+        stage(`facade-leaf-${pkg.index}`, facadeLeafLabel, {
+          txHash: registerFacadeHash,
+          chainId: AVAX_CHAIN_ID,
+        })
         const registerFacadeReceipt = await fujiClient.waitForTransactionReceipt({ hash: registerFacadeHash })
         log('registerLeaf (facade) tx mined', { index: pkg.index, status: registerFacadeReceipt.status })
         if (registerFacadeReceipt.status !== 'success') {
@@ -192,6 +230,7 @@ export function useCreateCampaign(onStage?: (stage: string) => void) {
 
       // Persisted locally because nothing on-chain stores the roster/amounts — without this,
       // claim packages could only ever be exported once, in this same browser session.
+      stage('saved', 'Saving claim packages…')
       saveCampaign({
         facadeAddress,
         campaignName: params.campaignName,
