@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
-import { PodLibBase } from "pod-mpc-lib/mpc/PodLibBase.sol";
-import { IInbox } from "pod-mpc-lib/IInbox.sol";
-import { MpcAbiCodec } from "pod-mpc-lib/mpccodec/MpcAbiCodec.sol";
-import { ctBool, ctUint64, gtUint64, itUint64 } from "pod-mpc-lib/utils/mpc/MpcCore.sol";
+import { PodLibBase } from "@coti-io/coti-contracts/contracts/pod/mpc/PodLibBase.sol";
+import { IInbox } from "@coti-io/coti-contracts/contracts/pod/IInbox.sol";
+import { MpcAbiCodec } from "@coti-io/coti-contracts/contracts/pod/mpccodec/MpcAbiCodec.sol";
+import { ctBool, ctUint64, gtUint64, itUint64 } from "@coti-io/coti-contracts/contracts/utils/mpc/MpcCore.sol";
 
 interface IMillionaireComparisonCoti {
     function compareWealth(gtUint64 aliceWealth, gtUint64 bobWealth, address alice, address bob) external;

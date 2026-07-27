@@ -6,8 +6,8 @@
  */
 export const MILLIONAIRE_CONTRACT_ADDRESSES = {
     7082400: '0xE8d8CAAeB1256e0A29Fe266Cc8037e1861354177', // COTI Testnet
-    11155111: '0x77e1Bc02FFa7A321a6492452170b173546e42511', // Sepolia
-    43113: '0xa39CBB61bc004823D761A381ccD69eE2d186F42A', // Avalanche Fuji
+    11155111: '0x2a2947F594eCf8874F9E6ad6c10c584f79Eb0618', // Sepolia
+    43113: '0xbFea405cFEC8BcDbDE923fe6bDD8cC3bfEAE6E38', // Avalanche Fuji
 };
 
 export function configuredAddress(address) {

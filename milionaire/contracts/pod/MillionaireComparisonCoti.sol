@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
-import { InboxUser } from "pod-mpc-lib/InboxUser.sol";
-import { ctBool, gtBool, gtUint64, MpcCore } from "pod-mpc-lib/utils/mpc/MpcCore.sol";
+import { InboxUser } from "@coti-io/coti-contracts/contracts/pod/InboxUser.sol";
+import { ctBool, gtBool, gtUint64, MpcCore } from "@coti-io/coti-contracts/contracts/utils/mpc/MpcCore.sol";
 
 /**
  * @title MillionaireComparisonCoti
