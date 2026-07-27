@@ -34,7 +34,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # Node 24 ships npm 11, which is what package-lock.json is generated with.
+          # On Node 22 (npm 10) the lockfile resolves to a different tree and `npm ci`
+          # fails with "Missing: idb-keyval@... from lock file".
+          node-version: 24
           cache: npm
           cache-dependency-path: hrpayroll/package-lock.json
 
