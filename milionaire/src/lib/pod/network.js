@@ -10,6 +10,17 @@ import {
 export const AVALANCHE_FUJI_CHAIN_ID = 43113;
 export const AVALANCHE_FUJI_DEFAULT_RPC_URL = 'https://api.avax-test.network/ext/bc/C/rpc';
 
+/** PoD Explorer message URL (all PoD chains); `{requestId}` is replaced at link time. */
+export const DEFAULT_POD_REQUEST_EXPLORER_URL =
+    'https://testnet.explorer.pod.coti.io/message/{requestId}';
+
+function podRequestExplorerLink(requestId) {
+    if (!requestId) return null;
+    const template =
+        readEnv('VITE_POD_REQUEST_EXPLORER_URL')?.trim() || DEFAULT_POD_REQUEST_EXPLORER_URL;
+    return template.replaceAll('{requestId}', requestId);
+}
+
 export const POD_NETWORKS = {
     sepolia: {
         id: 'sepolia',
@@ -22,10 +33,7 @@ export const POD_NETWORKS = {
         explorer: {
             tx: (hash) => `https://sepolia.etherscan.io/tx/${hash}`,
             address: (addr) => `https://sepolia.etherscan.io/address/${addr}`,
-            podRequest: (requestId) => {
-                const t = readEnv('VITE_POD_REQUEST_EXPLORER_URL');
-                return t && requestId ? t.replaceAll('{requestId}', requestId) : null;
-            },
+            podRequest: podRequestExplorerLink,
         },
         contractAddressHint: `src/lib/contractAddresses.js (${SEPOLIA_CHAIN_ID})`,
         defaultInboxAddress: SEPOLIA_DEFAULT_INBOX_ADDRESS,
@@ -41,10 +49,7 @@ export const POD_NETWORKS = {
         explorer: {
             tx: (hash) => `https://testnet.snowscan.xyz/tx/${hash}`,
             address: (addr) => `https://testnet.snowscan.xyz/address/${addr}`,
-            podRequest: (requestId) => {
-                const t = readEnv('VITE_POD_REQUEST_EXPLORER_URL_AVALANCHE') || readEnv('VITE_POD_REQUEST_EXPLORER_URL');
-                return t && requestId ? t.replaceAll('{requestId}', requestId) : null;
-            },
+            podRequest: podRequestExplorerLink,
         },
         contractAddressHint: `src/lib/contractAddresses.js (${AVALANCHE_FUJI_CHAIN_ID})`,
         defaultInboxAddress: AVALANCHE_FUJI_DEFAULT_INBOX_ADDRESS,
