@@ -109,6 +109,14 @@ export function makeUseMillionaireContractPod(networkId) {
                 } catch (e) {
                     console.warn('Could not extract PoD request id from receipt:', e);
                 }
+                if (!podTrackRequestId) {
+                    try {
+                        const stored = await contract.compareRequestId();
+                        if (stored && stored !== ethers.ZeroHash) podTrackRequestId = stored;
+                    } catch (e) {
+                        console.warn('compareRequestId() fallback failed:', e);
+                    }
+                }
 
                 return { transaction: tx, receipt, podInboxAddress, podTrackRequestId };
             });
