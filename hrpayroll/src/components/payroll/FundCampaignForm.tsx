@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { parseUnits, type Hex } from 'viem'
 import { InlineError } from '../InlineError'
+import { TxLink } from '../TxLink'
 import { Button } from '../ui/button'
 import { useFundCampaign } from '../../hooks/useFundCampaign'
 import { PTOKEN_DECIMALS } from '../../lib/format'
+import { txErrorDetails } from '../../lib/txError'
 
 // 0.1 AVAX reserve for the facade's own future inbox fees (claim/clawback round trips).
 const DEFAULT_FACADE_ETH_TOPUP_WEI = 100_000_000_000_000_000n
@@ -27,6 +29,9 @@ export function FundCampaignForm({
   const [amount, setAmount] = useState('')
   const [stage, setStage] = useState<string | null>(null)
   const fundCampaign = useFundCampaign(setStage)
+  // Every fund failure past the wallet prompt has a transaction behind it; link it so the
+  // on-chain revert can be read in the explorer instead of guessed at from the message.
+  const failedTx = txErrorDetails(fundCampaign.error)
 
   return (
     <>
@@ -58,7 +63,17 @@ export function FundCampaignForm({
         {fundCampaign.isPending ? 'Funding…' : 'Fund payroll'}
       </Button>
       {fundCampaign.isPending && stage && <p style={{ opacity: 0.7 }}>{stage}</p>}
-      {fundCampaign.error && <InlineError>{(fundCampaign.error as Error).message}</InlineError>}
+      {fundCampaign.error && (
+        <InlineError>
+          {(fundCampaign.error as Error).message}
+          {failedTx && (
+            <>
+              {' '}
+              <TxLink chainId={failedTx.chainId} hash={failedTx.txHash} />
+            </>
+          )}
+        </InlineError>
+      )}
       {successMessage && fundCampaign.isSuccess && <p style={{ color: 'green' }}>{successMessage}</p>}
     </>
   )
