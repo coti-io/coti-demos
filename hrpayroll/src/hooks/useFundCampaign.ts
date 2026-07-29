@@ -2,7 +2,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAbiItem, type Hex } from 'viem'
 import { useAccount, usePublicClient, useSendTransaction, useWriteContract } from 'wagmi'
 import { AVAX_CHAIN_ID, avaxContracts } from '../config/contracts'
+import { bufferedGas } from '../lib/gas'
 import { computePTokenTwoWayFees, estimateVaultTwoWayFees } from '../lib/podFees'
+import { ChainTxError, outOfGasHint } from '../lib/txError'
 
 const POLL_INTERVAL_MS = 3_000
 const POLL_TIMEOUT_MS = 300_000
@@ -89,11 +91,21 @@ export function useFundCampaign(onStage?: (stage: string) => void) {
       // `transfer(to, uint256, callbackFee)` uses the same settle path as portal mints and
       // still credits a garbled pToken balance — only the funded amount is public.
       stage('Sending pToken transfer to facade…')
-      const transferHash = await writeContractAsync({
+      const transferCall = {
         ...pToken,
         functionName: 'transfer',
         args: [params.facadeAddress, params.amount, pTokenCallbackFeeWei],
         value: pTokenTransferFeeWei,
+      } as const
+      // Explicit limit: the wallet's own estimate lands *under* what this call needs (see
+      // lib/gas.ts — this is the exact call that exposed it).
+      const transferGas = await bufferedGas(() =>
+        publicClient.estimateContractGas({ ...transferCall, account: address }),
+      )
+      log('transfer gas', { transferGas: transferGas?.toString() ?? 'wallet estimate' })
+      const transferHash = await writeContractAsync({
+        ...transferCall,
+        gas: transferGas,
         chainId: AVAX_CHAIN_ID,
       })
       log('transfer tx submitted', { transferHash })
@@ -103,7 +115,11 @@ export function useFundCampaign(onStage?: (stage: string) => void) {
         blockNumber: transferReceipt.blockNumber.toString(),
       })
       if (transferReceipt.status !== 'success') {
-        throw new Error(`pToken transfer request reverted on-chain (tx ${transferHash}).`)
+        throw new ChainTxError(
+          'The pToken transfer request reverted on-chain.' +
+            (await outOfGasHint(publicClient, transferHash, transferReceipt.gasUsed)),
+          { txHash: transferHash, chainId: AVAX_CHAIN_ID },
+        )
       }
 
       // Wait for the actual async result — a completed `Transfer` (success) or `TransferFailed`
@@ -160,21 +176,23 @@ export function useFundCampaign(onStage?: (stage: string) => void) {
         await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS))
       }
       if (settleFailure) {
-        throw new Error(
+        throw new ChainTxError(
           `pToken transfer to the facade failed on-chain: ${settleFailure}. ` +
             (settleFailure.includes('insufficient balance')
               ? 'The connected wallet does not hold enough pMTT for this amount — acquire pMTT ' +
                 '(e.g. via a Privacy Portal deposit of MTT) and try again. The failed transfer ' +
                 'unwound cleanly; your account is not locked.'
-              : `The transfer request (tx ${transferHash}) was rejected during COTI settlement.`),
+              : 'The transfer request was rejected during COTI settlement.'),
+          { txHash: transferHash, chainId: AVAX_CHAIN_ID },
         )
       }
       if (!settled) {
         log('TIMED OUT waiting for settlement', { pollCount, elapsedMs: Date.now() - settleStart, transferHash })
-        throw new Error(
-          `Timed out waiting for the pToken transfer to settle (tx ${transferHash}, waited ${Math.round(
+        throw new ChainTxError(
+          `Timed out waiting for the pToken transfer to settle (waited ${Math.round(
             (Date.now() - settleStart) / 1000,
           )}s). Check the console for [useFundCampaign] logs — the transfer may still be processing on COTI.`,
+          { txHash: transferHash, chainId: AVAX_CHAIN_ID },
         )
       }
 
@@ -191,18 +209,31 @@ export function useFundCampaign(onStage?: (stage: string) => void) {
         callbackFeeWei: callbackFeeWei.toString(),
         creditedBefore: creditedBefore.toString(),
       })
-      const creditHash = await writeContractAsync({
+      const creditCall = {
         ...facade,
         functionName: 'requestCreditPool',
         args: [params.amount, callbackFeeWei],
         value: totalFeeWei,
+      } as const
+      // Same inbox round trip as the transfer above, so the same estimate shortfall applies.
+      const creditGas = await bufferedGas(() =>
+        publicClient.estimateContractGas({ ...creditCall, account: address }),
+      )
+      log('requestCreditPool gas', { creditGas: creditGas?.toString() ?? 'wallet estimate' })
+      const creditHash = await writeContractAsync({
+        ...creditCall,
+        gas: creditGas,
         chainId: AVAX_CHAIN_ID,
       })
       log('requestCreditPool tx submitted', { creditHash })
       const creditReceipt = await publicClient.waitForTransactionReceipt({ hash: creditHash })
       log('requestCreditPool tx mined', { status: creditReceipt.status })
       if (creditReceipt.status !== 'success') {
-        throw new Error(`requestCreditPool reverted on-chain (tx ${creditHash}).`)
+        throw new ChainTxError(
+          'requestCreditPool reverted on-chain.' +
+            (await outOfGasHint(publicClient, creditHash, creditReceipt.gasUsed)),
+          { txHash: creditHash, chainId: AVAX_CHAIN_ID },
+        )
       }
 
       stage('Waiting for COTI pool credit callback…')
@@ -254,17 +285,19 @@ export function useFundCampaign(onStage?: (stage: string) => void) {
         await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS))
       }
       if (creditFailure) {
-        throw new Error(
-          `COTI rejected the pool credit (${creditFailure}, tx ${creditHash}). ` +
+        throw new ChainTxError(
+          `COTI rejected the pool credit (${creditFailure}). ` +
             'The pMTT already reached the facade; retry "Request pool credit" once the cause is fixed.',
+          { txHash: creditHash, chainId: AVAX_CHAIN_ID },
         )
       }
       if (!credited) {
         log('TIMED OUT waiting for pool credit', { creditPoll, elapsedMs: Date.now() - creditStart, creditHash })
-        throw new Error(
-          `Timed out waiting for COTI to credit the campaign pool (tx ${creditHash}, waited ${Math.round(
+        throw new ChainTxError(
+          `Timed out waiting for COTI to credit the campaign pool (waited ${Math.round(
             (Date.now() - creditStart) / 1000,
           )}s). Check the console for [useFundCampaign] logs.`,
+          { txHash: creditHash, chainId: AVAX_CHAIN_ID },
         )
       }
 

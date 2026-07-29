@@ -13,6 +13,7 @@ import { buildRegisterLeafIt } from '../lib/buildPayrollIt'
 import { saveCampaign } from '../lib/campaignStorage'
 import { toClaimPackage } from '../lib/claimPackage'
 import { buildPayrollMerkleTree, type PayrollMerkleTree, type RosterEntry } from '../lib/merkle'
+import { bufferedGas } from '../lib/gas'
 import { COTI_REGISTER_LEAF_GAS } from '../lib/podFees'
 
 export type CreateCampaignParams = {
@@ -116,7 +117,7 @@ export function useCreateCampaign(onStage?: (stage: DeployStage) => void) {
         chainId: AVAX_CHAIN_ID,
       }
       stage('create', createLabel, createStageContract)
-      const createHash = await writeContractAsync({
+      const createCall = {
         ...avaxContracts.payrollCampaignFactory,
         functionName: 'createCampaign',
         args: [
@@ -128,6 +129,13 @@ export function useCreateCampaign(onStage?: (stage: DeployStage) => void) {
           params.campaignName,
           minFeeUSD,
         ],
+      } as const
+      const createGas = await bufferedGas(() =>
+        fujiClient.estimateContractGas({ ...createCall, account: address }),
+      )
+      const createHash = await writeContractAsync({
+        ...createCall,
+        gas: createGas,
         chainId: AVAX_CHAIN_ID,
       })
       log('createCampaign tx submitted', { createHash })
@@ -159,10 +167,20 @@ export function useCreateCampaign(onStage?: (stage: DeployStage) => void) {
       const registerRunLabel = 'Registering run on COTI…'
       stage('register-run', registerRunLabel)
       await logSwitchChain(switchChainAsync, COTI_TESTNET_CHAIN_ID)
-      const registerRunHash = await writeContractAsync({
+      const registerRunCall = {
         ...cotiTestnetContracts.privatePayrollCoti,
         functionName: 'registerRun',
         args: [runId, tree.root],
+      } as const
+      // COTI's estimator is the weaker of the two (see COTI_REGISTER_LEAF_GAS below, which has
+      // to bypass it entirely for MPC calls); registerRun touches no ciphertext, so estimate +
+      // headroom is enough here.
+      const registerRunGas = await bufferedGas(() =>
+        cotiClient.estimateContractGas({ ...registerRunCall, account: address }),
+      )
+      const registerRunHash = await writeContractAsync({
+        ...registerRunCall,
+        gas: registerRunGas,
         chainId: COTI_TESTNET_CHAIN_ID,
       })
       log('registerRun tx submitted', { registerRunHash })
@@ -209,11 +227,18 @@ export function useCreateCampaign(onStage?: (stage: DeployStage) => void) {
         const facadeLeafLabel = `Registering payroll entry ${pkg.index + 1}/${tree.packages.length} on facade…`
         stage(`facade-leaf-${pkg.index}`, facadeLeafLabel)
         await logSwitchChain(switchChainAsync, AVAX_CHAIN_ID)
-        const registerFacadeHash = await writeContractAsync({
+        const registerFacadeCall = {
           address: facadeAddress,
           abi: avaxContracts.payrollCampaignFacade.abi,
           functionName: 'registerLeaf',
           args: [BigInt(pkg.index), pkg.recipient, pkg.amountCommitment],
+        } as const
+        const registerFacadeGas = await bufferedGas(() =>
+          fujiClient.estimateContractGas({ ...registerFacadeCall, account: address }),
+        )
+        const registerFacadeHash = await writeContractAsync({
+          ...registerFacadeCall,
+          gas: registerFacadeGas,
           chainId: AVAX_CHAIN_ID,
         })
         log('registerLeaf (facade) tx submitted', { index: pkg.index, registerFacadeHash })
