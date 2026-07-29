@@ -5,6 +5,7 @@ import { usePrivacyBridgeUnlock } from '@coti-io/coti-wallet-plugin'
 import { avaxContracts, AVAX_CHAIN_ID } from '../config/contracts'
 import { buildVerifyIt } from '../lib/buildPayrollIt'
 import type { ClaimPackage } from '../lib/claimPackage'
+import { bufferedGas } from '../lib/gas'
 import { quoteClaimFees } from '../lib/podFees'
 
 const POLL_INTERVAL_MS = 3_000
@@ -95,10 +96,17 @@ export function useClaimFlow(onStage?: (stage: string) => void) {
       )
 
       stage('Submitting claim payload…')
-      const submitHash = await writeContractAsync({
+      const submitCall = {
         ...payrollClaimStore,
         functionName: 'submitPayload',
         args: [facade.address, BigInt(pkg.index), verifyIt, proofHandle],
+      } as const
+      const submitGas = await bufferedGas(() =>
+        publicClient.estimateContractGas({ ...submitCall, account: address }),
+      )
+      const submitHash = await writeContractAsync({
+        ...submitCall,
+        gas: submitGas,
         chainId: AVAX_CHAIN_ID,
       })
       log('submitPayload mined', { submitHash })
@@ -118,21 +126,30 @@ export function useClaimFlow(onStage?: (stage: string) => void) {
         fees.pTokenTotalFeeWei,
         fees.pTokenCallbackFeeWei,
       ] as const
-      const claimHash = to
-        ? await writeContractAsync({
+      const claimCall = to
+        ? ({
             ...facade,
             functionName: 'claimTo',
             args: [BigInt(pkg.index), to, pkg.proof, ...feeArgs],
             value: minFeeWei,
-            chainId: AVAX_CHAIN_ID,
-          })
-        : await writeContractAsync({
+          } as const)
+        : ({
             ...facade,
             functionName: 'claim',
             args: [BigInt(pkg.index), pkg.recipient, pkg.proof, ...feeArgs],
             value: minFeeWei,
-            chainId: AVAX_CHAIN_ID,
-          })
+          } as const)
+      // claim/claimTo make the same inbox round trip as the fund path, whose wallet-estimated
+      // limit came up short on live Fuji (lib/gas.ts).
+      const claimGas = await bufferedGas(() =>
+        publicClient.estimateContractGas({ ...claimCall, account: address }),
+      )
+      log('claim gas', { claimGas: claimGas?.toString() ?? 'wallet estimate' })
+      const claimHash = await writeContractAsync({
+        ...claimCall,
+        gas: claimGas,
+        chainId: AVAX_CHAIN_ID,
+      })
       const claimReceipt = await publicClient.waitForTransactionReceipt({ hash: claimHash })
       log('claim mined', { claimHash, status: claimReceipt.status })
       if (claimReceipt.status !== 'success') throw new Error('Claim transaction reverted.')
