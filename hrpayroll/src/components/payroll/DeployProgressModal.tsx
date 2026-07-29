@@ -1,6 +1,7 @@
 import type { DeployStage } from '../../hooks/useCreateCampaign'
-import { explorerAddressUrl, explorerName, explorerTxUrl, shortHash } from '../../lib/explorer'
+import { explorerAddressUrl } from '../../lib/explorer'
 import { InlineError } from '../InlineError'
+import { TxLink } from '../TxLink'
 import { Button } from '../ui/button'
 import { Modal } from '../ui/modal'
 
@@ -85,17 +86,12 @@ export function StageContractLink({ stage }: { stage: DeployStage }) {
  */
 export function StageTxLink({ stage }: { stage: DeployStage }) {
   if (!stage.txHash || stage.chainId === undefined) return null
-  const url = explorerTxUrl(stage.chainId, stage.txHash)
-  if (!url) return null
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <TxLink
+      chainId={stage.chainId}
+      hash={stage.txHash}
       className="ml-5 font-mono text-xs text-[#FF9100] hover:underline"
-    >
-      {shortHash(stage.txHash)} ↗ {explorerName(stage.chainId)}
-    </a>
+    />
   )
 }
