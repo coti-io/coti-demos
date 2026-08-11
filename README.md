@@ -84,3 +84,17 @@ A private on-chain payroll demo on Avalanche Fuji with COTI privacy. Organizatio
 - Employee claim packages with private access unlock
 - Cross-chain settlement between Avalanche Fuji and COTI testnet
 
+---
+
+### 🏦 Tokenized RWA Funds
+**Source Code:** [/rwa](./rwa)
+
+A React frontend for confidential ERC-3643 tokenized funds on COTI testnet. Investors subscribe to
+tokenized treasury and CLO funds and hold encrypted share balances that only they can decrypt.
+
+**Key Features:**
+- Confidential share balances via `ctUint256`, decrypted in the browser
+- ERC-3643 compliance and eligibility registration
+- Private access unlock through the COTI wallet plugin
+- Subscription flow against USDC/USDT payment tokens
+
