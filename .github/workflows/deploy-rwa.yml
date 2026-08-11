@@ -1,0 +1,143 @@
+name: Deploy RWA
+
+# Builds the rwa Vite app (static SPA) and publishes it to S3 (optionally
+# invalidating CloudFront). Runs only when the rwa app or this workflow
+# changes, so the other demos in the monorepo don't trigger a deploy.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rwa/**'
+      - '.github/workflows/deploy-rwa.yml'
+  workflow_dispatch:
+
+# One deploy at a time; cancel an in-progress run when a newer commit lands.
+concurrency:
+  group: deploy-rwa
+  cancel-in-progress: true
+
+# The app is nested a level deeper than the other demos: rwa/ holds the mockup
+# screenshots, rwa/app/ is the project.
+defaults:
+  run:
+    working-directory: rwa/app
+
+jobs:
+  build-and-deploy:
+    name: Build & deploy to S3
+    runs-on: ubuntu-latest
+    environment: rwa-env
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # Node 24 ships npm 11, which is what package-lock.json is generated with.
+          # Matches the payroll workflow: on npm 10 the lockfile resolves to a
+          # different tree and `npm ci` fails on a missing transitive dependency.
+          node-version: 24
+          cache: npm
+          cache-dependency-path: rwa/app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          # Public, baked into the bundle at build time (GitHub Actions "Variables").
+          # Optional: enables the WalletConnect connector; injected wallets (MetaMask
+          # etc.) work without it. Resolves to empty until the variable is configured.
+          VITE_WALLETCONNECT_PROJECT_ID: ${{ vars.VITE_WALLETCONNECT_PROJECT_ID }}
+        # `npm run build` is `tsc -b && vite build`, so a type error fails the deploy.
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Sync to S3
+        # Vite emits the SPA under dist/. Long-cache the fingerprinted assets;
+        # never cache the HTML entrypoint so a new deploy is picked up immediately.
+        # Bucket var is RWA_S3_BUCKET, scoped like MILLIONAIRE_S3_BUCKET rather than
+        # payroll's bare BUCKET_NAME. Trimmed because a stray trailing newline in the
+        # variable value breaks the s3:// URL.
+        env:
+          BUCKET_NAME: ${{ vars.RWA_S3_BUCKET }}
+        run: |
+          BUCKET="$(printf '%s' "$BUCKET_NAME" | tr -d '[:space:]')"
+          if [ -z "$BUCKET" ]; then
+            echo "::error::RWA_S3_BUCKET is not set for the rwa-env environment."
+            exit 1
+          fi
+          aws s3 sync dist/ "s3://$BUCKET" \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "*.html"
+          aws s3 sync dist/ "s3://$BUCKET" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --exclude "*" \
+            --include "*.html"
+
+      - name: Invalidate CloudFront
+        # Distribution id is an environment Variable (RWA_CLOUDFRONT_DISTRIBUTION_ID),
+        # following millionaire rather than payroll's secret: the id is not sensitive.
+        # Best-effort: by the time this runs the S3 sync has already published the site,
+        # HTML is served no-cache and assets are content-hashed, so a missed invalidation
+        # doesn't serve stale content. Problems are reported as warnings rather than
+        # failing an otherwise successful deploy.
+        env:
+          DISTRIBUTION_ID: ${{ vars.RWA_CLOUDFRONT_DISTRIBUTION_ID }}
+          BUCKET_NAME: ${{ vars.RWA_S3_BUCKET }}
+        run: |
+          # Normalise the value: strip whitespace, surrounding quotes, and the prefix
+          # of a full ARN, so arn:aws:cloudfront::123456789012:distribution/E123ABC
+          # yields E123ABC.
+          DIST_ID="$(printf '%s' "$DISTRIBUTION_ID" | tr -d '[:space:]')"
+          DIST_ID="${DIST_ID//\"/}"
+          DIST_ID="${DIST_ID//\'/}"
+          DIST_ID="${DIST_ID##*/}"
+
+          if [ -z "$DIST_ID" ]; then
+            echo "RWA_CLOUDFRONT_DISTRIBUTION_ID not set; skipping CloudFront invalidation."
+            exit 0
+          fi
+
+          if aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/*"; then
+            exit 0
+          fi
+
+          # Diagnose the failure. This repository is public, so the log gets only a
+          # match count and the length of the configured value, never the ids
+          # themselves — enough to tell the three likely causes apart.
+          echo "::warning::CloudFront invalidation failed. The site was still published to S3."
+
+          case "$DIST_ID" in
+            *.cloudfront.net)
+              echo "RWA_CLOUDFRONT_DISTRIBUTION_ID looks like a distribution domain name."
+              echo "It wants the Id from the CloudFront console (starts with 'E'), not the domain."
+              exit 0
+              ;;
+          esac
+
+          BUCKET="$(printf '%s' "$BUCKET_NAME" | tr -d '[:space:]')"
+          MATCHES="$(aws cloudfront list-distributions \
+            --query "length(DistributionList.Items[?Origins.Items[?contains(DomainName, '$BUCKET')]])" \
+            --output text 2>/dev/null)" || MATCHES=""
+
+          if [ -z "$MATCHES" ]; then
+            echo "Could not list distributions (cloudfront:ListDistributions may be denied)."
+            echo "Compare the Id in the CloudFront console with the RWA_CLOUDFRONT_DISTRIBUTION_ID variable."
+          elif [ "$MATCHES" = "0" ]; then
+            echo "No distribution in this account has an origin matching '$BUCKET'."
+            echo "If the site is served straight from S3, clear RWA_CLOUDFRONT_DISTRIBUTION_ID to skip this step."
+          else
+            echo "$MATCHES distribution(s) in this account front '$BUCKET', but the configured"
+            echo "RWA_CLOUDFRONT_DISTRIBUTION_ID (${#DIST_ID} chars) is not one of them - update the variable."
+          fi
